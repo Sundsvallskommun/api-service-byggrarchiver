@@ -1,6 +1,5 @@
 package se.sundsvall.vo;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,8 +13,8 @@ import java.util.Objects;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ArchiveBatchHistory {
-    public ArchiveBatchHistory(LocalDate start, LocalDate end, BatchStatus batchStatus) {
+public class BatchHistory {
+    public BatchHistory(LocalDate start, LocalDate end, BatchStatus batchStatus) {
         this.start = start;
         this.end = end;
         this.batchStatus = batchStatus;
@@ -35,7 +34,7 @@ public class ArchiveBatchHistory {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ArchiveBatchHistory that = (ArchiveBatchHistory) o;
+        BatchHistory that = (BatchHistory) o;
         return Objects.equals(id, that.id) && Objects.equals(start, that.start) && Objects.equals(end, that.end) && batchStatus == that.batchStatus;
     }
 

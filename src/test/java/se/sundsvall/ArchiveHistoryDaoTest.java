@@ -4,7 +4,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import se.sundsvall.casemanagement.SystemType;
-import se.sundsvall.vo.ArchiveBatchHistory;
+import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchStatus;
 
@@ -36,15 +36,15 @@ public class ArchiveHistoryDaoTest {
 
     @Test
     public void testPostAndGetArchiveBatchHistory() {
-        ArchiveBatchHistory archiveBatchHistory = new ArchiveBatchHistory();
-        archiveBatchHistory.setStart(LocalDate.now().minusDays(1));
-        archiveBatchHistory.setEnd(LocalDate.now());
-        archiveBatchHistory.setBatchStatus(BatchStatus.NOT_COMPLETED);
+        BatchHistory batchHistory = new BatchHistory();
+        batchHistory.setStart(LocalDate.now().minusDays(1));
+        batchHistory.setEnd(LocalDate.now());
+        batchHistory.setBatchStatus(BatchStatus.NOT_COMPLETED);
 
-        archiveDao.postArchiveBatchHistory(archiveBatchHistory);
+        archiveDao.postArchiveBatchHistory(batchHistory);
 
-        ArchiveBatchHistory result = archiveDao.getArchiveBatchHistory(archiveBatchHistory.getId());
-        Assertions.assertEquals(archiveBatchHistory, result);
+        BatchHistory result = archiveDao.getArchiveBatchHistory(batchHistory.getId());
+        Assertions.assertEquals(batchHistory, result);
     }
 
 

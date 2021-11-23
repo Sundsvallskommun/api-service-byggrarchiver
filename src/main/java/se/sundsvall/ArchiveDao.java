@@ -1,6 +1,6 @@
 package se.sundsvall;
 
-import se.sundsvall.vo.ArchiveBatchHistory;
+import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.ArchiveHistory;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -9,7 +9,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
-import java.time.LocalDate;
 import java.util.List;
 
 @ApplicationScoped
@@ -31,26 +30,26 @@ public class ArchiveDao {
     }
 
     @Transactional
-    public void postArchiveBatchHistory(ArchiveBatchHistory archiveBatchHistory) {
-        em.persist(archiveBatchHistory);
+    public void postArchiveBatchHistory(BatchHistory batchHistory) {
+        em.persist(batchHistory);
     }
 
     @Transactional
-    public void updateArchiveBatchHistory(ArchiveBatchHistory archiveBatchHistory) {
-        em.merge(archiveBatchHistory);
+    public void updateArchiveBatchHistory(BatchHistory batchHistory) {
+        em.merge(batchHistory);
     }
 
-    public ArchiveBatchHistory getArchiveBatchHistory(Long id) {
-        ArchiveBatchHistory archiveBatchHistory = em.find(ArchiveBatchHistory.class, id);
-        if (archiveBatchHistory == null) {
+    public BatchHistory getArchiveBatchHistory(Long id) {
+        BatchHistory batchHistory = em.find(BatchHistory.class, id);
+        if (batchHistory == null) {
             throw new EntityNotFoundException("Can't find ArchiveBatchHistory for ID "
                     + id);
         }
-        return archiveBatchHistory;
+        return batchHistory;
     }
 
-    public List<ArchiveBatchHistory> getArchiveBatchHistory() {
-        TypedQuery<ArchiveBatchHistory> archiveBatchHistoryList = em.createQuery("SELECT a FROM ArchiveBatchHistory a", ArchiveBatchHistory.class);
+    public List<BatchHistory> getArchiveBatchHistory() {
+        TypedQuery<BatchHistory> archiveBatchHistoryList = em.createQuery("SELECT a FROM ArchiveBatchHistory a", BatchHistory.class);
 
         return archiveBatchHistoryList.getResultList();
     }

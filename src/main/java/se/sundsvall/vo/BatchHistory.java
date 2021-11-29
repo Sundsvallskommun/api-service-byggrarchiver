@@ -7,6 +7,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 @Entity
@@ -29,6 +31,15 @@ public class BatchHistory {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private BatchStatus batchStatus;
+    @Getter
+    @Schema(readOnly = true)
+    private LocalDateTime timestamp;
+
+    @PrePersist
+    @PreUpdate
+    protected void onPersist() {
+        timestamp = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
+    }
 
     @Override
     public boolean equals(Object o) {

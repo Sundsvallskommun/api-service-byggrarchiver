@@ -41,9 +41,9 @@ public class ArchiveHistoryDaoTest {
         batchHistory.setEnd(LocalDate.now());
         batchHistory.setBatchStatus(BatchStatus.NOT_COMPLETED);
 
-        archiveDao.postArchiveBatchHistory(batchHistory);
+        archiveDao.postBatchHistory(batchHistory);
 
-        BatchHistory result = archiveDao.getArchiveBatchHistory(batchHistory.getId());
+        BatchHistory result = archiveDao.getBatchHistory(batchHistory.getId());
         Assertions.assertEquals(batchHistory, result);
     }
 

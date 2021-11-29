@@ -30,28 +30,28 @@ public class ArchiveDao {
     }
 
     @Transactional
-    public void postArchiveBatchHistory(BatchHistory batchHistory) {
+    public void postBatchHistory(BatchHistory batchHistory) {
         em.persist(batchHistory);
     }
 
     @Transactional
-    public void updateArchiveBatchHistory(BatchHistory batchHistory) {
+    public void updateBatchHistory(BatchHistory batchHistory) {
         em.merge(batchHistory);
     }
 
-    public BatchHistory getArchiveBatchHistory(Long id) {
+    public BatchHistory getBatchHistory(Long id) {
         BatchHistory batchHistory = em.find(BatchHistory.class, id);
         if (batchHistory == null) {
-            throw new EntityNotFoundException("Can't find ArchiveBatchHistory for ID "
+            throw new EntityNotFoundException("Can't find BatchHistory for ID "
                     + id);
         }
         return batchHistory;
     }
 
-    public List<BatchHistory> getArchiveBatchHistory() {
-        TypedQuery<BatchHistory> archiveBatchHistoryList = em.createQuery("SELECT a FROM ArchiveBatchHistory a", BatchHistory.class);
+    public List<BatchHistory> getBatchHistory() {
+        TypedQuery<BatchHistory> batchHistoryList = em.createQuery("SELECT a FROM BatchHistory a", BatchHistory.class);
 
-        return archiveBatchHistoryList.getResultList();
+        return batchHistoryList.getResultList();
     }
 
     private String setWildcardIfNotPresent(String value) {

@@ -1,8 +1,5 @@
 package se.sundsvall;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.archive.ArchiveService;
@@ -10,6 +7,7 @@ import se.sundsvall.casemanagement.Attachment;
 import se.sundsvall.casemanagement.CaseManagementService;
 import se.sundsvall.casemanagement.SystemType;
 import se.sundsvall.exceptions.ApplicationException;
+import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -40,9 +38,8 @@ public class Archiver {
     @Inject
     ArchiveDao archiveDao;
 
-    private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
-    public void archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException, JsonProcessingException {
+    public void archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
 
         if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
             BatchHistory latestBatch = getLatestBatch();
@@ -65,12 +62,15 @@ public class Archiver {
         }
 
         log.info("Runs batch with start-date: " + start + " and end-date: " + end);
-        BatchHistory newBatchHistory = new BatchHistory(start, end, batchTrigger, BatchStatus.NOT_COMPLETED);
+
         // Persist the start of this batch
+        BatchHistory newBatchHistory = new BatchHistory(start, end, batchTrigger, BatchStatus.NOT_COMPLETED);
         archiveDao.postBatchHistory(newBatchHistory);
 
+        // Get Byggr-attachments from CaseManagement
         List<Attachment> attachmentList = getByggrAttachments(start, end);
 
+        // Post archives to archive
         archive(attachmentList, newBatchHistory);
 
         // Persist that this batch is completed
@@ -124,30 +124,18 @@ public class Archiver {
         }
     }
 
-    private List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) throws JsonProcessingException {
+
+    private List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) {
         List<Attachment> attachmentList = new ArrayList<>();
-        // Get Byggr-attachments from CaseManagement
         try {
             attachmentList = caseManagementService.getDocuments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), SystemType.BYGGR);
-        } catch (WebApplicationException e) {
-            Information response = null;
-            try {
-                response = e.getResponse().readEntity(Information.class);
-                log.info(response);
-            } catch (Exception e1) {
-                log.error("Could not read entity from CaseManagement.", e1);
-            }
-
-            if (e.getResponse().getStatusInfo().equals(Response.Status.NOT_FOUND)
-                    && response != null
-                    && response.getDetail() != null
-                    && response.getDetail().equals("Documents not found")) {
+        } catch (ServiceException e) {
+            if (e.getStatus().equals(Response.Status.NOT_FOUND)
+                    && e.getMessage() != null
+                    && e.getMessage().contains("Documents not found")) {
                 log.info("Status from CaseManagement.getDocuments: HTTP 404 - Documents not found");
             } else {
-                log.error("Something went wrong in the request to caseManagementService.getDocuments. Response from CaseManagement:\nHTTP " + e.getResponse().getStatus() + " "
-                        + mapper.writeValueAsString(e.getResponse().getStatusInfo()) + "\n"
-                        + mapper.writeValueAsString(e.getResponse().getMetadata()) + "\n"
-                        + mapper.writeValueAsString(response));
+                log.error("Unexpected response from CaseManagement when using method caseManagementService.getDocuments -->\nHTTP Status: " + e.getStatus().getStatusCode() + " " + e.getStatus().getReasonPhrase() + "\nResponse body: " + e.getMessage());
 
                 throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .entity(new Information(Constants.RFC_LINK_INTERNAL_SERVER_ERROR,

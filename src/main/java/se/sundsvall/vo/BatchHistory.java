@@ -16,23 +16,36 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 public class BatchHistory {
-    public BatchHistory(LocalDate start, LocalDate end, BatchStatus batchStatus) {
+    public BatchHistory(LocalDate start, LocalDate end, BatchTrigger batchTrigger, BatchStatus batchStatus) {
         this.start = start;
         this.end = end;
+        this.batchTrigger = batchTrigger;
         this.batchStatus = batchStatus;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(readOnly = true)
+    @Column(nullable = false)
     private Long id;
+
+    @Column(nullable = false)
     private LocalDate start;
+
+    @Column(nullable = false)
     private LocalDate end;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private BatchStatus batchStatus;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BatchTrigger batchTrigger;
+
     @Getter
     @Schema(readOnly = true)
+    @Column(nullable = false)
     private LocalDateTime timestamp;
 
     @PrePersist

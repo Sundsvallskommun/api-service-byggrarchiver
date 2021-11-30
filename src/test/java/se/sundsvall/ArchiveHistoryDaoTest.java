@@ -4,38 +4,37 @@ import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import se.sundsvall.casemanagement.SystemType;
-import se.sundsvall.vo.BatchHistory;
+import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.vo.ArchiveHistory;
+import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.BatchStatus;
 
 import javax.inject.Inject;
-
 import java.time.LocalDate;
-import java.util.List;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.is;
 
 @QuarkusTest
-public class ArchiveHistoryDaoTest {
+class ArchiveHistoryDaoTest {
 
     @Inject
     ArchiveDao archiveDao;
 
     @Test
-    public void testPostAndGetArchiveHistory() {
+    void testPostAndGetArchiveHistory() throws ApplicationException {
         ArchiveHistory archiveHistory = new ArchiveHistory();
         archiveHistory.setDocumentId("abc-123");
-        archiveHistory.setSystem(SystemType.BYGGR);
+        archiveHistory.setSystemType(SystemType.BYGGR);
+        archiveHistory.setStatus(BatchStatus.COMPLETED);
 
         archiveDao.postArchiveHistory(archiveHistory);
 
-        List<ArchiveHistory> resultList = archiveDao.getArchiveHistory(archiveHistory.getDocumentId());
-        Assertions.assertEquals(1, resultList.size());
+        ArchiveHistory result = archiveDao.getArchiveHistory(archiveHistory.getDocumentId(), archiveHistory.getSystemType());
+        Assertions.assertEquals(archiveHistory.getDocumentId(), result.getDocumentId());
+        Assertions.assertEquals(archiveHistory.getSystemType(), result.getSystemType());
+        Assertions.assertEquals(archiveHistory.getStatus(), result.getStatus());
     }
 
     @Test
-    public void testPostAndGetArchiveBatchHistory() {
+    void testPostAndGetArchiveBatchHistory() {
         BatchHistory batchHistory = new BatchHistory();
         batchHistory.setStart(LocalDate.now().minusDays(1));
         batchHistory.setEnd(LocalDate.now());

@@ -15,10 +15,15 @@ import java.time.temporal.ChronoUnit;
 @NoArgsConstructor
 public class ArchiveHistory {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(readOnly = true)
+    @Column(nullable = false)
+    private Long id;
+
     @Getter
     @Setter
-    @Id
-    @Column(unique = true)
+    @Column(nullable = false)
     private String documentId;
 
     @Getter
@@ -26,23 +31,28 @@ public class ArchiveHistory {
     @NotNull
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private SystemType system;
+    private SystemType systemType;
 
     @Getter
-    private LocalDateTime archivedAt;
+    @Setter
+    @NotNull
+    @ManyToOne
+    private BatchHistory batchHistory;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BatchStatus status;
 
     @Getter
     @Schema(readOnly = true)
+    @Column(nullable = false)
     private LocalDateTime timestamp;
 
     @PrePersist
-    protected void onPersist() {
-        timestamp = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
-        archivedAt = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
-    }
-
     @PreUpdate
-    protected void onUpdate() {
+    protected void onPersist() {
         timestamp = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

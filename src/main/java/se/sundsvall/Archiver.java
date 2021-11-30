@@ -1,15 +1,16 @@
 package se.sundsvall;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.archive.ArchiveService;
 import se.sundsvall.casemanagement.Attachment;
 import se.sundsvall.casemanagement.CaseManagementService;
-import se.sundsvall.casemanagement.Information;
 import se.sundsvall.casemanagement.SystemType;
-import se.sundsvall.vo.BatchHistory;
-import se.sundsvall.vo.ArchiveHistory;
-import se.sundsvall.vo.BatchStatus;
+import se.sundsvall.exceptions.ApplicationException;
+import se.sundsvall.vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -39,84 +40,124 @@ public class Archiver {
     @Inject
     ArchiveDao archiveDao;
 
-    public void archiveByggrAttachments() {
+    private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
-        LocalDate start = LocalDate.now().minusDays(1);
-        LocalDate end = LocalDate.now();
+    public void archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException, JsonProcessingException {
 
-        BatchHistory latestBatch = getLatestBatch();
+        if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
+            BatchHistory latestBatch = getLatestBatch();
 
-        BatchHistory newBatchHistory = new BatchHistory(start, end, BatchStatus.NOT_COMPLETED);
+            if (latestBatch != null) {
+                // If the latest batch end-date is today or later we don't need to run it again
+                if (!latestBatch.getEnd().isBefore(end)) {
+                    log.info("The batch is already done. Cancelling this batch...");
+                    return;
+                }
 
-        if (latestBatch != null) {
-            // If the latest batch end-date is today or later and the latest batch is completed
-            if (!latestBatch.getEnd().isBefore(end)
-                    && latestBatch.getBatchStatus().equals(BatchStatus.COMPLETED)) {
-                log.info("The batch is already completed. Cancelling this batch...");
-                return;
-            }
+                // If the latest batch end-date is before this batch start-date, we would risk to miss something.
+                // Therefore - set the start-date to the latest batch end-date.
+                if (latestBatch.getEnd().isBefore(start)) {
+                    log.info("It was a gap between the latest batch end-date and this batch start-date. Sets the start-date to: " + latestBatch.getEnd());
+                    start = latestBatch.getEnd();
+                }
 
-            // If the latest batch end-date is before this batch start-date, we would risk to miss something.
-            // Therefore - set the start-date to the latest batch end-date.
-            if (latestBatch.getEnd().isBefore(start)) {
-                log.info("It was a gap between the latest batch end-date and this batch start-date. Sets the start-date to: " + latestBatch.getEnd());
-                start = latestBatch.getEnd();
-            }
-
-        }
-
-        List<Attachment> attachmentList = new ArrayList<>();
-        // Get Byggr-attachments from CaseManagement
-        try {
-            attachmentList = caseManagementService.getDocuments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), SystemType.BYGGR);
-        } catch (WebApplicationException e) {
-            Information response;
-
-            try {
-                response = e.getResponse().readEntity(Information.class);
-            } catch (Exception e1) {
-                // Throw the primary exception
-                throw e;
-            }
-
-            if (e.getResponse().getStatusInfo().equals(Response.Status.NOT_FOUND) && response.getDetail().equals("Documents not found")) {
-                log.info("Status from CaseManagement.getDocuments = 404");
-            } else {
-                throw e;
             }
         }
 
         log.info("Runs batch with start-date: " + start + " and end-date: " + end);
-
+        BatchHistory newBatchHistory = new BatchHistory(start, end, batchTrigger, BatchStatus.NOT_COMPLETED);
         // Persist the start of this batch
         archiveDao.postBatchHistory(newBatchHistory);
 
-        if (attachmentList.isEmpty()) {
-            log.info("AttachmentList is empty - 0 attachments found in CaseManagement for ByggR.");
-        } else {
-            for (Attachment attachment : attachmentList) {
-                List<ArchiveHistory> archiveHistories = archiveDao.getArchiveHistory(attachment.getId());
+        List<Attachment> attachmentList = getByggrAttachments(start, end);
 
-                if (archiveHistories.isEmpty()) {
-                    ArchiveHistory archiveHistory = new ArchiveHistory();
-                    archiveHistory.setSystem(attachment.getArchiveMetadata().getSystem());
-                    archiveHistory.setDocumentId(attachment.getId());
-
-                    // POST to archive
-                    String s = archiveService.postArchive();
-                    log.info(s);
-
-                    archiveDao.postArchiveHistory(archiveHistory);
-                } else {
-                    log.info(attachment.getId() + " is already archived.");
-                }
-            }
-        }
+        archive(attachmentList, newBatchHistory);
 
         // Persist that this batch is completed
         log.info("Batch completed.");
         newBatchHistory.setBatchStatus(BatchStatus.COMPLETED);
         archiveDao.updateBatchHistory(newBatchHistory);
+    }
+
+    private void archive(List<Attachment> attachmentList, BatchHistory batchHistory) throws ApplicationException {
+        if (attachmentList.isEmpty()) {
+            log.info("AttachmentList is empty - 0 attachments found in CaseManagement for ByggR.");
+        } else {
+            for (Attachment attachment : attachmentList) {
+                ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getId(), attachment.getArchiveMetadata().getSystem());
+
+                if (oldArchiveHistory == null) {
+                    log.info("The document does not exist in the db. Archive it..");
+
+                    ArchiveHistory newArchiveHistory = new ArchiveHistory();
+                    newArchiveHistory.setSystemType(attachment.getArchiveMetadata().getSystem());
+                    newArchiveHistory.setDocumentId(attachment.getId());
+                    newArchiveHistory.setBatchHistory(batchHistory);
+                    newArchiveHistory.setStatus(BatchStatus.COMPLETED);
+
+                    // POST to archive
+                    try {
+                        log.info("Framtida anrop till archive");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        newArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);
+                    }
+
+                    archiveDao.postArchiveHistory(newArchiveHistory);
+                } else if (oldArchiveHistory.getStatus().equals(BatchStatus.NOT_COMPLETED)) {
+                    log.info("The document existed but has the status NOT_COMPLETED. Trying again...");
+                    oldArchiveHistory.setStatus(BatchStatus.COMPLETED);
+                    oldArchiveHistory.setBatchHistory(batchHistory);
+
+                    try {
+                        log.info("POST oldArchive");
+                    } catch (Exception e) {
+                        oldArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);
+                    }
+
+                    archiveDao.updateArchiveHistory(oldArchiveHistory);
+
+                } else {
+                    log.info("The document " + attachment.getId() + " is already archived.");
+                }
+            }
+        }
+    }
+
+    private List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) throws JsonProcessingException {
+        List<Attachment> attachmentList = new ArrayList<>();
+        // Get Byggr-attachments from CaseManagement
+        try {
+            attachmentList = caseManagementService.getDocuments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), SystemType.BYGGR);
+        } catch (WebApplicationException e) {
+            Information response = null;
+            try {
+                response = e.getResponse().readEntity(Information.class);
+                log.info(response);
+            } catch (Exception e1) {
+                log.error("Could not read entity from CaseManagement.", e1);
+            }
+
+            if (e.getResponse().getStatusInfo().equals(Response.Status.NOT_FOUND)
+                    && response != null
+                    && response.getDetail() != null
+                    && response.getDetail().equals("Documents not found")) {
+                log.info("Status from CaseManagement.getDocuments: HTTP 404 - Documents not found");
+            } else {
+                log.error("Something went wrong in the request to caseManagementService.getDocuments. Response from CaseManagement:\nHTTP " + e.getResponse().getStatus() + " "
+                        + mapper.writeValueAsString(e.getResponse().getStatusInfo()) + "\n"
+                        + mapper.writeValueAsString(e.getResponse().getMetadata()) + "\n"
+                        + mapper.writeValueAsString(response));
+
+                throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity(new Information(Constants.RFC_LINK_INTERNAL_SERVER_ERROR,
+                                Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
+                                Constants.ERR_MSG_EXTERNAL_SERVICE, null))
+                        .build());
+            }
+        }
+        return attachmentList;
     }
 
     private BatchHistory getLatestBatch() {

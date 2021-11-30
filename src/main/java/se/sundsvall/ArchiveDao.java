@@ -1,7 +1,10 @@
 package se.sundsvall;
 
+import se.sundsvall.casemanagement.SystemType;
+import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.ArchiveHistory;
+import se.sundsvall.vo.BatchStatus;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -22,11 +25,34 @@ public class ArchiveDao {
         em.persist(archiveHistory);
     }
 
-    public List<ArchiveHistory> getArchiveHistory(String documentId) {
-        TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.documentId LIKE :documentId", ArchiveHistory.class)
-                .setParameter("documentId", documentId);
-
+    public List<ArchiveHistory> getArchiveHistory() {
+        TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a", ArchiveHistory.class);
         return archiveHistoryList.getResultList();
+    }
+
+    public List<ArchiveHistory> getArchiveHistory(BatchStatus status) {
+        TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.status LIKE :status", ArchiveHistory.class)
+                .setParameter("status", status);
+        return archiveHistoryList.getResultList();
+    }
+
+    public ArchiveHistory getArchiveHistory(String documentId, SystemType systemType) throws ApplicationException {
+        TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.documentId LIKE :documentId AND a.systemType LIKE :systemType", ArchiveHistory.class)
+                .setParameter("documentId", documentId)
+                .setParameter("systemType", systemType);
+
+        if (archiveHistoryList.getResultList().size() > 1) {
+            throw new ApplicationException("It should not be more than one row in db for documentId: " + documentId + " and systemType: " + systemType);
+        } else if (archiveHistoryList.getResultList().size() == 1) {
+            return archiveHistoryList.getResultList().get(0);
+        } else {
+            return null;
+        }
+    }
+
+    @Transactional
+    public void updateArchiveHistory(ArchiveHistory archiveHistory) {
+        em.merge(archiveHistory);
     }
 
     @Transactional
@@ -54,10 +80,4 @@ public class ArchiveDao {
         return batchHistoryList.getResultList();
     }
 
-    private String setWildcardIfNotPresent(String value) {
-        if (value == null || value.isBlank() || value.isEmpty()) {
-            value = "%";
-        }
-        return value;
-    }
 }

@@ -1,4 +1,4 @@
-package se.sundsvall.casemanagement;
+package se.sundsvall.sundsvall;
 
 import io.quarkus.oidc.client.NamedOidcClient;
 import io.quarkus.oidc.client.Tokens;
@@ -13,10 +13,10 @@ import javax.ws.rs.core.HttpHeaders;
 
 @RequestScoped
 @Priority(Priorities.AUTHENTICATION)
-public class CaseManagementOauth2Filter implements ClientRequestFilter {
+public class SundsvallsKommunOauth2Filter implements ClientRequestFilter {
 
     @Inject
-    @NamedOidcClient("CASE-MANAGEMENT")
+    @NamedOidcClient("SUNDSVALLS-KOMMUN")
     Tokens tokens;
 
     @Override

@@ -3,7 +3,7 @@ package se.sundsvall;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import se.sundsvall.casemanagement.SystemType;
+import se.sundsvall.sundsvall.casemanagement.SystemType;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchHistory;

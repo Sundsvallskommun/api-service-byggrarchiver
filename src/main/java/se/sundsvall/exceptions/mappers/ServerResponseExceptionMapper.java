@@ -1,4 +1,4 @@
-package se.sundsvall.casemanagement.mappers;
+package se.sundsvall.exceptions.mappers;
 
 import org.eclipse.microprofile.rest.client.ext.ResponseExceptionMapper;
 import org.jboss.logging.Logger;
@@ -7,7 +7,7 @@ import se.sundsvall.exceptions.ServiceException;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
-public class CaseManagementExceptionMapper implements ResponseExceptionMapper<ServiceException> {
+public class ServerResponseExceptionMapper implements ResponseExceptionMapper<ServiceException> {
 
     @Inject
     Logger log;
@@ -15,7 +15,7 @@ public class CaseManagementExceptionMapper implements ResponseExceptionMapper<Se
     @Override
     public ServiceException toThrowable(Response response) {
         String responseBody = response.readEntity(String.class);
-        log.info("Response from CaseManagement -->\nHTTP Status: " + response.getStatusInfo().getStatusCode() + " " + response.getStatusInfo().getReasonPhrase() + "\nResponse body: " + responseBody);
+        log.info("Response from server -->\nHTTP Status: " + response.getStatusInfo().getStatusCode() + " " + response.getStatusInfo().getReasonPhrase() + "\nResponse body: " + responseBody);
 
         return ServiceException.create(responseBody, null, response.getStatusInfo().toEnum());
     }

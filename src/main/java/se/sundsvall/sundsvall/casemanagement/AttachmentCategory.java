@@ -1,4 +1,4 @@
-package se.sundsvall.casemanagement;
+package se.sundsvall.sundsvall.casemanagement;
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 

@@ -1,4 +1,4 @@
-package se.sundsvall.casemanagement;
+package se.sundsvall.sundsvall.casemanagement;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

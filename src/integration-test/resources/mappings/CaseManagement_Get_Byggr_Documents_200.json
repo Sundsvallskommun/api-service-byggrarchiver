@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/casemanagement/2.1/cases/closed/documents/archive"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "CaseManagement_Get_Byggr_Documents_200.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

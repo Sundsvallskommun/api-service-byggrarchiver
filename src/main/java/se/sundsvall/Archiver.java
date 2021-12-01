@@ -2,10 +2,11 @@ package se.sundsvall;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
-import se.sundsvall.archive.ArchiveService;
-import se.sundsvall.casemanagement.Attachment;
-import se.sundsvall.casemanagement.CaseManagementService;
-import se.sundsvall.casemanagement.SystemType;
+import se.sundsvall.sundsvall.archive.ArchiveResponse;
+import se.sundsvall.sundsvall.archive.ArchiveService;
+import se.sundsvall.sundsvall.casemanagement.Attachment;
+import se.sundsvall.sundsvall.casemanagement.CaseManagementService;
+import se.sundsvall.sundsvall.casemanagement.SystemType;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.vo.*;
@@ -98,6 +99,8 @@ public class Archiver {
                     // POST to archive
                     try {
                         log.info("Framtida anrop till archive");
+                        ArchiveResponse archiveResponse = archiveService.postArchive(attachment);
+                        log.info("Response from archive: " + archiveResponse);
                     } catch (Exception e) {
                         e.printStackTrace();
                         newArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);

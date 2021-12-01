@@ -1,10 +1,11 @@
-package se.sundsvall.casemanagement;
+package se.sundsvall.sundsvall.casemanagement;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
-import se.sundsvall.casemanagement.mappers.CaseManagementExceptionMapper;
+import se.sundsvall.sundsvall.SundsvallsKommunOauth2Filter;
+import se.sundsvall.exceptions.mappers.ServerResponseExceptionMapper;
 import se.sundsvall.exceptions.ServiceException;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -14,8 +15,8 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/2.1")
-@RegisterProvider(CaseManagementOauth2Filter.class)
-@RegisterProvider(CaseManagementExceptionMapper.class)
+@RegisterProvider(SundsvallsKommunOauth2Filter.class)
+@RegisterProvider(ServerResponseExceptionMapper.class)
 @RegisterRestClient(configKey = "CASE-MANAGEMENT")
 @ApplicationScoped
 public interface CaseManagementService {

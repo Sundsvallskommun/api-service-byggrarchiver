@@ -42,7 +42,7 @@ public class Archiver {
     public void archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
 
         if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
-            BatchHistory latestBatch = getLatestBatch();
+            BatchHistory latestBatch = getLatestCompletedBatch();
 
             if (latestBatch != null) {
                 // If the latest batch end-date is today or later we don't need to run it again
@@ -125,7 +125,7 @@ public class Archiver {
     }
 
 
-    private List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) {
+    public List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) {
         List<Attachment> attachmentList = new ArrayList<>();
         try {
             attachmentList = caseManagementService.getDocuments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), SystemType.BYGGR);
@@ -148,15 +148,25 @@ public class Archiver {
         return attachmentList;
     }
 
-    private BatchHistory getLatestBatch() {
+    public BatchHistory getLatestCompletedBatch() {
         List<BatchHistory> batchHistoryList = archiveDao.getBatchHistory();
+
+        // Filter completed batches
+        batchHistoryList = batchHistoryList.stream()
+                .filter(b -> b.getBatchStatus().equals(BatchStatus.COMPLETED))
+                .collect(Collectors.toList());
+
+        // Sort by end-date of batch
+        batchHistoryList = batchHistoryList.stream()
+                .sorted(Comparator.comparing(BatchHistory::getEnd, Comparator.reverseOrder()))
+                .collect(Collectors.toList());
+
+
         BatchHistory latestBatch = null;
 
         if (!batchHistoryList.isEmpty()) {
-            batchHistoryList = batchHistoryList.stream()
-                    .sorted(Comparator.comparing(BatchHistory::getEnd, Comparator.reverseOrder()))
-                    .collect(Collectors.toList());
 
+            // Get the latest batch
             latestBatch = batchHistoryList.get(0);
             log.info("slutdatum på senaste batchen: " + latestBatch.getEnd());
         }

@@ -40,6 +40,34 @@ public class Archiver {
     ArchiveDao archiveDao;
 
 
+    public void reRunBatch(Long batchHistoryId) throws ApplicationException {
+        BatchHistory batchHistory = archiveDao.getBatchHistory(batchHistoryId);
+
+        if (batchHistory.getBatchStatus().equals(BatchStatus.COMPLETED)) {
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new Information(Constants.RFC_LINK_BAD_REQUEST,
+                            Response.Status.BAD_REQUEST.getReasonPhrase(),
+                            Response.Status.BAD_REQUEST.getStatusCode(),
+                            "It's not possible to rerun a completed batch.", null))
+                    .build());
+        }
+
+        log.info("Rerun batch: " + batchHistory);
+
+        log.info("Runs batch with start-date: " + batchHistory.getStart() + " and end-date: " + batchHistory.getEnd());
+
+        // Get Byggr-attachments from CaseManagement
+        List<Attachment> attachmentList = getByggrAttachments(batchHistory.getStart(), batchHistory.getEnd());
+
+        // Post archives to archive
+        archive(attachmentList, batchHistory);
+
+        // Persist that this batch is completed
+        log.info("Batch completed.");
+        batchHistory.setBatchStatus(BatchStatus.COMPLETED);
+        archiveDao.updateBatchHistory(batchHistory);
+
+    }
     public void archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
 
         if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
@@ -74,10 +102,13 @@ public class Archiver {
         // Post archives to archive
         archive(attachmentList, newBatchHistory);
 
-        // Persist that this batch is completed
-        log.info("Batch completed.");
-        newBatchHistory.setBatchStatus(BatchStatus.COMPLETED);
-        archiveDao.updateBatchHistory(newBatchHistory);
+        if (archiveDao.getArchiveHistory(newBatchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(BatchStatus.NOT_COMPLETED)))
+        {
+            // Persist that this batch is completed
+            log.info("Batch completed.");
+            newBatchHistory.setBatchStatus(BatchStatus.COMPLETED);
+            archiveDao.updateBatchHistory(newBatchHistory);
+        }
     }
 
     private void archive(List<Attachment> attachmentList, BatchHistory batchHistory) throws ApplicationException {
@@ -87,44 +118,58 @@ public class Archiver {
             for (Attachment attachment : attachmentList) {
                 ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getId(), attachment.getArchiveMetadata().getSystem());
 
-                if (oldArchiveHistory == null) {
-                    log.info("The document does not exist in the db. Archive it..");
+                // The new archiveHistory
+                ArchiveHistory newArchiveHistory = null;
 
-                    ArchiveHistory newArchiveHistory = new ArchiveHistory();
+
+                if (oldArchiveHistory == null) {
+                    log.info("The document " + attachment.getId() + " does not exist in the db. Archive it..");
+
+                    newArchiveHistory = new ArchiveHistory();
                     newArchiveHistory.setSystemType(attachment.getArchiveMetadata().getSystem());
                     newArchiveHistory.setDocumentId(attachment.getId());
                     newArchiveHistory.setBatchHistory(batchHistory);
-                    newArchiveHistory.setStatus(BatchStatus.COMPLETED);
-
-                    // POST to archive
-                    try {
-                        log.info("Framtida anrop till archive");
-                        ArchiveResponse archiveResponse = archiveService.postArchive(attachment);
-                        log.info("Response from archive: " + archiveResponse);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        newArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);
-                    }
-
+                    newArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);
                     archiveDao.postArchiveHistory(newArchiveHistory);
+
                 } else if (oldArchiveHistory.getStatus().equals(BatchStatus.NOT_COMPLETED)) {
-                    log.info("The document existed but has the status NOT_COMPLETED. Trying again...");
-                    oldArchiveHistory.setStatus(BatchStatus.COMPLETED);
-                    oldArchiveHistory.setBatchHistory(batchHistory);
+                    log.info("The document " + attachment.getId() + " existed but has the status NOT_COMPLETED. Trying again...");
 
-                    try {
-                        log.info("POST oldArchive");
-                    } catch (Exception e) {
-                        oldArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);
-                    }
-
-                    archiveDao.updateArchiveHistory(oldArchiveHistory);
+                    newArchiveHistory = oldArchiveHistory;
+                    newArchiveHistory.setBatchHistory(batchHistory);
 
                 } else {
                     log.info("The document " + attachment.getId() + " is already archived.");
+                    return;
                 }
+
+                ArchiveResponse archiveResponse = postArchive(attachment);
+
+                if (archiveResponse != null) {
+                    // Success! Set status to completed
+                    newArchiveHistory.setStatus(BatchStatus.COMPLETED);
+                } else {
+                    // Not successful... Set status to not completed
+                    newArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);
+                }
+
+                archiveDao.updateArchiveHistory(newArchiveHistory);
             }
         }
+    }
+
+    private ArchiveResponse postArchive(Attachment attachment) {
+        ArchiveResponse archiveResponse = null;
+        // POST to archive
+        try {
+            log.info("Framtida anrop till archive");
+            archiveResponse = archiveService.postArchive(attachment);
+            log.info("Response from archive: " + archiveResponse);
+        } catch (ServiceException e) {
+            // Just log the error and continue with the rest
+            log.error("Unexpected response from Archive when using method archiveService.postArchive -->\nHTTP Status: " + e.getStatus().getStatusCode() + " " + e.getStatus().getReasonPhrase() + "\nResponse body: " + e.getMessage());
+        }
+        return archiveResponse;
     }
 
 

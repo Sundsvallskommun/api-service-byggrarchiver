@@ -2,6 +2,7 @@ package se.sundsvall.sundsvall.archive;
 
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sundsvall.SundsvallsKommunOauth2Filter;
 import se.sundsvall.sundsvall.casemanagement.Attachment;
 import se.sundsvall.exceptions.mappers.ServerResponseExceptionMapper;
@@ -23,6 +24,6 @@ public interface ArchiveService {
     @Path("/documents")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    ArchiveResponse postArchive(@NotNull @Valid Attachment attachment);
+    ArchiveResponse postArchive(@NotNull @Valid Attachment attachment) throws ServiceException;
 
 }

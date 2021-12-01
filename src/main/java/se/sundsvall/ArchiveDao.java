@@ -30,6 +30,11 @@ public class ArchiveDao {
         return archiveHistoryList.getResultList();
     }
 
+    public List<ArchiveHistory> getArchiveHistory(Long batchHistoryId) {
+        return em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.batchHistory LIKE :batchHistory", ArchiveHistory.class)
+                .setParameter("batchHistory", getBatchHistory(batchHistoryId)).getResultList();
+    }
+
     public List<ArchiveHistory> getArchiveHistory(BatchStatus status) {
         TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.status LIKE :status", ArchiveHistory.class)
                 .setParameter("status", status);

@@ -60,4 +60,13 @@ public class ArchiverResource {
         archiver.archiveByggrAttachments(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL);
         return Response.ok().build();
     }
+
+    @PUT
+    @Path("/batch-job/{batchHistoryId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response reRunBatchJob(@PathParam("batchHistoryId") Long batchHistoryId) throws ApplicationException {
+        archiver.reRunBatch(batchHistoryId);
+        return Response.ok().build();
+    }
 }

@@ -8,6 +8,7 @@ import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.BatchStatus;
+import se.sundsvall.vo.BatchTrigger;
 
 import javax.inject.Inject;
 import java.time.LocalDate;
@@ -39,6 +40,7 @@ class ArchiveHistoryDaoTest {
         batchHistory.setStart(LocalDate.now().minusDays(1));
         batchHistory.setEnd(LocalDate.now());
         batchHistory.setBatchStatus(BatchStatus.NOT_COMPLETED);
+        batchHistory.setBatchTrigger(BatchTrigger.SCHEDULED);
 
         archiveDao.postBatchHistory(batchHistory);
 

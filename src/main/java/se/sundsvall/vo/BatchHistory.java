@@ -3,6 +3,7 @@ package se.sundsvall.vo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 public class BatchHistory {
     public BatchHistory(LocalDate start, LocalDate end, BatchTrigger batchTrigger, BatchStatus batchStatus) {
         this.start = start;

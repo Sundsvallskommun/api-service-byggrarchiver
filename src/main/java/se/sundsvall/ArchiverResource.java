@@ -1,6 +1,5 @@
 package se.sundsvall;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.vo.*;
 
@@ -22,7 +21,7 @@ public class ArchiverResource {
     ArchiveDao archiveDao;
 
     @GET
-    @Path("/archive-history")
+    @Path("archive-history")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getArchiveHistory(@QueryParam("status") BatchStatus status) {
         List<ArchiveHistory> archiveHistoryList;
@@ -41,7 +40,7 @@ public class ArchiverResource {
     }
 
     @GET
-    @Path("/batch-history")
+    @Path("batch-history")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getBatchHistory() {
         List<BatchHistory> batchHistoryList = archiveDao.getBatchHistory();
@@ -53,19 +52,20 @@ public class ArchiverResource {
     }
 
     @POST
-    @Path("/batch-job")
+    @Path("batch-job")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response postBatchJob(@NotNull @Valid BatchJob batchJob) throws ApplicationException, JsonProcessingException {
+    public Response postBatchJob(@NotNull @Valid BatchJob batchJob) throws ApplicationException {
         archiver.archiveByggrAttachments(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL);
         return Response.ok().build();
     }
 
     @PUT
-    @Path("/batch-job/{batchHistoryId}")
+    @Path("batch-job/{batchHistoryId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response reRunBatchJob(@PathParam("batchHistoryId") Long batchHistoryId) throws ApplicationException {
+
         archiver.reRunBatch(batchHistoryId);
         return Response.ok().build();
     }

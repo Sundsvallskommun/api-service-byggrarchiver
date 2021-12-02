@@ -13,6 +13,7 @@ import se.sundsvall.vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.time.LocalDate;
@@ -41,7 +42,18 @@ public class Archiver {
 
 
     public void reRunBatch(Long batchHistoryId) throws ApplicationException {
-        BatchHistory batchHistory = archiveDao.getBatchHistory(batchHistoryId);
+        BatchHistory batchHistory;
+        try {
+            batchHistory = archiveDao.getBatchHistory(batchHistoryId);
+        } catch (EntityNotFoundException e)
+        {
+            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
+                    .entity(new Information(Constants.RFC_LINK_NOT_FOUND,
+                            Response.Status.NOT_FOUND.getReasonPhrase(),
+                            Response.Status.NOT_FOUND.getStatusCode(),
+                            e.getLocalizedMessage(), null))
+                    .build());
+        }
 
         if (batchHistory.getBatchStatus().equals(BatchStatus.COMPLETED)) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
@@ -103,7 +115,7 @@ public class Archiver {
                 ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getId(), attachment.getArchiveMetadata().getSystem());
 
                 // The new archiveHistory
-                ArchiveHistory newArchiveHistory = null;
+                ArchiveHistory newArchiveHistory;
 
                 if (oldArchiveHistory == null) {
                     log.info("The document " + attachment.getId() + " does not exist in the db. Archive it..");
@@ -123,7 +135,7 @@ public class Archiver {
 
                 } else {
                     log.info("The document " + attachment.getId() + " is already archived.");
-                    return;
+                    continue;
                 }
 
                 // Request to Archive

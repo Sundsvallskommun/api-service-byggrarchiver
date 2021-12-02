@@ -73,8 +73,7 @@ public class ArchiveDao {
     public BatchHistory getBatchHistory(Long id) {
         BatchHistory batchHistory = em.find(BatchHistory.class, id);
         if (batchHistory == null) {
-            throw new EntityNotFoundException("Can't find BatchHistory for ID "
-                    + id);
+            throw new EntityNotFoundException("Can't find BatchHistory with ID: " + id);
         }
         return batchHistory;
     }

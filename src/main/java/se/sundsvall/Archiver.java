@@ -54,20 +54,11 @@ public class Archiver {
 
         log.info("Rerun batch: " + batchHistory);
 
-        log.info("Runs batch with start-date: " + batchHistory.getStart() + " and end-date: " + batchHistory.getEnd());
-
-        // Get Byggr-attachments from CaseManagement
-        List<Attachment> attachmentList = getByggrAttachments(batchHistory.getStart(), batchHistory.getEnd());
-
-        // Post archives to archive
-        archive(attachmentList, batchHistory);
-
-        // Persist that this batch is completed
-        log.info("Batch completed.");
-        batchHistory.setBatchStatus(BatchStatus.COMPLETED);
-        archiveDao.updateBatchHistory(batchHistory);
+        // Do the archiving
+        archive(batchHistory.getStart(), batchHistory.getEnd(), batchHistory);
 
     }
+
     public void archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
 
         if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
@@ -90,28 +81,21 @@ public class Archiver {
             }
         }
 
-        log.info("Runs batch with start-date: " + start + " and end-date: " + end);
-
         // Persist the start of this batch
-        BatchHistory newBatchHistory = new BatchHistory(start, end, batchTrigger, BatchStatus.NOT_COMPLETED);
-        archiveDao.postBatchHistory(newBatchHistory);
+        BatchHistory batchHistory = new BatchHistory(start, end, batchTrigger, BatchStatus.NOT_COMPLETED);
+        archiveDao.postBatchHistory(batchHistory);
+
+        // Do the archiving
+        archive(start, end, batchHistory);
+    }
+
+    private void archive(LocalDate start, LocalDate end, BatchHistory batchHistory) throws ApplicationException {
+
+        log.info("Runs batch: " + batchHistory.getId() + " with start-date: " + start + " and end-date: " + end);
 
         // Get Byggr-attachments from CaseManagement
         List<Attachment> attachmentList = getByggrAttachments(start, end);
 
-        // Post archives to archive
-        archive(attachmentList, newBatchHistory);
-
-        if (archiveDao.getArchiveHistory(newBatchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(BatchStatus.NOT_COMPLETED)))
-        {
-            // Persist that this batch is completed
-            log.info("Batch completed.");
-            newBatchHistory.setBatchStatus(BatchStatus.COMPLETED);
-            archiveDao.updateBatchHistory(newBatchHistory);
-        }
-    }
-
-    private void archive(List<Attachment> attachmentList, BatchHistory batchHistory) throws ApplicationException {
         if (attachmentList.isEmpty()) {
             log.info("AttachmentList is empty - 0 attachments found in CaseManagement for ByggR.");
         } else {
@@ -120,7 +104,6 @@ public class Archiver {
 
                 // The new archiveHistory
                 ArchiveHistory newArchiveHistory = null;
-
 
                 if (oldArchiveHistory == null) {
                     log.info("The document " + attachment.getId() + " does not exist in the db. Archive it..");
@@ -143,6 +126,7 @@ public class Archiver {
                     return;
                 }
 
+                // Request to Archive
                 ArchiveResponse archiveResponse = postArchive(attachment);
 
                 if (archiveResponse != null) {
@@ -155,6 +139,14 @@ public class Archiver {
 
                 archiveDao.updateArchiveHistory(newArchiveHistory);
             }
+        }
+
+        if (archiveDao.getArchiveHistory(batchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(BatchStatus.NOT_COMPLETED)))
+        {
+            // Persist that this batch is completed
+            log.info("Batch completed.");
+            batchHistory.setBatchStatus(BatchStatus.COMPLETED);
+            archiveDao.updateBatchHistory(batchHistory);
         }
     }
 

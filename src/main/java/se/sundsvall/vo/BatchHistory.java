@@ -18,11 +18,11 @@ import java.util.Objects;
 @NoArgsConstructor
 @ToString
 public class BatchHistory {
-    public BatchHistory(LocalDate start, LocalDate end, BatchTrigger batchTrigger, BatchStatus batchStatus) {
+    public BatchHistory(LocalDate start, LocalDate end, BatchTrigger batchTrigger, Status status) {
         this.start = start;
         this.end = end;
         this.batchTrigger = batchTrigger;
-        this.batchStatus = batchStatus;
+        this.status = status;
     }
 
     @Id
@@ -39,7 +39,7 @@ public class BatchHistory {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private BatchStatus batchStatus;
+    private Status status;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -61,11 +61,11 @@ public class BatchHistory {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BatchHistory that = (BatchHistory) o;
-        return Objects.equals(id, that.id) && Objects.equals(start, that.start) && Objects.equals(end, that.end) && batchStatus == that.batchStatus;
+        return Objects.equals(id, that.id) && Objects.equals(start, that.start) && Objects.equals(end, that.end) && status == that.status;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, start, end, batchStatus);
+        return Objects.hash(id, start, end, status);
     }
 }

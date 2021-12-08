@@ -1,5 +1,5 @@
 package se.sundsvall.vo;
 
-public enum BatchStatus {
+public enum Status {
     COMPLETED, NOT_COMPLETED
 }

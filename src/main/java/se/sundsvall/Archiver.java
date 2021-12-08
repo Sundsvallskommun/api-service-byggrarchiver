@@ -55,7 +55,7 @@ public class Archiver {
                     .build());
         }
 
-        if (batchHistory.getBatchStatus().equals(BatchStatus.COMPLETED)) {
+        if (batchHistory.getStatus().equals(Status.COMPLETED)) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                     .entity(new Information(Constants.RFC_LINK_BAD_REQUEST,
                             Response.Status.BAD_REQUEST.getReasonPhrase(),
@@ -77,24 +77,24 @@ public class Archiver {
             BatchHistory latestBatch = getLatestCompletedBatch();
 
             if (latestBatch != null) {
-                // If the latest batch end-date is today or later we don't need to run it again
-                if (!latestBatch.getEnd().isBefore(end)) {
+                // If this batch end-date is not after the latest batch end date, we don't need to run it again
+                if (!end.isAfter(latestBatch.getEnd())) {
                     log.info("The batch is already done. Cancelling this batch...");
                     return;
                 }
 
-                // If the latest batch end-date is before this batch start-date, we would risk to miss something.
-                // Therefore - set the start-date to the latest batch end-date.
-                if (latestBatch.getEnd().isBefore(start)) {
-                    log.info("It was a gap between the latest batch end-date and this batch start-date. Sets the start-date to: " + latestBatch.getEnd());
-                    start = latestBatch.getEnd();
+                // If there is a gap between the latest batch end-date and this batch start-date, we would risk to miss something.
+                // Therefore - set the start-date to the latest batch end-date, plus one day.
+                if (start.isAfter(latestBatch.getEnd())) {
+                    log.info("It was a gap between the latest batch end-date and this batch start-date. Sets the start-date to: " + latestBatch.getEnd().plusDays(1));
+                    start = latestBatch.getEnd().plusDays(1);
                 }
 
             }
         }
 
         // Persist the start of this batch
-        BatchHistory batchHistory = new BatchHistory(start, end, batchTrigger, BatchStatus.NOT_COMPLETED);
+        BatchHistory batchHistory = new BatchHistory(start, end, batchTrigger, Status.NOT_COMPLETED);
         archiveDao.postBatchHistory(batchHistory);
 
         // Do the archiving
@@ -124,10 +124,10 @@ public class Archiver {
                     newArchiveHistory.setSystemType(attachment.getArchiveMetadata().getSystem());
                     newArchiveHistory.setDocumentId(attachment.getId());
                     newArchiveHistory.setBatchHistory(batchHistory);
-                    newArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);
+                    newArchiveHistory.setStatus(Status.NOT_COMPLETED);
                     archiveDao.postArchiveHistory(newArchiveHistory);
 
-                } else if (oldArchiveHistory.getStatus().equals(BatchStatus.NOT_COMPLETED)) {
+                } else if (oldArchiveHistory.getStatus().equals(Status.NOT_COMPLETED)) {
                     log.info("The document " + attachment.getId() + " existed but has the status NOT_COMPLETED. Trying again...");
 
                     newArchiveHistory = oldArchiveHistory;
@@ -141,23 +141,25 @@ public class Archiver {
                 // Request to Archive
                 ArchiveResponse archiveResponse = postArchive(attachment);
 
-                if (archiveResponse != null) {
+                if (archiveResponse != null
+                    && archiveResponse.getArchiveId() != null) {
                     // Success! Set status to completed
-                    newArchiveHistory.setStatus(BatchStatus.COMPLETED);
+                    newArchiveHistory.setStatus(Status.COMPLETED);
+                    newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
                 } else {
                     // Not successful... Set status to not completed
-                    newArchiveHistory.setStatus(BatchStatus.NOT_COMPLETED);
+                    newArchiveHistory.setStatus(Status.NOT_COMPLETED);
                 }
 
                 archiveDao.updateArchiveHistory(newArchiveHistory);
             }
         }
 
-        if (archiveDao.getArchiveHistory(batchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(BatchStatus.NOT_COMPLETED)))
+        if (archiveDao.getArchiveHistory(batchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED)))
         {
             // Persist that this batch is completed
             log.info("Batch completed.");
-            batchHistory.setBatchStatus(BatchStatus.COMPLETED);
+            batchHistory.setStatus(Status.COMPLETED);
             archiveDao.updateBatchHistory(batchHistory);
         }
     }
@@ -205,7 +207,7 @@ public class Archiver {
 
         // Filter completed batches
         batchHistoryList = batchHistoryList.stream()
-                .filter(b -> b.getBatchStatus().equals(BatchStatus.COMPLETED))
+                .filter(b -> b.getStatus().equals(Status.COMPLETED))
                 .collect(Collectors.toList());
 
         // Sort by end-date of batch

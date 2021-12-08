@@ -7,7 +7,7 @@ import se.sundsvall.sundsvall.casemanagement.SystemType;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchHistory;
-import se.sundsvall.vo.BatchStatus;
+import se.sundsvall.vo.Status;
 import se.sundsvall.vo.BatchTrigger;
 
 import javax.inject.Inject;
@@ -24,7 +24,7 @@ class ArchiveHistoryDaoTest {
         ArchiveHistory archiveHistory = new ArchiveHistory();
         archiveHistory.setDocumentId("abc-123");
         archiveHistory.setSystemType(SystemType.BYGGR);
-        archiveHistory.setStatus(BatchStatus.COMPLETED);
+        archiveHistory.setStatus(Status.COMPLETED);
 
         archiveDao.postArchiveHistory(archiveHistory);
 
@@ -39,7 +39,7 @@ class ArchiveHistoryDaoTest {
         BatchHistory batchHistory = new BatchHistory();
         batchHistory.setStart(LocalDate.now().minusDays(1));
         batchHistory.setEnd(LocalDate.now());
-        batchHistory.setBatchStatus(BatchStatus.NOT_COMPLETED);
+        batchHistory.setStatus(Status.NOT_COMPLETED);
         batchHistory.setBatchTrigger(BatchTrigger.SCHEDULED);
 
         archiveDao.postBatchHistory(batchHistory);

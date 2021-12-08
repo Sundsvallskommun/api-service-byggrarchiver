@@ -23,7 +23,7 @@ public class ArchiverResource {
     @GET
     @Path("archive-history")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveHistory(@QueryParam("status") BatchStatus status) {
+    public Response getArchiveHistory(@QueryParam("status") Status status) {
         List<ArchiveHistory> archiveHistoryList;
         if (status != null) {
             archiveHistoryList = archiveDao.getArchiveHistory(status);
@@ -32,7 +32,7 @@ public class ArchiverResource {
         }
 
         if (archiveHistoryList.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new NotFoundException("ArchiveHistory not found");
         } else {
             return Response.ok(archiveHistoryList).build();
         }
@@ -44,8 +44,9 @@ public class ArchiverResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getBatchHistory() {
         List<BatchHistory> batchHistoryList = archiveDao.getBatchHistory();
+
         if (batchHistoryList.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new NotFoundException("BatchHistory not found");
         } else {
             return Response.ok(batchHistoryList).build();
         }

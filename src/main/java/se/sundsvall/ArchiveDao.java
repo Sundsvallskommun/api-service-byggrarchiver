@@ -4,7 +4,7 @@ import se.sundsvall.sundsvall.casemanagement.SystemType;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.ArchiveHistory;
-import se.sundsvall.vo.BatchStatus;
+import se.sundsvall.vo.Status;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -35,7 +35,7 @@ public class ArchiveDao {
                 .setParameter("batchHistory", getBatchHistory(batchHistoryId)).getResultList();
     }
 
-    public List<ArchiveHistory> getArchiveHistory(BatchStatus status) {
+    public List<ArchiveHistory> getArchiveHistory(Status status) {
         TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.status LIKE :status", ArchiveHistory.class)
                 .setParameter("status", status);
         return archiveHistoryList.getResultList();

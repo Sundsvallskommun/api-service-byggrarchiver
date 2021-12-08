@@ -8,12 +8,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import se.sundsvall.exceptions.ApplicationException;
-import se.sundsvall.sundsvall.casemanagement.SystemType;
 import se.sundsvall.vo.ArchiveHistory;
+import se.sundsvall.vo.Status;
 import se.sundsvall.vo.BatchTrigger;
 
 import javax.inject.Inject;
 import java.time.LocalDate;
+import java.util.List;
 
 @QuarkusTest
 class ArchiveIntegrationTest {
@@ -39,9 +40,8 @@ class ArchiveIntegrationTest {
     @Test
     void testScheduledJob() throws ApplicationException {
         archiver.archiveByggrAttachments(LocalDate.now().minusDays(1), LocalDate.now(), BatchTrigger.SCHEDULED);
-
-        ArchiveHistory archiveHistory = archiveDao.getArchiveHistory("586154", SystemType.BYGGR);
-//        Assertions.assertEquals(1, archiveHistory.getBatchHistory().getId());
-
+        List<ArchiveHistory> archiveHistories = archiveDao.getArchiveHistory();
+        Assertions.assertEquals(4, archiveHistories.size());
+        archiveHistories.forEach(ah -> Assertions.assertEquals(Status.COMPLETED, ah.getStatus()));
     }
 }

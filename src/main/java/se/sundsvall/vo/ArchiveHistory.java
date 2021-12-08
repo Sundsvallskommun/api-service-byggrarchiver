@@ -8,42 +8,43 @@ import se.sundsvall.sundsvall.casemanagement.SystemType;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Entity
+@IdClass(IdPk.class)
 @NoArgsConstructor
 public class ArchiveHistory {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Schema(readOnly = true)
-    @Column(nullable = false)
-    private Long id;
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Id
     private String documentId;
 
     @Getter
     @Setter
-    @NotNull
-    @Column(nullable = false)
+    @Id
     @Enumerated(EnumType.STRING)
     private SystemType systemType;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private String archiveId;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Getter
     @Setter
     @NotNull
     @ManyToOne
     private BatchHistory batchHistory;
-
-    @Getter
-    @Setter
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private BatchStatus status;
 
     @Getter
     @Schema(readOnly = true)
@@ -55,4 +56,24 @@ public class ArchiveHistory {
     protected void onPersist() {
         timestamp = LocalDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
+
+    @Override
+    public String toString() {
+        return "ArchiveHistory{" +
+                "documentId='" + documentId + '\'' +
+                ", systemType=" + systemType +
+                ", batchHistory=" + batchHistory +
+                ", status=" + status +
+                ", timestamp=" + timestamp +
+                '}';
+    }
+}
+
+@Embeddable
+@Getter
+@Setter
+class IdPk implements Serializable {
+
+    private String documentId;
+    private SystemType systemType;
 }

@@ -3,32 +3,34 @@
 #
 version: '2'
 services:
-  ms-archive-sandbox:
-    container_name: ms-archive-sandbox
-    build:
-      dockerfile: ./src/main/docker/Dockerfile
-      context: ../../..
-      args:
-        PROFILE: '-Dquarkus-profile=sandbox'
-    restart: always
-    ports:
-      - "9090:8080"
-    depends_on:
-      - wiremock
-    environment:
-      SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN: 'http://ms-archive-wiremock:8080'
-      SUNDSVALLS_KOMMUN_CONSUMER_KEY: 'sandbox'
-      SUNDSVALLS_KOMMUN_CONSUMER_SECRET: 'sandbox'
-
-      DB_USERNAME: ''
-      DB_PWD: ''
-      DB_URL: 'jdbc:h2:mem:sandbox;DB_CLOSE_DELAY=-1'
-      DB_HIBERNATE_GENERATION: 'drop-and-create'
+#  ms-archive-sandbox:
+#    container_name: ms-archive-sandbox
+#    build:
+#      dockerfile: ./src/main/docker/Dockerfile
+#      context: ../../..
+#      args:
+#        PROFILE: '-Dquarkus-profile=sandbox'
+#    restart: always
+#    ports:
+#      - "9090:8080"
+#    depends_on:
+#      - wiremock
+#    environment:
+#      SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN: 'http://ms-archive-wiremock:8080'
+#      SUNDSVALLS_KOMMUN_CONSUMER_KEY: 'sandbox'
+#      SUNDSVALLS_KOMMUN_CONSUMER_SECRET: 'sandbox'
+#
+#      DB_USERNAME: ''
+#      DB_PWD: ''
+#      DB_URL: 'jdbc:h2:mem:sandbox;DB_CLOSE_DELAY=-1'
+#      DB_HIBERNATE_GENERATION: 'drop-and-create'
 
   ms-archive-wiremock:
     image: wiremock/wiremock
     restart: always
     expose:
       - "8080"
+    ports:
+      - "8090:8080"
     volumes:
       - $PWD/src/integration-test/resources:/home/wiremock

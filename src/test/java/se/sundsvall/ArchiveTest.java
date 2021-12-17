@@ -52,7 +52,7 @@ class ArchiveTest {
         List<Attachment> attachmentList = new ArrayList<>();
         Attachment attachment_1 = new Attachment();
         attachment_1.setArchiveMetadata(new ArchiveMetadata(SystemType.BYGGR));
-        attachment_1.setCategory(AttachmentCategory.APPLICATION);
+        attachment_1.setCategory(AttachmentCategory.ANS);
         attachment_1.setFile("dGVzdA==");
         attachment_1.setExtension(".pdf");
         attachment_1.setId("ABC123");
@@ -70,10 +70,19 @@ class ArchiveTest {
 
     @Test
     void runBatch() throws ApplicationException, ServiceException {
+    LocalDate start = LocalDate.now().minusDays(1);
+            LocalDate end =LocalDate.now();
 
-        archiver.archiveByggrAttachments(LocalDate.now().minusDays(1), LocalDate.now(), BatchTrigger.SCHEDULED);
+        archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED);
+
+        BatchHistory batchHistory = new BatchHistory();
+        batchHistory.setBatchTrigger(BatchTrigger.SCHEDULED);
+        batchHistory.setStatus(Status.NOT_COMPLETED);
+        batchHistory.setStart(start);
+        batchHistory.setEnd(end);
 
         verify(archiveDao, times(1)).getBatchHistory();
+//        verify(archiveDao, times(1)).postBatchHistory(batchHistory);
         verify(archiveDao, times(1)).postBatchHistory(any());
         verify(caseManagementService, times(1)).getDocuments(any(), any(), any());
         verify(archiveDao, times(1)).getArchiveHistory(any(), any());

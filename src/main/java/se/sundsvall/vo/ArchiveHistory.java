@@ -31,7 +31,6 @@ public class ArchiveHistory {
 
     @Getter
     @Setter
-    @Column(nullable = false)
     private String archiveId;
 
     @Getter

@@ -25,6 +25,7 @@ class ArchiveHistoryDaoTest {
         archiveHistory.setDocumentId("abc-123");
         archiveHistory.setSystemType(SystemType.BYGGR);
         archiveHistory.setStatus(Status.COMPLETED);
+        archiveHistory.setArchiveId("123-123-4123-1231");
 
         archiveDao.postArchiveHistory(archiveHistory);
 

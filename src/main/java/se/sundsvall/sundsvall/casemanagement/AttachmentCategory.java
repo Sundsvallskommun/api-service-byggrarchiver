@@ -1,95 +1,253 @@
 package se.sundsvall.sundsvall.casemanagement;
 
+import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
-@Schema(description = "Kategorisering av bilagor. " +
-
-        "<br><br><h3>Bygglovsärende-kategorier:</h3>"
-        + "<li>ANSOKAN_OM_BYGGLOV(Ansökan om bygglov)</li>"
-        + "<li>GENERAL_ARRANGEMENT(Situationsplan)</li>"
-        + "<li>APPLICATION(Anmälan)</li>"
-        + "<li>REPORT_OF_CONTROL_OFFICIAL(Anmälan av kontrollansvarig)</li>"
-        + "<li>CONSTRUCTION_DOCUMENT(Konstruktionshandling)</li>"
-        + "<li>FLOOR_PLAN(Planritning)</li>"
-        + "<li>ELEVATION(Fasadritning)</li>"
-        + "<li>PLAN_FACADE_DESIGN(Plan- och fasadritning)</li>"
-        + "<li>PROPOSED_CONTROL_PLAN(Förslag till kontrollplan)</li>"
-        + "<li>NEW_CONSTRUCTION_MAP(Nybyggnadskarta)</li>"
-        + "<li>SECTION_DESIGN(Sektionsritning)</li>"
-        + "<li>CONSTRUCTION_DESIGN(Konstruktionsritning)</li>"
-        + "<li>NEIGHBOR_CONSENT(Grannemedgivande)</li>"
-        + "<li>DECLARATION_OF_PERFORMANCE(Prestandadeklaration)</li>"
-        + "<li>PROXY(Fullmakt)</li>"
-        + "<li>DESIGN(Ritning)</li>"
-        + "<li>FIRE_PROTECTION_DOCUMENT(Brandskyddsdokumentation)</li>"
-        + "<li>ATTACHMENT(Övriga bilagor)</li>"
-
-        + "<br><h3>Miljökontorärende-kategorier:</h3>"
-        + "<li>ANMALAN_LIVSMEDELSANLAGGNING(Anmälan livsmedelsanläggning)</li>")
+@Schema(description = "Kategorisering av bilagor.")
 public enum AttachmentCategory {
 
     ///////////////////////////////////
     // ByggR
     ///////////////////////////////////
     // Ansökan om bygglov
-    ANSOKAN_OM_BYGGLOV("ANS"),
-    // Situationsplan
-    GENERAL_ARRANGEMENT("SITU"),
-    // Anmälan
-    APPLICATION("ANM"),
-    // Anmälan av kontrollansvarig
-    REPORT_OF_CONTROL_OFFICIAL("ANMÄ"),
-    // Konstruktionshandling
-    CONSTRUCTION_DOCUMENT("UKON"),
-    // Planritning
-    FLOOR_PLAN("PLA2"),
-    // Fasadritning
-    ELEVATION("FAS2"),
-    // Plan- och fasadritning
-    PLAN_FACADE_DESIGN("PLFA2"),
-    // Förslag till kontrollplan
-    PROPOSED_CONTROL_PLAN("FÖRK"),
-    // Nybyggnadskarta
-    NEW_CONSTRUCTION_MAP("NYKA"),
-    // Sektionsritning
-    SECTION_DESIGN("SEK2"),
-    // Konstruktionsritning
-    CONSTRUCTION_DESIGN("KONR"),
-    // Grannemedgivande
-    NEIGHBOR_CONSENT("GRAM"),
-    // Prestandadeklaration
-    DECLARATION_OF_PERFORMANCE("PRES"),
-    // Fullmakt
-    PROXY("FUM"),
-    // Ritning
-    DESIGN("RITNING"),
-    // Brandskyddsdokumentation
-    FIRE_PROTECTION_DOCUMENT("BRAD"),
-    // Bilagor (övrigt)
-    ATTACHMENT("BIL"),
+    ARIT("A-ritningar", "A"),
+    FAS("Fasad", "A"),
+    FS2("Fasad- och sektionsritning", "A"),
+    FAP("Fasad Plan", "A"),
+    FAPL("Fasad Plan Sektion", "A"),
+    FPSS("Fasad Plan Sektion Situationsplan", "A"),
+    FS("Fasad sektion", "A"),
+    FASSIT("Fasad Situation", "A"),
+    FAS2("Fasadritning", "A"),
+    FASSIT2("Fasadritning + situationsplan", "A"),
+    FOTOMON("Fotomontage", "A"),
+    FÄRG("Färgsättningsförslag", "A"),
+    MAST("Mastritning", "A"),
+    MUR("Murritning", "A"),
+    MÅTT("Måttritning", "A"),
+    PERSPEKTIV("Perspektivsritning", "A"),
+    PLA("Plan", "A"),
+    PLFA("Plan Fasad", "A"),
+    PLFASE("Plan Fasad Sektion", "A"),
+    PLFASESI("Plan Fasad Sektion Situationsplan", "A"),
+    PLFASI("Plan Fasad Situationsplan", "A"),
+    PLFA2("Plan- och fasadritning", "A"),
+    PFSI2("Plan- och fasadritning + situationsplan", "A"),
+    PLSE2("Plan- och sektionsritning", "A"),
+    PSS2("Plan- och sektionsritning + situationsp.", "A"),
+    PLSE("Plan Sektion", "A"),
+    PSS("Plan Sektion Situation", "A"),
+    PLASIT("Plan Situation", "A"),
+    PFS2("Plan, fasad- och sektionsritning", "A"),
+    PFSS2("Plan, fasad, sektion, situation", "A"),
+    TEVS("Planbeskrivning", "A"),
+    UPLA("Planer", "A"),
+    PLAN("Planer", "A"),
+    PLANK("Plankritning", "A"),
+    PLA2("Planritning", "A"),
+    PSI2("Planritning + situationsplan", "A"),
+    REL("Relationsritning", "A"),
+    REVRIT("Reviderade ritning", "A"),
+    RITNING("Ritning", "A"),
+    TJ("Ritningar", "A"),
+    RIT("Ritningar", "A"),
+    SEK("Sektion", "A"),
+    SEKSIT("Sektion Situation", "A"),
+    SEKT("Sektioner", "A"),
+    SEK2("Sektionsritning", "A"),
+    SESI2("Sektionsritning + situationsplan", "A"),
+    SKYL("Skyltritning", "A"),
+    UPPM("Uppmätningsritning", "A"),
+    ANV("Utställningshandling", "A"),
+    ANM("Anmälan", "D"),
+    ANMÄ("Anmälan av kontrollansvarig", "D"),
+    ANS("Ansökan om bygglov", "D"),
+    ANSFÖ("Ansökan om förhandsbesked", "D"),
+    ANSM("Ansökan om marklov", "D"),
+    ANSR("Ansökan om rivningslov", "D"),
+    ANSS("Ansökan om strandskyddsdispens", "D"),
+    BEGLST("Begäran från länsstyrelsen", "D"),
+    BERBSA("Beräkning byggsanktionsavgift", "D"),
+    BLST("Beslut från Länsstyrelsen", "D"),
+    OMPLÄ("Beslut omprövning Länsstyrelsen", "D"),
+    BULL("Bullerutredning", "D"),
+    DEB("Debiteringsblad", "D"),
+    DEL("Delgivning", "D"),
+    DELK("Delgivningskvitto", "D"),
+    DELSLU("Delslutbesked", "D"),
+    DELSTA("Delstartbesked", "D"),
+    DOM("Dom", "D"),
+    ENER("Energibalansberäkning", "D"),
+    ENEDEK("Energideklaration", "D"),
+    FAST("Fastställd kontrollplan", "D"),
+    FÖLJREVRIT("Följebrev reviderad ritning", "D"),
+    FÖRG2("Förhandsgranskningsblad", "D"),
+    GODFÄ("Godkännande från fastighetsägare", "D"),
+    GRAM("Grannemedgivande", "D"),
+    INFOSS("Info inför start- och slutbesked", "D"),
+    INTSLUT("Interimistiskt slutbesked", "D"),
+    KM("Kontrollmeddelande", "D"),
+    MOTBKR("Mottagningsbekräftelse", "D"),
+    OVK("OVK-protokoll", "D"),
+    PM("PM", "D"),
+    PROARB("Protokoll arbetsplatsbesök", "D"),
+    PROTAU("Protokoll AU", "D"),
+    PROTKS("Protokoll KS", "D"),
+    PROTPLU("Protokoll PLU", "D"),
+    PROTSBN("Protokoll SBN", "D"),
+    PROSS("Protokoll slutsamråd", "D"),
+    PROTS("Protokoll tekniskt samråd", "D"),
+    REMS("Remissvar", "D"),
+    RÄTT("Rättidsprövning", "D"),
+    SKP("Signerad kontrollplan", "D"),
+    SBES("Slutbesked", "D"),
+    STAB("Startbesked", "D"),
+    SVAR2år("Svar 2-årsbrev", "D"),
+    TJÄ("Tjänsteskrivelse", "D"),
+    UNDER("Underrättelsesvar", "D"),
+    ÄRB("Ärendeblad", "D"),
+    ÖVER("Överklagandeskrivelse", "D"),
+    ADRESS("Adressblad", "D"),
+    ANSUPA("Anmälan utan personnummer", "D"),
+    ANNO("Annons", "D"),
+    ANSF("Ansökan om förhandsbesked", "D"),
+    ANSSL("Ansökan om slutbesked", "D"),
+    ANSUP("Ansökan utan personnummer", "D"),
+    ANKVU("Antikvariskt utlåtande", "D"),
+    ARBI("Arbetstagarintyg", "D"),
+    BEHA("Atomutskick handläggare tilldelad", "D"),
+    AVPLAN("Avvecklingsplan", "D"),
+    BANK("Bankgaranti", "D"),
+    BEGSTART("Begäran om startbesked", "D"),
+    BEK("Bekräftelse", "D"),
+    BEKMOTANS("Bekräftelse mottagen ansökan", "D"),
+    BEMÖ("Bemötande", "D"),
+    BESKA("Besöksrapporter KA", "D"),
+    BIL("Bilaga", "D"),
+    BRS("Brandskiss", "D"),
+    BRAB("Brandskyddsbeskrivning", "D"),
+    BRAD("Brandskyddsdokumentation", "D"),
+    BROS("Broschyr", "D"),
+    DPH("Detaljplankarta/detaljplanhandling", "D"),
+    DETALJ("Detaljritning", "D"),
+    DHBHUR("Du har fått bygglov/ Hur man överklagar", "D"),
+    ELD("Elda rätt", "D"),
+    EPOS("Epost", "D"),
+    EXRIT("Exempelritning", "D"),
+    FAKTU("Fakturaunderlag", "D"),
+    FAKTUS("Fakturaunderlag sanktionsavgift", "D"),
+    FOTO("Foto", "D"),
+    FUM("Fullmakt", "D"),
+    FSF("Färdigställandeförsäkring", "D"),
+    FÖLJ("Följebrev", "D"),
+    FÖRB("Förhandsbesked", "D"),
+    FÖRK("Förslag till kontrollplan", "D"),
+    FÖRR("Förslag till rivningsplan", "D"),
+    FÖRGARBO("Försäkringsbrev Gar-Bo", "D"),
+    URÖR("Genomförandebeskrivning", "D"),
+    GRA("Grannhörande", "D"),
+    GRAN("Granskningsblad", "D"),
+    GBLAD("Granskningsblad", "D"),
+    HISSINT("Hissintyg", "D"),
+    HUR("Hur man överklagar", "D"),
+    ARK("Illustration/ perspektiv", "D"),
+    INTFAK("Internfakturaunderlag", "D"),
+    INTY("Intyg", "D"),
+    KLA("Klassningsplan", "D"),
+    KOMP("Kompletteringsföreläggande", "D"),
+    KONT("Kontrollansvarig", "D"),
+    KPLAN("Kontrollplan PBL", "D"),
+    RAPP("Kontrollrapport", "D"),
+    KVAL("Kvalitetsansvarig", "D"),
+    LUFT("Luftflödesprotokoll", "D"),
+    LUTE("Lufttäthetstest", "D"),
+    MAIL("Mail", "D"),
+    MAPL("Markplaneringsritning", "D"),
+    MATINV("Materialinventering", "D"),
+    MIRP("Miljöinventering/ rivningsplan", "D"),
+    MINN("Minnesanteckningar", "D"),
+    POIT("PoIT", "D"),
+    PRESENTA("Presentation", "D"),
+    PRES("Prestandadeklaration", "D"),
+    KPV("Programsamrådshandling", "D"),
+    PROT("Protokoll", "D"),
+    PÅMINNTB("Påminnelse tidsbegränsat lov", "D"),
+    RAP("Rapport", "D"),
+    REMUA("Remiss utan adress", "D"),
+    RUE("Remissvar utan erinran", "D"),
+    HBB("Ritningsförteckning", "D"),
+    RIVA("Rivningsanmälan", "D"),
+    RIVP("Rivningsplan", "D"),
+    SAK("Sakkunnigintyg", "D"),
+    SAKUT("Sakkunnigutlåtande brand", "D"),
+    KPR("Samrådshandling", "D"),
+    KP("Samrådsredogörelse del 1", "D"),
+    KR("Samrådsredogörelse del 2", "D"),
+    SIN("Signerad kontrollplan", "D"),
+    SKR("Skrivelse", "D"),
+    KA("Skrivelser", "D"),
+    SKY("Skyddsrumsförfrågan", "D"),
+    SLUT("Slutbevis", "D"),
+    SCB("Statistikblankett SCB", "D"),
+    STIM("Stimulansbidrag", "D"),
+    SÅF("Svar på åtgärdsföreläggande", "D"),
+    TEBY("Teknisk beskrivning", "D"),
+    TEKN("Teknisk beskrivning brf", "D"),
+    TEKRAP("Teknisk rapport", "D"),
+    TILL("Tillsynsbesiktning", "D"),
+    TILLVR("Tillverkningsritning", "D"),
+    SBN("Tjänsteskrivelse till nämnden", "D"),
+    SAKNAS("Typen saknades vid konverteringen", "D"),
+    UND("Underlag situationsplan", "D"),
+    UKP("Underlag till kontrollplan", "D"),
+    UKR("Underlag till rivningsplan", "D"),
+    UNDUT("Underrättelse", "D"),
+    UBGARBO("Uppdragsbekräftelse", "D"),
+    UTBEU("Utbetalningsunderlag", "D"),
+    BRAU("Utförandekontroll brandskydd", "D"),
+    UKA("Utlåtande KA", "D"),
+    ÅTG("Åtgärdsföreläggande", "D"),
+    GEO("Geotekniska handling", "GU"),
+    GRUNDP("Grundplan", "K"),
+    GRUNDR("Grundritning", "K"),
+    KOND("Konstruktionsdokument", "K"),
+    UKON("Konstruktionshandling", "K"),
+    KONR("Konstruktionsritning", "K"),
+    STOMR("Stomritningar", "K"),
+    TAPL("Takplan", "K"),
+    TSR("Takstolsritning", "K"),
+    KART("Karta", "S"),
+    NYKA("Nybyggnadskarta", "S"),
+    SITU("Situationsplan", "S"),
+    TOMTPLBE("Tomtplatsbestämning", "S"),
+    VAH("VA-handling", "VVS"),
+    VENT("Ventilationshandling", "VVS"),
+    UVEN("Ventilationsritning", "VVS"),
+    VS("VS-handling", "VVS"),
+    VVSH("VVS-handling", "VVS"),
 
     ///////////////////////////////////
     // Ecos
     ///////////////////////////////////
     // e-tjänsten: Livsmedelsverksamhet - anmälan om registrering
-    ANMALAN_LIVSMEDELSANLAGGNING("Anmälan livsmedelsanläggning");
+    ANMALAN_LIVSMEDELSANLAGGNING("Anmälan livsmedelsanläggning", null);
 
-    private final String text;
+    @Getter
+    private final String description;
+    @Getter
+    private final String archiveClassification;
 
-    AttachmentCategory(String text) {
-        this.text = text;
+    AttachmentCategory(String description, String archiveClassification) {
+        this.description = description;
+        this.archiveClassification = archiveClassification;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public static AttachmentCategory valueOfText(String text) {
+    public static AttachmentCategory valueOfDescription(String description) {
         for (AttachmentCategory attachmentCategory : values()) {
-            if (attachmentCategory.text.equals(text)) {
+            if (attachmentCategory.description.equals(description)) {
                 return attachmentCategory;
             }
         }
-        throw new IllegalArgumentException("Could not find any AttachmentCategory with the text: " + text);
+        throw new IllegalArgumentException("Could not find any AttachmentCategory with the description: " + description);
     }
 }

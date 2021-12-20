@@ -1,5 +1,6 @@
 package se.sundsvall.vo;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -71,6 +72,7 @@ public class ArchiveHistory {
 @Embeddable
 @Getter
 @Setter
+@EqualsAndHashCode
 class IdPk implements Serializable {
 
     private String documentId;

@@ -51,11 +51,13 @@ class ArchiveTest {
         // CaseManagement
         List<Attachment> attachmentList = new ArrayList<>();
         Attachment attachment_1 = new Attachment();
-        attachment_1.setArchiveMetadata(new ArchiveMetadata(SystemType.BYGGR));
+        ArchiveMetadata archiveMetadata = new ArchiveMetadata();
+        archiveMetadata.setSystem(SystemType.BYGGR);
+        archiveMetadata.setDocumentId("ABC123");
+        attachment_1.setArchiveMetadata(archiveMetadata);
         attachment_1.setCategory(AttachmentCategory.ANS);
         attachment_1.setFile("dGVzdA==");
         attachment_1.setExtension(".pdf");
-        attachment_1.setId("ABC123");
         attachment_1.setMimeType(null);
         attachment_1.setName("Filnamn 1");
         attachment_1.setNote("Anteckning 1");

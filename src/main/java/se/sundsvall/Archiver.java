@@ -121,29 +121,29 @@ public class Archiver {
             log.info("AttachmentList is empty - 0 attachments found in CaseManagement for ByggR.");
         } else {
             for (Attachment attachment : attachmentList) {
-                ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getId(), attachment.getArchiveMetadata().getSystem());
+                ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getArchiveMetadata().getDocumentId(), attachment.getArchiveMetadata().getSystem());
 
                 // The new archiveHistory
                 ArchiveHistory newArchiveHistory;
 
                 if (oldArchiveHistory == null) {
-                    log.info("The document " + attachment.getId() + " does not exist in the db. Archive it..");
+                    log.info("The document " + attachment.getArchiveMetadata().getDocumentId() + " does not exist in the db. Archive it..");
 
                     newArchiveHistory = new ArchiveHistory();
                     newArchiveHistory.setSystemType(attachment.getArchiveMetadata().getSystem());
-                    newArchiveHistory.setDocumentId(attachment.getId());
+                    newArchiveHistory.setDocumentId(attachment.getArchiveMetadata().getDocumentId());
                     newArchiveHistory.setBatchHistory(batchHistory);
                     newArchiveHistory.setStatus(Status.NOT_COMPLETED);
                     archiveDao.postArchiveHistory(newArchiveHistory);
 
                 } else if (oldArchiveHistory.getStatus().equals(Status.NOT_COMPLETED)) {
-                    log.info("The document " + attachment.getId() + " existed but has the status NOT_COMPLETED. Trying again...");
+                    log.info("The document " + attachment.getArchiveMetadata().getDocumentId() + " existed but has the status NOT_COMPLETED. Trying again...");
 
                     newArchiveHistory = oldArchiveHistory;
                     newArchiveHistory.setBatchHistory(batchHistory);
 
                 } else {
-                    log.info("The document " + attachment.getId() + " is already archived.");
+                    log.info("The document " + attachment.getArchiveMetadata().getDocumentId() + " is already archived.");
                     continue;
                 }
 
@@ -261,11 +261,15 @@ public class Archiver {
 
         emailRequest.setEmailAddress("dennis.nilsson@b3.se");
         emailRequest.setSubject("Arkiverad geoteknisk handling");
-        emailRequest.setMessage("Hej!" +
-                "\nEn geoteknisk handling har precis blivit arkiverad med arkiverings-ID: " + archiveHistory.getArchiveId() +
-                "\nURL till den arkiverade handlingen: " + "www.google.com" +
-                "\nHandlingen har namnet: " + attachment.getName() + " och har Byggr-dokument-ID: " + archiveHistory.getDocumentId() +
-                "\nVid problem, svara på det här mailet.");
+        emailRequest.setMessage("Hej!\n" +
+                "\nEn geoteknisk handling har precis blivit arkiverad. Handlingen finns bifogad i mailet." +
+                "\nDenna ska läggas till på https://karta.sundsvall.se/ \n" +
+                "\nArkiverings-ID: " + archiveHistory.getArchiveId() +
+                "\nURL till den arkiverade handlingen: " + "https://www.google.com" +
+                "\nÄrende-ID i Byggr: " + attachment.getArchiveMetadata().getCaseId() +
+                "\nNamn på handlingen i Byggr: " + attachment.getName() +
+                "\nID på handlingen i Byggr:" + archiveHistory.getDocumentId() +
+                "\n\nVid eventuella problem, svara på detta mail.");
 
         MessageStatusResponse messageStatusResponse = null;
         try {

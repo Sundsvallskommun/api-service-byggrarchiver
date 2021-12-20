@@ -14,7 +14,7 @@ services:
 #    ports:
 #      - "9090:8080"
 #    depends_on:
-#      - wiremock
+#      - ms-archive-wiremock
 #    environment:
 #      SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN: 'http://ms-archive-wiremock:8080'
 #      SUNDSVALLS_KOMMUN_CONSUMER_KEY: 'sandbox'

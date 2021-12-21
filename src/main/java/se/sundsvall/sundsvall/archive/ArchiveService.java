@@ -3,9 +3,9 @@ package se.sundsvall.sundsvall.archive;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.exceptions.mappers.ServerResponseExceptionMapper;
 import se.sundsvall.sundsvall.SundsvallsKommunOauth2Filter;
 import se.sundsvall.sundsvall.casemanagement.Attachment;
-import se.sundsvall.exceptions.mappers.ServerResponseExceptionMapper;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.validation.Valid;

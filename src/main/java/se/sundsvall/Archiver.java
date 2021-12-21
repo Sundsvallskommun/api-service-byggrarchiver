@@ -2,14 +2,14 @@ package se.sundsvall;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
+import se.sundsvall.exceptions.ApplicationException;
+import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.casemanagement.Attachment;
 import se.sundsvall.sundsvall.casemanagement.AttachmentCategory;
 import se.sundsvall.sundsvall.casemanagement.CaseManagementService;
 import se.sundsvall.sundsvall.casemanagement.SystemType;
-import se.sundsvall.exceptions.ApplicationException;
-import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sundsvall.messaging.MessagingService;
 import se.sundsvall.sundsvall.messaging.vo.EmailRequest;
 import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
@@ -54,8 +54,7 @@ public class Archiver {
         BatchHistory batchHistory;
         try {
             batchHistory = archiveDao.getBatchHistory(batchHistoryId);
-        } catch (EntityNotFoundException e)
-        {
+        } catch (EntityNotFoundException e) {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
                     .entity(new Information(Constants.RFC_LINK_NOT_FOUND,
                             Response.Status.NOT_FOUND.getReasonPhrase(),
@@ -151,14 +150,17 @@ public class Archiver {
                 ArchiveResponse archiveResponse = postArchive(attachment);
 
                 if (archiveResponse != null
-                    && archiveResponse.getArchiveId() != null) {
+                        && archiveResponse.getArchiveId() != null) {
                     // Success! Set status to completed
                     newArchiveHistory.setStatus(Status.COMPLETED);
                     newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
 
-                    if(attachment.getCategory().equals(AttachmentCategory.GEO))
-                    {
-                        sendEmailToLantmateriet(attachment, newArchiveHistory);
+                    if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
+                        try {
+                            sendEmailToLantmateriet(attachment, newArchiveHistory);
+                        } catch (ServiceException e) {
+                            throw new ApplicationException("The request to messagingService.postEmail failed", e);
+                        }
                     }
                 } else {
                     // Not successful... Set status to not completed
@@ -169,8 +171,7 @@ public class Archiver {
             }
         }
 
-        if (archiveDao.getArchiveHistory(batchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED)))
-        {
+        if (archiveDao.getArchiveHistory(batchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
             // Persist that this batch is completed
             log.info("Batch completed.");
             batchHistory.setStatus(Status.COMPLETED);
@@ -242,7 +243,7 @@ public class Archiver {
         return latestBatch;
     }
 
-    private MessageStatusResponse sendEmailToLantmateriet(Attachment attachment, ArchiveHistory archiveHistory) {
+    private MessageStatusResponse sendEmailToLantmateriet(Attachment attachment, ArchiveHistory archiveHistory) throws ServiceException {
 
         EmailRequest emailRequest = new EmailRequest();
 
@@ -261,23 +262,19 @@ public class Archiver {
 
         emailRequest.setEmailAddress("dennis.nilsson@b3.se");
         emailRequest.setSubject("Arkiverad geoteknisk handling");
-        emailRequest.setMessage("Hej!\n" +
-                "\nEn geoteknisk handling har precis blivit arkiverad. Handlingen finns bifogad i mailet." +
-                "\nDenna ska läggas till på https://karta.sundsvall.se/ \n" +
-                "\nArkiverings-ID: " + archiveHistory.getArchiveId() +
-                "\nURL till den arkiverade handlingen: " + "https://www.google.com" +
-                "\nÄrende-ID i Byggr: " + attachment.getArchiveMetadata().getCaseId() +
-                "\nNamn på handlingen i Byggr: " + attachment.getName() +
-                "\nID på handlingen i Byggr:" + archiveHistory.getDocumentId() +
-                "\n\nVid eventuella problem, svara på detta mail.");
 
-        MessageStatusResponse messageStatusResponse = null;
-        try {
-            messageStatusResponse = messagingService.postEmail(emailRequest);
-        } catch (ServiceException e) {
-            log.error("The request to messagingService.postEmail failed", e);
-        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Hej!")
+                .append("\n\nEn geoteknisk handling har precis blivit arkiverad. Handlingen finns bifogad i mailet.")
+                .append("\nDenna ska läggas till på https://karta.sundsvall.se/")
+                .append("\n\nArkiverings-ID: ").append(archiveHistory.getArchiveId())
+                .append("\nURL till den arkiverade handlingen: ").append("https://www.google.com/ ")
+                .append("\nID på ärendet i Byggr: ").append(attachment.getArchiveMetadata().getCaseId())
+                .append("\nNamn på handlingen i Byggr: ").append(attachment.getName())
+                .append("\nID på handlingen i Byggr:").append(archiveHistory.getDocumentId())
+                .append("\n\nVid eventuella problem, svara på detta mail.");
+        emailRequest.setMessage(sb.toString());
 
-        return messageStatusResponse;
+        return messagingService.postEmail(emailRequest);
     }
 }

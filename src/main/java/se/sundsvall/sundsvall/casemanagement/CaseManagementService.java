@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
-import se.sundsvall.sundsvall.SundsvallsKommunOauth2Filter;
 import se.sundsvall.exceptions.mappers.ServerResponseExceptionMapper;
+import se.sundsvall.sundsvall.SundsvallsKommunOauth2Filter;
 import se.sundsvall.exceptions.ServiceException;
 
 import javax.enterprise.context.ApplicationScoped;

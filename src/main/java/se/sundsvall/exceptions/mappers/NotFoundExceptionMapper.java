@@ -18,7 +18,7 @@ public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundExceptio
 
     @Override
     public Response toResponse(NotFoundException exception) {
-        log.info(exception.getLocalizedMessage(), exception);
+        log.info(exception.getLocalizedMessage());
 
         Information info = new Information(Constants.RFC_LINK_NOT_FOUND, exception.getResponse().getStatusInfo().getReasonPhrase(),
                 exception.getResponse().getStatusInfo().getStatusCode(), exception.getLocalizedMessage(), null);

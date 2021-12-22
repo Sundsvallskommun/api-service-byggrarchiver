@@ -50,7 +50,7 @@ public class Archiver {
     ArchiveDao archiveDao;
 
 
-    public void reRunBatch(Long batchHistoryId) throws ApplicationException {
+    public void reRunBatch(Long batchHistoryId) throws ApplicationException, ServiceException {
         BatchHistory batchHistory;
         try {
             batchHistory = archiveDao.getBatchHistory(batchHistoryId);
@@ -79,7 +79,7 @@ public class Archiver {
 
     }
 
-    public void archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
+    public List<ArchiveHistory> archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
 
         if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
             BatchHistory latestBatch = getLatestCompletedBatch();
@@ -88,7 +88,7 @@ public class Archiver {
                 // If this batch end-date is not after the latest batch end date, we don't need to run it again
                 if (!end.isAfter(latestBatch.getEnd())) {
                     log.info("The batch is already done. Cancelling this batch...");
-                    return;
+                    return new ArrayList<>();
                 }
 
                 // If there is a gap between the latest batch end-date and this batch start-date, we would risk to miss something.
@@ -106,10 +106,10 @@ public class Archiver {
         archiveDao.postBatchHistory(batchHistory);
 
         // Do the archiving
-        archive(start, end, batchHistory);
+        return archive(start, end, batchHistory);
     }
 
-    private void archive(LocalDate start, LocalDate end, BatchHistory batchHistory) throws ApplicationException {
+    private List<ArchiveHistory> archive(LocalDate start, LocalDate end, BatchHistory batchHistory) throws ApplicationException, ServiceException {
 
         log.info("Runs batch: " + batchHistory.getId() + " with start-date: " + start + " and end-date: " + end);
 
@@ -118,7 +118,10 @@ public class Archiver {
 
         if (attachmentList.isEmpty()) {
             log.info("AttachmentList is empty - 0 attachments found in CaseManagement for ByggR.");
+            return new ArrayList<>();
         } else {
+            List<ArchiveHistory> archivedList = new ArrayList<>();
+
             for (Attachment attachment : attachmentList) {
                 ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getArchiveMetadata().getDocumentId(), attachment.getArchiveMetadata().getSystem());
 
@@ -156,11 +159,10 @@ public class Archiver {
                     newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
 
                     if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
-                        try {
-                            sendEmailToLantmateriet(attachment, newArchiveHistory);
-                        } catch (ServiceException e) {
-                            throw new ApplicationException("The request to messagingService.postEmail failed", e);
-                        }
+
+                      MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
+
+
                     }
                 } else {
                     // Not successful... Set status to not completed
@@ -168,14 +170,18 @@ public class Archiver {
                 }
 
                 archiveDao.updateArchiveHistory(newArchiveHistory);
-            }
-        }
 
-        if (archiveDao.getArchiveHistory(batchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
-            // Persist that this batch is completed
-            log.info("Batch completed.");
-            batchHistory.setStatus(Status.COMPLETED);
-            archiveDao.updateBatchHistory(batchHistory);
+                archivedList.add(newArchiveHistory);
+            }
+
+            if (archivedList.stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
+                // Persist that this batch is completed
+                log.info("Batch completed.");
+                batchHistory.setStatus(Status.COMPLETED);
+                archiveDao.updateBatchHistory(batchHistory);
+            }
+
+            return archivedList;
         }
     }
 
@@ -194,7 +200,7 @@ public class Archiver {
     }
 
 
-    public List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) {
+    public List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) throws ServiceException {
         List<Attachment> attachmentList = new ArrayList<>();
         try {
             attachmentList = caseManagementService.getDocuments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), SystemType.BYGGR);
@@ -204,14 +210,7 @@ public class Archiver {
                     && e.getMessage().contains("Documents not found")) {
                 log.info("Status from CaseManagement.getDocuments: HTTP 404 - Documents not found");
             } else {
-                log.error("Unexpected response from CaseManagement when using method caseManagementService.getDocuments -->\nHTTP Status: " + e.getStatus().getStatusCode() + " " + e.getStatus().getReasonPhrase() + "\nResponse body: " + e.getMessage());
-
-                throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(new Information(Constants.RFC_LINK_INTERNAL_SERVER_ERROR,
-                                Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
-                                Constants.ERR_MSG_EXTERNAL_SERVICE, null))
-                        .build());
+                throw e;
             }
         }
         return attachmentList;
@@ -243,7 +242,7 @@ public class Archiver {
         return latestBatch;
     }
 
-    private MessageStatusResponse sendEmailToLantmateriet(Attachment attachment, ArchiveHistory archiveHistory) throws ServiceException {
+    private MessageStatusResponse sendEmailToLantmateriet(Attachment attachment, ArchiveHistory archiveHistory) throws ApplicationException {
 
         EmailRequest emailRequest = new EmailRequest();
 
@@ -263,17 +262,6 @@ public class Archiver {
         emailRequest.setEmailAddress("dennis.nilsson@b3.se");
         emailRequest.setSubject("Arkiverad geoteknisk handling");
 
-//        StringBuilder sb = new StringBuilder();
-//        sb.append("Hej!")
-//                .append("<br><br>En geoteknisk handling har precis blivit arkiverad. Handlingen finns bifogad i mailet.")
-//                .append("<br>Denna ska läggas till på https://karta.sundsvall.se/")
-//                .append("<br><br>Arkiverings-ID: ").append(archiveHistory.getArchiveId())
-//                .append("<br>URL till den arkiverade handlingen: ").append("https://www.google.com/ ")
-//                .append("<br>ID på ärendet i Byggr: ").append(attachment.getArchiveMetadata().getCaseId())
-//                .append("<br>Namn på handlingen i Byggr: ").append(attachment.getName())
-//                .append("<br>ID på handlingen i Byggr:").append(archiveHistory.getDocumentId())
-//                .append("<br><br>Vid eventuella problem, svara på detta mail.");
-
         Map<String, String> valuesMap = new HashMap<>();
         valuesMap.put("archiveId", getStringOrEmpty(archiveHistory.getArchiveId()));
         valuesMap.put("archiveUrl", getStringOrEmpty(archiveHistory.getArchiveUrl()));
@@ -286,10 +274,27 @@ public class Archiver {
 
         log.info("HTML:\n" + htmlWithReplacedValues);
 
-//        emailRequest.setMessage(sb.toString());
         emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 
-        return messagingService.postEmail(emailRequest);
+        MessageStatusResponse response;
+        try {
+            response = messagingService.postEmail(emailRequest);
+
+            if (response != null
+                    && response.isSent()) {
+                log.info("E-mail sent to Lantmäteriet with information about geoteknisk handling for ArchiveId: " + archiveHistory.getArchiveId() + " MessageId: " + response.getMessageId());
+            }
+            else {
+                log.error("Something went wrong when trying to send e-mail about geoteknisk handling to Lantmäteriet." +
+                        "\nArchiveId: " + archiveHistory.getArchiveId() + "" +
+                        "\nDocumentId in Byggr: " + attachment.getArchiveMetadata().getDocumentId() + "" +
+                        "\nResponse from messaging: " + response);
+            }
+
+        } catch (ServiceException e) {
+            throw new ApplicationException("The request to messagingService.postEmail failed", e);
+        }
+        return response;
     }
 
     private String getStringOrEmpty(String string) {

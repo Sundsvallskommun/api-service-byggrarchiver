@@ -1,6 +1,7 @@
 package se.sundsvall;
 
 import se.sundsvall.exceptions.ApplicationException;
+import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.vo.*;
 
 import javax.inject.Inject;
@@ -56,16 +57,15 @@ public class ArchiverResource {
     @Path("batch-job")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response postBatchJob(@NotNull @Valid BatchJob batchJob) throws ApplicationException {
-        archiver.archiveByggrAttachments(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL);
-        return Response.ok().build();
+    public Response postBatchJob(@NotNull @Valid BatchJob batchJob) throws ApplicationException, ServiceException {
+        return Response.ok(archiver.archiveByggrAttachments(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL)).build();
     }
 
     @PUT
     @Path("batch-job/{batchHistoryId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response reRunBatchJob(@PathParam("batchHistoryId") Long batchHistoryId) throws ApplicationException {
+    public Response reRunBatchJob(@PathParam("batchHistoryId") Long batchHistoryId) throws ApplicationException, ServiceException {
 
         archiver.reRunBatch(batchHistoryId);
         return Response.ok().build();

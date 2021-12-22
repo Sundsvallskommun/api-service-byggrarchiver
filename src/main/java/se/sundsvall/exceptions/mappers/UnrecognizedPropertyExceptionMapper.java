@@ -2,7 +2,7 @@ package se.sundsvall.exceptions.mappers;
 
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import org.jboss.logging.Logger;
-import se.sundsvall.Constants;
+import se.sundsvall.util.Constants;
 import se.sundsvall.vo.Information;
 
 import javax.inject.Inject;

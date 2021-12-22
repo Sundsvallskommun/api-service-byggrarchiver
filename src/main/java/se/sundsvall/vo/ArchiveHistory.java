@@ -36,6 +36,10 @@ public class ArchiveHistory {
 
     @Getter
     @Setter
+    private String archiveUrl;
+
+    @Getter
+    @Setter
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;

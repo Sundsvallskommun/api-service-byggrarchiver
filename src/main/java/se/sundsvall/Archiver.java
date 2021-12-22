@@ -1,5 +1,6 @@
 package se.sundsvall;
 
+import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
@@ -14,6 +15,7 @@ import se.sundsvall.sundsvall.messaging.MessagingService;
 import se.sundsvall.sundsvall.messaging.vo.EmailRequest;
 import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
 import se.sundsvall.sundsvall.messaging.vo.Sender1;
+import se.sundsvall.util.Constants;
 import se.sundsvall.vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -23,9 +25,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -263,18 +263,36 @@ public class Archiver {
         emailRequest.setEmailAddress("dennis.nilsson@b3.se");
         emailRequest.setSubject("Arkiverad geoteknisk handling");
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Hej!")
-                .append("\n\nEn geoteknisk handling har precis blivit arkiverad. Handlingen finns bifogad i mailet.")
-                .append("\nDenna ska läggas till på https://karta.sundsvall.se/")
-                .append("\n\nArkiverings-ID: ").append(archiveHistory.getArchiveId())
-                .append("\nURL till den arkiverade handlingen: ").append("https://www.google.com/ ")
-                .append("\nID på ärendet i Byggr: ").append(attachment.getArchiveMetadata().getCaseId())
-                .append("\nNamn på handlingen i Byggr: ").append(attachment.getName())
-                .append("\nID på handlingen i Byggr:").append(archiveHistory.getDocumentId())
-                .append("\n\nVid eventuella problem, svara på detta mail.");
-        emailRequest.setMessage(sb.toString());
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("Hej!")
+//                .append("<br><br>En geoteknisk handling har precis blivit arkiverad. Handlingen finns bifogad i mailet.")
+//                .append("<br>Denna ska läggas till på https://karta.sundsvall.se/")
+//                .append("<br><br>Arkiverings-ID: ").append(archiveHistory.getArchiveId())
+//                .append("<br>URL till den arkiverade handlingen: ").append("https://www.google.com/ ")
+//                .append("<br>ID på ärendet i Byggr: ").append(attachment.getArchiveMetadata().getCaseId())
+//                .append("<br>Namn på handlingen i Byggr: ").append(attachment.getName())
+//                .append("<br>ID på handlingen i Byggr:").append(archiveHistory.getDocumentId())
+//                .append("<br><br>Vid eventuella problem, svara på detta mail.");
+
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("archiveId", getStringOrEmpty(archiveHistory.getArchiveId()));
+        valuesMap.put("archiveUrl", getStringOrEmpty(archiveHistory.getArchiveUrl()));
+        valuesMap.put("byggrCaseId", getStringOrEmpty(attachment.getArchiveMetadata().getCaseId()));
+        valuesMap.put("byggrDocumentName", getStringOrEmpty(attachment.getName()));
+        valuesMap.put("byggrDocumentId", getStringOrEmpty(archiveHistory.getDocumentId()));
+
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
+        String htmlWithReplacedValues = stringSubstitutor.replace(Constants.LANTMATERIET_HTML_TEMPLATE);
+
+        log.info("HTML:\n" + htmlWithReplacedValues);
+
+//        emailRequest.setMessage(sb.toString());
+        emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 
         return messagingService.postEmail(emailRequest);
+    }
+
+    private String getStringOrEmpty(String string) {
+        return string != null ? string : "";
     }
 }

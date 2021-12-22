@@ -1,7 +1,7 @@
 package se.sundsvall.exceptions.mappers;
 
 import org.jboss.logging.Logger;
-import se.sundsvall.Constants;
+import se.sundsvall.util.Constants;
 import se.sundsvall.vo.Information;
 
 import javax.inject.Inject;

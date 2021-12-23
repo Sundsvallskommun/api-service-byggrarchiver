@@ -8,18 +8,13 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.filter.log.LogDetail;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import se.sundsvall.exceptions.ServiceException;
-import se.sundsvall.sundsvall.archive.ArchiveService;
-import se.sundsvall.sundsvall.casemanagement.CaseManagementService;
 import se.sundsvall.util.Constants;
 import se.sundsvall.vo.ArchiveHistory;
-import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.BatchJob;
 import se.sundsvall.vo.Status;
 
@@ -57,6 +52,12 @@ class ArchiveIntegrationTest {
         wireMockServer.stop();
     }
 
+    // POST batch and then GET batchhistory and archivehistories - verify that the correct is returned
+    // Rerun an earlier completed batch - verify it did not run
+    // Rerun an earlier not_completed batch - GET batchhistory and verify it was completed
+    // Rerun archive for a specific archivehistory that was completed and verify it did not run
+    // Rerun archive for a specific archivehistory that was not_completed and verify that the same db-row was completed
+
     @Test
     void testScheduledJob() throws JsonProcessingException {
         BatchJob batchJob = new BatchJob();
@@ -71,7 +72,7 @@ class ArchiveIntegrationTest {
                 .log().ifValidationFails(LogDetail.BODY)
                 .statusCode(Response.Status.OK.getStatusCode()).extract().as(ArchiveHistory[].class));
 
-        List<ArchiveHistory> archiveHistories = archiveDao.getArchiveHistory();
+        List<ArchiveHistory> archiveHistories = archiveDao.getArchiveHistories();
         System.out.println(archiveHistories);
         archiveHistories.forEach(ah -> Assertions.assertEquals(Status.COMPLETED, ah.getStatus()));
     }

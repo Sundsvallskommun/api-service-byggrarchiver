@@ -20,28 +20,23 @@ public class ArchiveDao {
     @Inject
     EntityManager em;
 
-    @Transactional
-    public void postArchiveHistory(ArchiveHistory archiveHistory){
-        em.persist(archiveHistory);
-    }
-
-    public List<ArchiveHistory> getArchiveHistory() {
+    public List<ArchiveHistory> getArchiveHistories() {
         TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a", ArchiveHistory.class);
         return archiveHistoryList.getResultList();
     }
 
-    public List<ArchiveHistory> getArchiveHistory(Long batchHistoryId) {
+    public List<ArchiveHistory> getArchiveHistories(Long batchHistoryId) {
         return em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.batchHistory LIKE :batchHistory", ArchiveHistory.class)
                 .setParameter("batchHistory", getBatchHistory(batchHistoryId)).getResultList();
     }
 
-    public List<ArchiveHistory> getArchiveHistory(Status status) {
+    public List<ArchiveHistory> getArchiveHistories(Status status) {
         TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.status LIKE :status", ArchiveHistory.class)
                 .setParameter("status", status);
         return archiveHistoryList.getResultList();
     }
 
-    public ArchiveHistory getArchiveHistory(String documentId, SystemType systemType) throws ApplicationException {
+    public ArchiveHistory getArchiveHistories(String documentId, SystemType systemType) throws ApplicationException {
         TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.documentId LIKE :documentId AND a.systemType LIKE :systemType", ArchiveHistory.class)
                 .setParameter("documentId", documentId)
                 .setParameter("systemType", systemType);
@@ -53,6 +48,18 @@ public class ArchiveDao {
         } else {
             return null;
         }
+    }
+
+    public List<BatchHistory> getBatchHistory() {
+        TypedQuery<BatchHistory> batchHistoryList = em.createQuery("SELECT a FROM BatchHistory a", BatchHistory.class);
+
+        return batchHistoryList.getResultList();
+    }
+
+
+    @Transactional
+    public void postArchiveHistory(ArchiveHistory archiveHistory) {
+        em.persist(archiveHistory);
     }
 
     @Transactional
@@ -78,10 +85,5 @@ public class ArchiveDao {
         return batchHistory;
     }
 
-    public List<BatchHistory> getBatchHistory() {
-        TypedQuery<BatchHistory> batchHistoryList = em.createQuery("SELECT a FROM BatchHistory a", BatchHistory.class);
-
-        return batchHistoryList.getResultList();
-    }
 
 }

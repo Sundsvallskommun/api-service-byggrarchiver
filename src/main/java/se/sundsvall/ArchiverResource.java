@@ -27,9 +27,9 @@ public class ArchiverResource {
     public Response getArchiveHistory(@QueryParam("status") Status status) {
         List<ArchiveHistory> archiveHistoryList;
         if (status != null) {
-            archiveHistoryList = archiveDao.getArchiveHistory(status);
+            archiveHistoryList = archiveDao.getArchiveHistories(status);
         } else {
-            archiveHistoryList = archiveDao.getArchiveHistory();
+            archiveHistoryList = archiveDao.getArchiveHistories();
         }
 
         if (archiveHistoryList.isEmpty()) {

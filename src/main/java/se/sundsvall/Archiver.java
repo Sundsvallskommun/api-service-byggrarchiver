@@ -123,7 +123,7 @@ public class Archiver {
             List<ArchiveHistory> archivedList = new ArrayList<>();
 
             for (Attachment attachment : attachmentList) {
-                ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getArchiveMetadata().getDocumentId(), attachment.getArchiveMetadata().getSystem());
+                ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistories(attachment.getArchiveMetadata().getDocumentId(), attachment.getArchiveMetadata().getSystem());
 
                 // The new archiveHistory
                 ArchiveHistory newArchiveHistory;

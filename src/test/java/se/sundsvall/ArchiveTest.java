@@ -2,7 +2,6 @@ package se.sundsvall;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
-import io.quarkus.test.junit.mockito.InjectSpy;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,6 +80,17 @@ class ArchiveTest {
         Mockito.when(archiveServiceMock.postArchive(any())).thenReturn(archiveResponse);
     }
 
+    // Standard scenario - Run batch for yesterday - 3 documents found
+    // Standard scenario - Run batch for yesterday - 0 documents found
+    // Try to run batch for the same date and verify it doesn't run
+    // Run batch for attachmentCategory "GEO" and verify email was sent
+    // Run batch and simulate request to CaseManagement failure. Verify we handle exception correctly and abort the batch.
+    // Run batch for attachmentCategory "GEO" and simulate the request to Messaging fails. Verify we handle exception correctly and continue with the rest.
+    // Run batch and simulate request to Archive failure. Verify we handle exception correctly and continue with the rest.
+    // Try to run batch for future-date
+    // Try to run batch with start date later than end date
+    // Rerun a batch that failed and verify that the documents that was not completed gets completed and vice versa.
+
     @Test
     void runBatch() throws ApplicationException, ServiceException {
     LocalDate start = LocalDate.now().minusDays(1);
@@ -91,7 +101,7 @@ class ArchiveTest {
         verify(archiveDao, times(1)).getBatchHistory();
         verify(archiveDao, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(1)).getArchiveHistory(any(), any());
+        verify(archiveDao, times(1)).getArchiveHistories(any(), any());
         verify(archiveServiceMock, times(1)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
         verify(archiveDao, times(1)).postArchiveHistory(any());
@@ -126,7 +136,7 @@ class ArchiveTest {
         verify(archiveDao, times(1)).getBatchHistory();
         verify(archiveDao, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(1)).getArchiveHistory(any(), any());
+        verify(archiveDao, times(1)).getArchiveHistories(any(), any());
         verify(archiveServiceMock, times(1)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
         verify(archiveDao, times(1)).postArchiveHistory(any());
@@ -150,7 +160,7 @@ class ArchiveTest {
         verify(archiveDao, times(1)).getBatchHistory();
         verify(archiveDao, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(0)).getArchiveHistory(any(), any());
+        verify(archiveDao, times(0)).getArchiveHistories(any(), any());
         verify(archiveServiceMock, times(0)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
         verify(archiveDao, times(0)).postArchiveHistory(any());
@@ -184,7 +194,7 @@ class ArchiveTest {
         verify(archiveDao, times(1)).getBatchHistory();
         verify(archiveDao, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(1)).getArchiveHistory(any(), any());
+        verify(archiveDao, times(1)).getArchiveHistories(any(), any());
         verify(archiveServiceMock, times(1)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
         verify(archiveDao, times(1)).postArchiveHistory(any());

@@ -66,8 +66,10 @@ public class ArchiveHistory {
         return "ArchiveHistory{" +
                 "documentId='" + documentId + '\'' +
                 ", systemType=" + systemType +
-                ", batchHistory=" + batchHistory +
+                ", archiveId='" + archiveId + '\'' +
+                ", archiveUrl='" + archiveUrl + '\'' +
                 ", status=" + status +
+                ", batchHistory=" + batchHistory +
                 ", timestamp=" + timestamp +
                 '}';
     }

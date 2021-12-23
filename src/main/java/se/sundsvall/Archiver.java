@@ -116,14 +116,14 @@ public class Archiver {
         // Get Byggr-attachments from CaseManagement
         List<Attachment> attachmentList = getByggrAttachments(start, end);
 
+        // Holds the documents that have been processed
+        List<ArchiveHistory> processedDocuments = new ArrayList<>();
+
         if (attachmentList.isEmpty()) {
             log.info("AttachmentList is empty - 0 attachments found in CaseManagement for ByggR.");
-            return new ArrayList<>();
         } else {
-            List<ArchiveHistory> archivedList = new ArrayList<>();
-
             for (Attachment attachment : attachmentList) {
-                ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistories(attachment.getArchiveMetadata().getDocumentId(), attachment.getArchiveMetadata().getSystem());
+                ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getArchiveMetadata().getDocumentId(), attachment.getArchiveMetadata().getSystem());
 
                 // The new archiveHistory
                 ArchiveHistory newArchiveHistory;
@@ -160,8 +160,8 @@ public class Archiver {
 
                     if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
 
-                      MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
-
+                        MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
+                        
 
                     }
                 } else {
@@ -171,18 +171,18 @@ public class Archiver {
 
                 archiveDao.updateArchiveHistory(newArchiveHistory);
 
-                archivedList.add(newArchiveHistory);
+                processedDocuments.add(newArchiveHistory);
             }
-
-            if (archivedList.stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
-                // Persist that this batch is completed
-                log.info("Batch completed.");
-                batchHistory.setStatus(Status.COMPLETED);
-                archiveDao.updateBatchHistory(batchHistory);
-            }
-
-            return archivedList;
         }
+
+        if (processedDocuments.stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
+            // Persist that this batch is completed
+            log.info("Batch completed.");
+            batchHistory.setStatus(Status.COMPLETED);
+            archiveDao.updateBatchHistory(batchHistory);
+        }
+
+        return processedDocuments;
     }
 
     private ArchiveResponse postArchive(Attachment attachment) {
@@ -217,7 +217,7 @@ public class Archiver {
     }
 
     public BatchHistory getLatestCompletedBatch() {
-        List<BatchHistory> batchHistoryList = archiveDao.getBatchHistory();
+        List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
 
         // Filter completed batches
         batchHistoryList = batchHistoryList.stream()
@@ -283,8 +283,7 @@ public class Archiver {
             if (response != null
                     && response.isSent()) {
                 log.info("E-mail sent to Lantmäteriet with information about geoteknisk handling for ArchiveId: " + archiveHistory.getArchiveId() + " MessageId: " + response.getMessageId());
-            }
-            else {
+            } else {
                 log.error("Something went wrong when trying to send e-mail about geoteknisk handling to Lantmäteriet." +
                         "\nArchiveId: " + archiveHistory.getArchiveId() + "" +
                         "\nDocumentId in Byggr: " + attachment.getArchiveMetadata().getDocumentId() + "" +

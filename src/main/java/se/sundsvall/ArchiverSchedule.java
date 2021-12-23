@@ -25,11 +25,9 @@ public class ArchiverSchedule {
 
     @Scheduled(cron = "{cron.expression}")
     void archive(ScheduledExecution execution) throws ApplicationException, ServiceException {
-        log.info("Archiving... Timestamp: " + LocalDateTime.ofInstant(execution.getFireTime(), ZoneId.of("Europe/Stockholm")));
+        log.info("Running archiving on schedule. Timestamp: " + LocalDateTime.ofInstant(execution.getFireTime(), ZoneId.of("Europe/Stockholm")));
 
-        LocalDate start = LocalDate.now().minusDays(1);
-        LocalDate end = LocalDate.now();
-
-        archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.SCHEDULED);
     }
 }

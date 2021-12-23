@@ -44,7 +44,7 @@ public class ArchiverResource {
     @Path("batch-history")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getBatchHistory() {
-        List<BatchHistory> batchHistoryList = archiveDao.getBatchHistory();
+        List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
 
         if (batchHistoryList.isEmpty()) {
             throw new NotFoundException("BatchHistory not found");

@@ -29,7 +29,7 @@ class ArchiveHistoryDaoTest {
 
         archiveDao.postArchiveHistory(archiveHistory);
 
-        ArchiveHistory result = archiveDao.getArchiveHistories(archiveHistory.getDocumentId(), archiveHistory.getSystemType());
+        ArchiveHistory result = archiveDao.getArchiveHistory(archiveHistory.getDocumentId(), archiveHistory.getSystemType());
         Assertions.assertEquals(archiveHistory.getDocumentId(), result.getDocumentId());
         Assertions.assertEquals(archiveHistory.getSystemType(), result.getSystemType());
         Assertions.assertEquals(archiveHistory.getStatus(), result.getStatus());

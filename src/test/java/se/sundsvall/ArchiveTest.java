@@ -2,17 +2,19 @@ package se.sundsvall;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.junit.mockito.InjectSpy;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.*;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.casemanagement.*;
 import se.sundsvall.sundsvall.messaging.MessagingService;
+import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.BatchTrigger;
 import se.sundsvall.vo.Status;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.verify;
 @QuarkusTest
 class ArchiveTest {
 
+    public static final String DOCUMENT_ID = "ABC123";
     @Inject
     Archiver archiver;
 
@@ -40,15 +43,15 @@ class ArchiveTest {
 
     @InjectMock
     @RestClient
-    CaseManagementService caseManagementService;
+    CaseManagementService caseManagementServiceMock;
 
     @InjectMock
     @RestClient
-    ArchiveService archiveService;
+    ArchiveService archiveServiceMock;
 
     @InjectMock
     @RestClient
-    MessagingService messagingService;
+    MessagingService messagingServiceMock;
 
     @BeforeEach
     void beforeEach() throws ServiceException {
@@ -61,7 +64,7 @@ class ArchiveTest {
         Attachment attachment_1 = new Attachment();
         ArchiveMetadata archiveMetadata = new ArchiveMetadata();
         archiveMetadata.setSystem(SystemType.BYGGR);
-        archiveMetadata.setDocumentId("ABC123");
+        archiveMetadata.setDocumentId(DOCUMENT_ID);
         attachment_1.setArchiveMetadata(archiveMetadata);
         attachment_1.setCategory(AttachmentCategory.ANS);
         attachment_1.setFile("dGVzdA==");
@@ -70,12 +73,12 @@ class ArchiveTest {
         attachment_1.setName("Filnamn 1");
         attachment_1.setNote("Anteckning 1");
         attachmentList.add(attachment_1);
-        Mockito.when(caseManagementService.getDocuments(any(), any(), any())).thenReturn(attachmentList);
+        Mockito.when(caseManagementServiceMock.getDocuments(any(), any(), any())).thenReturn(attachmentList);
 
         // Archiver
         ArchiveResponse archiveResponse = new ArchiveResponse();
         archiveResponse.setArchiveId("FORMPIPE ID 123-123-123");
-        Mockito.when(archiveService.postArchive(any())).thenReturn(archiveResponse);
+        Mockito.when(archiveServiceMock.postArchive(any())).thenReturn(archiveResponse);
     }
 
     @Test
@@ -87,10 +90,10 @@ class ArchiveTest {
 
         verify(archiveDao, times(1)).getBatchHistory();
         verify(archiveDao, times(1)).postBatchHistory(any());
-        verify(caseManagementService, times(1)).getDocuments(any(), any(), any());
+        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
         verify(archiveDao, times(1)).getArchiveHistory(any(), any());
-        verify(archiveService, times(1)).postArchive(any());
-        verify(messagingService, times(0)).postEmail(any());
+        verify(archiveServiceMock, times(1)).postArchive(any());
+        verify(messagingServiceMock, times(0)).postEmail(any());
         verify(archiveDao, times(1)).postArchiveHistory(any());
         verify(archiveDao, times(1)).updateArchiveHistory(any());
         verify(archiveDao, times(1)).updateBatchHistory(any());
@@ -112,7 +115,7 @@ class ArchiveTest {
         attachment_1.setName("Filnamn 1");
         attachment_1.setNote("Anteckning 1");
         attachmentList.add(attachment_1);
-        Mockito.when(caseManagementService.getDocuments(any(), any(), any())).thenReturn(attachmentList);
+        Mockito.when(caseManagementServiceMock.getDocuments(any(), any(), any())).thenReturn(attachmentList);
 
         // Test
         LocalDate start = LocalDate.now().minusDays(1);
@@ -122,10 +125,10 @@ class ArchiveTest {
 
         verify(archiveDao, times(1)).getBatchHistory();
         verify(archiveDao, times(1)).postBatchHistory(any());
-        verify(caseManagementService, times(1)).getDocuments(any(), any(), any());
+        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
         verify(archiveDao, times(1)).getArchiveHistory(any(), any());
-        verify(archiveService, times(1)).postArchive(any());
-        verify(messagingService, times(1)).postEmail(any());
+        verify(archiveServiceMock, times(1)).postArchive(any());
+        verify(messagingServiceMock, times(1)).postEmail(any());
         verify(archiveDao, times(1)).postArchiveHistory(any());
         verify(archiveDao, times(1)).updateArchiveHistory(any());
         verify(archiveDao, times(1)).updateBatchHistory(any());
@@ -135,7 +138,7 @@ class ArchiveTest {
     @Test
     void testErrorFromCaseManagement() throws ServiceException, ApplicationException {
 
-        Mockito.when(caseManagementService.getDocuments(any(), any(), any())).thenThrow(ServiceException.create("{\"type\":\"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4\",\"status\":404,\"title\":\"Not Found\",\"detail\":\"RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive\"}", null, Response.Status.NOT_FOUND));
+        Mockito.when(caseManagementServiceMock.getDocuments(any(), any(), any())).thenThrow(ServiceException.create("{\"type\":\"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4\",\"status\":404,\"title\":\"Not Found\",\"detail\":\"RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive\"}", null, Response.Status.NOT_FOUND));
 
         // Test
         LocalDate start = LocalDate.now().minusDays(1);
@@ -146,10 +149,10 @@ class ArchiveTest {
         Assertions.assertEquals("{\"type\":\"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4\",\"status\":404,\"title\":\"Not Found\",\"detail\":\"RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive\"}", thrown.getLocalizedMessage());
         verify(archiveDao, times(1)).getBatchHistory();
         verify(archiveDao, times(1)).postBatchHistory(any());
-        verify(caseManagementService, times(1)).getDocuments(any(), any(), any());
+        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
         verify(archiveDao, times(0)).getArchiveHistory(any(), any());
-        verify(archiveService, times(0)).postArchive(any());
-        verify(messagingService, times(0)).postEmail(any());
+        verify(archiveServiceMock, times(0)).postArchive(any());
+        verify(messagingServiceMock, times(0)).postEmail(any());
         verify(archiveDao, times(0)).postArchiveHistory(any());
         verify(archiveDao, times(0)).updateArchiveHistory(any());
         verify(archiveDao, times(0)).updateBatchHistory(any());
@@ -157,7 +160,7 @@ class ArchiveTest {
 
     @Test
     void testErrorFromArchive() throws ServiceException, ApplicationException {
-        Mockito.when(archiveService.postArchive(any())).thenThrow(ServiceException.create("{\n" +
+        Mockito.when(archiveServiceMock.postArchive(any())).thenThrow(ServiceException.create("{\n" +
                 "  \"httpCode\": 500,\n" +
                 "  \"message\": \"Service error\",\n" +
                 "  \"technicalDetails\": {\n" +
@@ -180,17 +183,19 @@ class ArchiveTest {
 
         verify(archiveDao, times(1)).getBatchHistory();
         verify(archiveDao, times(1)).postBatchHistory(any());
-        verify(caseManagementService, times(1)).getDocuments(any(), any(), any());
+        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
         verify(archiveDao, times(1)).getArchiveHistory(any(), any());
-        verify(archiveService, times(1)).postArchive(any());
-        verify(messagingService, times(0)).postEmail(any());
+        verify(archiveServiceMock, times(1)).postArchive(any());
+        verify(messagingServiceMock, times(0)).postEmail(any());
         verify(archiveDao, times(1)).postArchiveHistory(any());
-        verify(archiveDao, times(1)).updateArchiveHistory(any());
+
+        ArgumentCaptor<ArchiveHistory> archiveHistoryCaptor = ArgumentCaptor.forClass(ArchiveHistory.class);
+        verify(archiveDao, times(1)).updateArchiveHistory(archiveHistoryCaptor.capture());
+        ArchiveHistory persistedArchiveH = archiveHistoryCaptor.getValue();
+        Assertions.assertEquals(Status.NOT_COMPLETED, persistedArchiveH.getStatus());
+
         verify(archiveDao, times(0)).updateBatchHistory(any());
-
-
     }
-
 
     @Test
     void testGetLatestCompletedBatchNoHit() {

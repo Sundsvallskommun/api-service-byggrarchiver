@@ -7,7 +7,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.restassured.filter.log.LogDetail;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.AfterAll;
@@ -15,12 +14,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.casemanagement.CaseManagementService;
 import se.sundsvall.util.Constants;
-import se.sundsvall.vo.*;
+import se.sundsvall.vo.ArchiveHistory;
+import se.sundsvall.vo.BatchHistory;
+import se.sundsvall.vo.BatchJob;
+import se.sundsvall.vo.Status;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
@@ -42,17 +43,7 @@ class ArchiveIntegrationTest {
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     @Inject
-    Archiver archiver;
-
-    @Inject
     ArchiveDao archiveDao;
-
-    @RestClient
-    CaseManagementService caseManagementService;
-
-    @InjectMock
-    @RestClient
-    ArchiveService archiveServiceMock;
 
     static WireMockServer wireMockServer = new WireMockServer(WireMockConfiguration.options().port(8090).usingFilesUnderDirectory("src/integration-test/resources"));
 
@@ -67,8 +58,19 @@ class ArchiveIntegrationTest {
     }
 
     @Test
-    void testScheduledJob() throws ApplicationException, ServiceException {
-        archiver.archiveByggrAttachments(LocalDate.now().minusDays(1), LocalDate.now(), BatchTrigger.SCHEDULED);
+    void testScheduledJob() throws JsonProcessingException {
+        BatchJob batchJob = new BatchJob();
+        batchJob.setStart(LocalDate.now().minusDays(1));
+        batchJob.setEnd(LocalDate.now());
+
+        Arrays.asList(given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mapper.writeValueAsString(batchJob))
+                .when().post("/batch-job")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.OK.getStatusCode()).extract().as(ArchiveHistory[].class));
+
         List<ArchiveHistory> archiveHistories = archiveDao.getArchiveHistory();
         System.out.println(archiveHistories);
         archiveHistories.forEach(ah -> Assertions.assertEquals(Status.COMPLETED, ah.getStatus()));
@@ -76,11 +78,9 @@ class ArchiveIntegrationTest {
 
     @Test
     void testErrorFromCaseManagement() throws ServiceException, JsonProcessingException {
-        Mockito.when(caseManagementService.getDocuments(any(), any(), any())).thenThrow(ServiceException.create("{\"type\":\"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4\",\"status\":404,\"title\":\"Not Found\",\"detail\":\"RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive\"}", null, Response.Status.NOT_FOUND));
-
         BatchJob batchJob = new BatchJob();
-        batchJob.setStart(LocalDate.now().minusDays(10));
-        batchJob.setEnd(LocalDate.now().minusDays(5));
+        batchJob.setStart(LocalDate.parse("2021-01-01"));
+        batchJob.setEnd(LocalDate.parse("2021-01-01"));
 
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -92,37 +92,4 @@ class ArchiveIntegrationTest {
                 .assertThat().body(containsString(Constants.ERR_MSG_UNHANDLED_EXCEPTION));
     }
 
-    @Test
-    void testErrorFromArchive() throws  ServiceException, JsonProcessingException {
-        Mockito.when(archiveServiceMock.postArchive(any())).thenThrow(ServiceException.create("{\n" +
-                "  \"httpCode\": 500,\n" +
-                "  \"message\": \"Service error\",\n" +
-                "  \"technicalDetails\": {\n" +
-                "    \"rootCode\": 500,\n" +
-                "    \"rootCause\": \"Internal Server Error\",\n" +
-                "    \"serviceId\": \"api-service-archive\",\n" +
-                "    \"requestId\": null,\n" +
-                "    \"details\": [\n" +
-                "      \"Error invoking subclass method\",\n" +
-                "      \"Request: /documents\"\n" +
-                "    ]\n" +
-                "  }\n" +
-                "}", null, Response.Status.INTERNAL_SERVER_ERROR));
-
-        // Test
-        BatchJob batchJob = new BatchJob();
-        batchJob.setStart(LocalDate.now().minusDays(1));
-        batchJob.setEnd(LocalDate.now());
-
-        List<ArchiveHistory> archiveHistories = Arrays.asList(given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(mapper.writeValueAsString(batchJob))
-                .when().post("/batch-job")
-                .then()
-                .log().ifValidationFails(LogDetail.BODY)
-                .statusCode(Response.Status.OK.getStatusCode()).extract().as(ArchiveHistory[].class));
-
-        BatchHistory batchHistory = archiveDao.getBatchHistory(archiveHistories.get(0).getBatchHistory().getId());
-        Assertions.assertEquals(Status.NOT_COMPLETED, batchHistory.getStatus());
-    }
 }

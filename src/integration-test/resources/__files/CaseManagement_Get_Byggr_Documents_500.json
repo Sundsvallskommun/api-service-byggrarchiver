@@ -1,0 +1,6 @@
+{
+  "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4",
+  "status": 404,
+  "title": "Not Found",
+  "detail": "RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive"
+}

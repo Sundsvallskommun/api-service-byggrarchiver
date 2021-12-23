@@ -57,6 +57,8 @@ public class ClientLoggingFilter implements ClientRequestFilter, ClientResponseF
         var info = RequestInfo.builder()
                 .withOrigin("client")
                 .withType("request")
+                .withMethod(requestContext.getMethod())
+                .withUri(requestContext.getUri().toString())
                 .withHeaders(requestContext.getHeaders())
                 .withBody(requestContext.getEntity())
                 .build();

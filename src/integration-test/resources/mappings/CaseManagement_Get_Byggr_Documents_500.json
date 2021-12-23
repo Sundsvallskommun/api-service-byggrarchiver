@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/casemanagement/2.1/cases/closed/documents/archive?search-start=2021-01-01&search-end=2021-01-01&system-type=BYGGR"
+  },
+  "response": {
+    "status": 500,
+    "bodyFileName": "CaseManagement_Get_Byggr_Documents_500.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

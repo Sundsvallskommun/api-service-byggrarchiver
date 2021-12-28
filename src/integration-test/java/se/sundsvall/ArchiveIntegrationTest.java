@@ -19,6 +19,7 @@ import se.sundsvall.vo.BatchJob;
 import se.sundsvall.vo.Status;
 
 import javax.inject.Inject;
+import javax.ws.rs.GET;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDate;
@@ -57,28 +58,43 @@ class ArchiveIntegrationTest {
     // Rerun an earlier not_completed batch - GET batchhistory and verify it was completed
     // Rerun archive for a specific archivehistory that was completed and verify it did not run
     // Rerun archive for a specific archivehistory that was not_completed and verify that the same db-row was completed
+    // Try to run batch for future-date
+    // Try to run batch with start date later than end date
+    // Rerun a batch that failed and verify that the documents that was not completed gets completed and vice versa.
 
     @Test
     void testScheduledJob() throws JsonProcessingException {
         BatchJob batchJob = new BatchJob();
         batchJob.setStart(LocalDate.now().minusDays(1));
-        batchJob.setEnd(LocalDate.now());
+        batchJob.setEnd(LocalDate.now().minusDays(1));
 
-        Arrays.asList(given()
+        // POST batchJob
+        List<ArchiveHistory> postArchiveHistoryList = Arrays.asList(given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(mapper.writeValueAsString(batchJob))
                 .when().post("/batch-job")
                 .then()
                 .log().ifValidationFails(LogDetail.BODY)
-                .statusCode(Response.Status.OK.getStatusCode()).extract().as(ArchiveHistory[].class));
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract().as(ArchiveHistory[].class));
 
         List<ArchiveHistory> archiveHistories = archiveDao.getArchiveHistories();
         System.out.println(archiveHistories);
         archiveHistories.forEach(ah -> Assertions.assertEquals(Status.COMPLETED, ah.getStatus()));
+
+        // GET archiveHistory
+        List<ArchiveHistory> getArchiveHistoryList = Arrays.asList(given()
+                .queryParam("batchHistoryId", postArchiveHistoryList.get(0).getBatchHistory().getId())
+                .when().get("archived/attachments")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.OK.getStatusCode()).extract().as(ArchiveHistory[].class));
+
+        Assertions.assertEquals(postArchiveHistoryList, getArchiveHistoryList);
     }
 
     @Test
-    void testErrorFromCaseManagement() throws ServiceException, JsonProcessingException {
+    void testErrorFromCaseManagement() throws JsonProcessingException {
         BatchJob batchJob = new BatchJob();
         batchJob.setStart(LocalDate.parse("2021-01-01"));
         batchJob.setEnd(LocalDate.parse("2021-01-01"));

@@ -11,6 +11,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Path("/")
 public class ArchiverResource {
@@ -22,14 +23,16 @@ public class ArchiverResource {
     ArchiveDao archiveDao;
 
     @GET
-    @Path("archive-history")
+    @Path("archived/attachments")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveHistory(@QueryParam("status") Status status) {
-        List<ArchiveHistory> archiveHistoryList;
+    public Response getArchiveHistory(@QueryParam("status") Status status, @QueryParam("batchHistoryId") Long batchHistoryId) {
+        List<ArchiveHistory> archiveHistoryList = archiveDao.getArchiveHistories();
+
+        if (batchHistoryId != null) {
+            archiveHistoryList = archiveHistoryList.stream().filter(ah -> batchHistoryId.equals(ah.getBatchHistory().getId())).collect(Collectors.toList());
+        }
         if (status != null) {
-            archiveHistoryList = archiveDao.getArchiveHistories(status);
-        } else {
-            archiveHistoryList = archiveDao.getArchiveHistories();
+            archiveHistoryList = archiveHistoryList.stream().filter(ah -> status.equals(ah.getStatus())).collect(Collectors.toList());
         }
 
         if (archiveHistoryList.isEmpty()) {
@@ -41,7 +44,7 @@ public class ArchiverResource {
     }
 
     @GET
-    @Path("batch-history")
+    @Path("batches")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getBatchHistory() {
         List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
@@ -57,7 +60,7 @@ public class ArchiverResource {
     @Path("batch-job")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response postBatchJob(@NotNull @Valid BatchJob batchJob) throws ApplicationException, ServiceException {
+    public Response postBatchJob(@NotNull(message = "Request body must not be null") @Valid BatchJob batchJob) throws ApplicationException, ServiceException {
         return Response.ok(archiver.archiveByggrAttachments(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL)).build();
     }
 

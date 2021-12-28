@@ -21,11 +21,16 @@ class ArchiveHistoryDaoTest {
 
     @Test
     void testPostAndGetArchiveHistory() throws ApplicationException {
+
+        BatchHistory batchHistory = new BatchHistory(LocalDate.now().minusDays(1), LocalDate.now().minusDays(1), BatchTrigger.SCHEDULED, Status.COMPLETED);
+        archiveDao.postBatchHistory(batchHistory);
+
         ArchiveHistory archiveHistory = new ArchiveHistory();
         archiveHistory.setDocumentId("abc-123");
         archiveHistory.setSystemType(SystemType.BYGGR);
         archiveHistory.setStatus(Status.COMPLETED);
         archiveHistory.setArchiveId("123-123-4123-1231");
+        archiveHistory.setBatchHistory(batchHistory);
 
         archiveDao.postArchiveHistory(archiveHistory);
 

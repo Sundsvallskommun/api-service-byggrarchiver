@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 @Entity
 @IdClass(IdPk.class)
@@ -45,15 +46,15 @@ public class ArchiveHistory {
     private Status status;
 
     @Getter
+    @Schema(readOnly = true)
+    @Column(nullable = false)
+    private LocalDateTime timestamp;
+
+    @Getter
     @Setter
     @NotNull
     @ManyToOne
     private BatchHistory batchHistory;
-
-    @Getter
-    @Schema(readOnly = true)
-    @Column(nullable = false)
-    private LocalDateTime timestamp;
 
     @PrePersist
     @PreUpdate
@@ -69,9 +70,22 @@ public class ArchiveHistory {
                 ", archiveId='" + archiveId + '\'' +
                 ", archiveUrl='" + archiveUrl + '\'' +
                 ", status=" + status +
-                ", batchHistory=" + batchHistory +
                 ", timestamp=" + timestamp +
+                ", batchHistory=" + batchHistory +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ArchiveHistory that = (ArchiveHistory) o;
+        return Objects.equals(documentId, that.documentId) && systemType == that.systemType && Objects.equals(archiveId, that.archiveId) && Objects.equals(archiveUrl, that.archiveUrl) && status == that.status && Objects.equals(timestamp, that.timestamp) && Objects.equals(batchHistory, that.batchHistory);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(documentId, systemType, archiveId, archiveUrl, status, timestamp, batchHistory);
     }
 }
 

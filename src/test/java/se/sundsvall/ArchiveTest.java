@@ -2,7 +2,6 @@ package se.sundsvall;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
-import io.vertx.core.cli.Argument;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +19,6 @@ import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.BatchTrigger;
 import se.sundsvall.vo.Status;
 
-import javax.activation.MimeType;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import java.time.LocalDate;
@@ -38,11 +36,12 @@ class ArchiveTest {
     public static final String DOCUMENT_ID_1 = "ABC123";
     public static final String DOCUMENT_ID_2 = "aaaaaaaaaaaaaaaaabbbbbbbbbbbccccccccccc";
     public static final String DOCUMENT_ID_3 = "12345678";
+
     @Inject
     Archiver archiver;
 
     @InjectMock
-    ArchiveDao archiveDao;
+    ArchiveDao archiveDaoMock;
 
     @InjectMock
     @RestClient
@@ -115,30 +114,21 @@ class ArchiveTest {
         Mockito.when(archiveServiceMock.postArchive(any())).thenReturn(archiveResponse);
     }
 
-    // TODO - create all this tests
-    // Try to run batch for the same date and verify it doesn't run
-    // Run batch for attachmentCategory "GEO" and verify email was sent
-    // Run batch and simulate request to CaseManagement failure. Verify we handle exception correctly and abort the batch.
-    // Run batch and simulate request to Archive failure. Verify we handle exception correctly and continue with the rest.
-    // Try to run batch for future-date
-    // Try to run batch with start date later than end date
-    // Rerun a batch that failed and verify that the documents that was not completed gets completed and vice versa.
-
     // Standard scenario - Run batch for yesterday - 3 documents found
     @Test
     void testStandardBatchThreeDocsFound() throws ApplicationException, ServiceException {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        verify(archiveDao, times(1)).getBatchHistories();
-        verify(archiveDao, times(1)).postBatchHistory(any());
+        verify(archiveDaoMock, times(1)).getBatchHistories();
+        verify(archiveDaoMock, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(3)).getArchiveHistory(any(), any());
+        verify(archiveDaoMock, times(3)).getArchiveHistory(any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
-        verify(archiveDao, times(3)).postArchiveHistory(any());
-        verify(archiveDao, times(3)).updateArchiveHistory(any());
-        verify(archiveDao, times(1)).updateBatchHistory(any());
+        verify(archiveDaoMock, times(3)).postArchiveHistory(any());
+        verify(archiveDaoMock, times(3)).updateArchiveHistory(any());
+        verify(archiveDaoMock, times(1)).updateBatchHistory(any());
     }
 
     // Standard scenario - Run batch for yesterday - 0 documents found
@@ -149,18 +139,69 @@ class ArchiveTest {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        verify(archiveDao, times(1)).getBatchHistories();
-        verify(archiveDao, times(1)).postBatchHistory(any());
+        verify(archiveDaoMock, times(1)).getBatchHistories();
+        verify(archiveDaoMock, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(0)).getArchiveHistory(any(), any());
+        verify(archiveDaoMock, times(0)).getArchiveHistory(any(), any());
         verify(archiveServiceMock, times(0)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
-        verify(archiveDao, times(0)).postArchiveHistory(any());
-        verify(archiveDao, times(0)).updateArchiveHistory(any());
+        verify(archiveDaoMock, times(0)).postArchiveHistory(any());
+        verify(archiveDaoMock, times(0)).updateArchiveHistory(any());
 
         ArgumentCaptor<BatchHistory> batchHistoryArgumentCaptor = ArgumentCaptor.forClass(BatchHistory.class);
-        verify(archiveDao, times(1)).updateBatchHistory(batchHistoryArgumentCaptor.capture());
+        verify(archiveDaoMock, times(1)).updateBatchHistory(batchHistoryArgumentCaptor.capture());
         Assertions.assertEquals(Status.COMPLETED, batchHistoryArgumentCaptor.getValue().getStatus());
+    }
+
+    // Try to run scheduled batch for the same date and verify it doesn't run
+    @Test
+    void testRunScheduledBatchForSameDate() throws ServiceException, ApplicationException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        // Mock archiveDao
+        BatchHistory batchHistory = new BatchHistory();
+        batchHistory.setStart(yesterday);
+        batchHistory.setEnd(yesterday);
+        batchHistory.setStatus(Status.COMPLETED);
+        List<BatchHistory> batchHistoryList = List.of(batchHistory);
+        when(archiveDaoMock.getBatchHistories()).thenReturn(batchHistoryList);
+
+        archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        verify(archiveDaoMock, times(1)).getBatchHistories();
+        verify(archiveDaoMock, times(0)).postBatchHistory(any());
+        verify(caseManagementServiceMock, times(0)).getDocuments(any(), any(), any());
+        verify(archiveDaoMock, times(0)).getArchiveHistory(any(), any());
+        verify(archiveServiceMock, times(0)).postArchive(any());
+        verify(messagingServiceMock, times(0)).postEmail(any());
+        verify(archiveDaoMock, times(0)).postArchiveHistory(any());
+        verify(archiveDaoMock, times(0)).updateArchiveHistory(any());
+    }
+
+    // Try to run manual batch for the same date and verify it runs
+    @Test
+    void testRunManualBatchForSameDate() throws ServiceException, ApplicationException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        // Mock archiveDao
+        BatchHistory batchHistory = new BatchHistory();
+        batchHistory.setStart(yesterday);
+        batchHistory.setEnd(yesterday);
+        batchHistory.setStatus(Status.COMPLETED);
+        List<BatchHistory> batchHistoryList = List.of(batchHistory);
+        when(archiveDaoMock.getBatchHistories()).thenReturn(batchHistoryList);
+
+        archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.MANUAL);
+
+        verify(archiveDaoMock, times(0)).getBatchHistories();
+        verify(archiveDaoMock, times(1)).postBatchHistory(any());
+        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(archiveDaoMock, times(3)).getArchiveHistory(any(), any());
+        verify(archiveServiceMock, times(3)).postArchive(any());
+        verify(messagingServiceMock, times(1)).postEmail(any());
+        verify(archiveDaoMock, times(3)).postArchiveHistory(any());
+        verify(archiveDaoMock, times(3)).updateArchiveHistory(any());
+        verify(archiveDaoMock, times(1)).updateBatchHistory(any());
     }
 
     // Run batch for attachmentCategory "GEO" and simulate the email was not sent. Verify we log the error and persist all.
@@ -168,6 +209,7 @@ class ArchiveTest {
     void runBatchGeotekniskUndersokningMessageSentFalse() throws ServiceException, ApplicationException {
         // mocks messaging
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
+        messageStatusResponse.setMessageId("12312-3123-123-123-123");
         messageStatusResponse.setSent(false);
         Mockito.when(messagingServiceMock.postEmail(any())).thenReturn(messageStatusResponse);
 
@@ -177,26 +219,58 @@ class ArchiveTest {
 
         archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED);
 
-        verify(archiveDao, times(1)).getBatchHistories();
-        verify(archiveDao, times(1)).postBatchHistory(any());
+        verify(archiveDaoMock, times(1)).getBatchHistories();
+        verify(archiveDaoMock, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(3)).getArchiveHistory(any(), any());
+        verify(archiveDaoMock, times(3)).getArchiveHistory(any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
-        verify(archiveDao, times(3)).postArchiveHistory(any());
+        verify(archiveDaoMock, times(3)).postArchiveHistory(any());
 
         ArgumentCaptor<ArchiveHistory> archiveHistoryArgumentCaptor = ArgumentCaptor.forClass(ArchiveHistory.class);
-        verify(archiveDao, times(3)).updateArchiveHistory(archiveHistoryArgumentCaptor.capture());
+        verify(archiveDaoMock, times(3)).updateArchiveHistory(archiveHistoryArgumentCaptor.capture());
         archiveHistoryArgumentCaptor.getAllValues().forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
 
-        verify(archiveDao, times(1)).updateBatchHistory(any());
+        verify(archiveDaoMock, times(1)).updateBatchHistory(any());
         // TODO verify error message in the log
     }
 
+    // Run batch for attachmentCategory "GEO" and verify email was sent
+    @Test
+    void runBatchGeotekniskUndersokningMessageSentTrue() throws ServiceException, ApplicationException {
+        // mocks messaging
+        MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
+        messageStatusResponse.setMessageId("12312-3123-123-123-123");
+        messageStatusResponse.setSent(true);
+        Mockito.when(messagingServiceMock.postEmail(any())).thenReturn(messageStatusResponse);
+
+        // Test
+        LocalDate start = LocalDate.now().minusDays(3);
+        LocalDate end = LocalDate.now();
+
+        archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED);
+
+        verify(archiveDaoMock, times(1)).getBatchHistories();
+        verify(archiveDaoMock, times(1)).postBatchHistory(any());
+        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(archiveDaoMock, times(3)).getArchiveHistory(any(), any());
+        verify(archiveServiceMock, times(3)).postArchive(any());
+        verify(messagingServiceMock, times(1)).postEmail(any());
+        verify(archiveDaoMock, times(3)).postArchiveHistory(any());
+
+        ArgumentCaptor<ArchiveHistory> archiveHistoryArgumentCaptor = ArgumentCaptor.forClass(ArchiveHistory.class);
+        verify(archiveDaoMock, times(3)).updateArchiveHistory(archiveHistoryArgumentCaptor.capture());
+        archiveHistoryArgumentCaptor.getAllValues().forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
+
+        verify(archiveDaoMock, times(1)).updateBatchHistory(any());
+    }
+
+    // Run batch and simulate request to CaseManagement failure. Verify we handle exception correctly and abort the batch.
     @Test
     void testErrorFromCaseManagement() throws ServiceException, ApplicationException {
 
-        Mockito.when(caseManagementServiceMock.getDocuments(any(), any(), any())).thenThrow(ServiceException.create("{\"type\":\"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4\",\"status\":404,\"title\":\"Not Found\",\"detail\":\"RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive\"}", null, Response.Status.NOT_FOUND));
+        String exceptionMessage = "{\"type\":\"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4\",\"status\":404,\"title\":\"Not Found\",\"detail\":\"RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive\"}";
+        Mockito.when(caseManagementServiceMock.getDocuments(any(), any(), any())).thenThrow(ServiceException.create(exceptionMessage, null, Response.Status.NOT_FOUND));
 
         // Test
         LocalDate start = LocalDate.now().minusDays(1);
@@ -204,21 +278,22 @@ class ArchiveTest {
 
         ServiceException thrown = Assertions.assertThrows(ServiceException.class, () -> archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED));
 
-        Assertions.assertEquals("{\"type\":\"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4\",\"status\":404,\"title\":\"Not Found\",\"detail\":\"RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive\"}", thrown.getLocalizedMessage());
-        verify(archiveDao, times(1)).getBatchHistories();
-        verify(archiveDao, times(1)).postBatchHistory(any());
+        Assertions.assertEquals(exceptionMessage, thrown.getLocalizedMessage());
+        verify(archiveDaoMock, times(1)).getBatchHistories();
+        verify(archiveDaoMock, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(0)).getArchiveHistory(any(), any());
+        verify(archiveDaoMock, times(0)).getArchiveHistory(any(), any());
         verify(archiveServiceMock, times(0)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
-        verify(archiveDao, times(0)).postArchiveHistory(any());
-        verify(archiveDao, times(0)).updateArchiveHistory(any());
-        verify(archiveDao, times(0)).updateBatchHistory(any());
+        verify(archiveDaoMock, times(0)).postArchiveHistory(any());
+        verify(archiveDaoMock, times(0)).updateArchiveHistory(any());
+        verify(archiveDaoMock, times(0)).updateBatchHistory(any());
     }
 
+    // Run batch and simulate request to Archive failure. Verify we handle exception correctly and continue with the rest.
     @Test
     void testErrorFromArchive() throws ServiceException, ApplicationException {
-        Mockito.when(archiveServiceMock.postArchive(any())).thenThrow(ServiceException.create("{\n" +
+        String exceptionMessage = "{\n" +
                 "  \"httpCode\": 500,\n" +
                 "  \"message\": \"Service error\",\n" +
                 "  \"technicalDetails\": {\n" +
@@ -231,7 +306,9 @@ class ArchiveTest {
                 "      \"Request: /documents\"\n" +
                 "    ]\n" +
                 "  }\n" +
-                "}", null, Response.Status.INTERNAL_SERVER_ERROR));
+                "}";
+
+        Mockito.when(archiveServiceMock.postArchive(any())).thenThrow(ServiceException.create(exceptionMessage, null, Response.Status.INTERNAL_SERVER_ERROR));
 
         // Test
         LocalDate start = LocalDate.now().minusDays(1);
@@ -239,20 +316,19 @@ class ArchiveTest {
 
         archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED);
 
-        verify(archiveDao, times(1)).getBatchHistories();
-        verify(archiveDao, times(1)).postBatchHistory(any());
+        verify(archiveDaoMock, times(1)).getBatchHistories();
+        verify(archiveDaoMock, times(1)).postBatchHistory(any());
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
-        verify(archiveDao, times(1)).getArchiveHistory(any(), any());
-        verify(archiveServiceMock, times(1)).postArchive(any());
+        verify(archiveDaoMock, times(3)).getArchiveHistory(any(), any());
+        verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
-        verify(archiveDao, times(1)).postArchiveHistory(any());
+        verify(archiveDaoMock, times(3)).postArchiveHistory(any());
 
-        ArgumentCaptor<ArchiveHistory> archiveHistoryCaptor = ArgumentCaptor.forClass(ArchiveHistory.class);
-        verify(archiveDao, times(1)).updateArchiveHistory(archiveHistoryCaptor.capture());
-        ArchiveHistory persistedArchiveH = archiveHistoryCaptor.getValue();
-        Assertions.assertEquals(Status.NOT_COMPLETED, persistedArchiveH.getStatus());
+        ArgumentCaptor<ArchiveHistory> archiveHistoryArgumentCaptor = ArgumentCaptor.forClass(ArchiveHistory.class);
+        verify(archiveDaoMock, times(3)).updateArchiveHistory(archiveHistoryArgumentCaptor.capture());
+        archiveHistoryArgumentCaptor.getAllValues().forEach(archiveHistory -> Assertions.assertEquals(Status.NOT_COMPLETED, archiveHistory.getStatus()));
 
-        verify(archiveDao, times(0)).updateBatchHistory(any());
+        verify(archiveDaoMock, times(0)).updateBatchHistory(any());
     }
 
     @Test
@@ -260,7 +336,7 @@ class ArchiveTest {
         List<BatchHistory> batchHistoryList = new ArrayList<>();
         batchHistoryList.add(new BatchHistory(LocalDate.now().minusDays(5), LocalDate.now().minusDays(1), BatchTrigger.SCHEDULED, Status.NOT_COMPLETED));
         batchHistoryList.add(new BatchHistory(LocalDate.now().minusDays(7), LocalDate.now().minusDays(6), BatchTrigger.SCHEDULED, Status.NOT_COMPLETED));
-        Mockito.when(archiveDao.getBatchHistories()).thenReturn(batchHistoryList);
+        Mockito.when(archiveDaoMock.getBatchHistories()).thenReturn(batchHistoryList);
 
         BatchHistory batchHistory = archiver.getLatestCompletedBatch();
 
@@ -278,7 +354,7 @@ class ArchiveTest {
         BatchHistory batchHistory2 = new BatchHistory(LocalDate.now().minusDays(7), LocalDate.now().minusDays(6), BatchTrigger.SCHEDULED, Status.COMPLETED);
         batchHistoryList.add(batchHistory2);
 
-        Mockito.when(archiveDao.getBatchHistories()).thenReturn(batchHistoryList);
+        Mockito.when(archiveDaoMock.getBatchHistories()).thenReturn(batchHistoryList);
 
         BatchHistory latestBatchHistory = archiver.getLatestCompletedBatch();
 
@@ -296,7 +372,7 @@ class ArchiveTest {
         BatchHistory batchHistory2 = new BatchHistory(LocalDate.now().minusDays(7), LocalDate.now().minusDays(6), BatchTrigger.SCHEDULED, Status.COMPLETED);
         batchHistoryList.add(batchHistory2);
 
-        Mockito.when(archiveDao.getBatchHistories()).thenReturn(batchHistoryList);
+        Mockito.when(archiveDaoMock.getBatchHistories()).thenReturn(batchHistoryList);
 
         BatchHistory latestBatchHistory = archiver.getLatestCompletedBatch();
 

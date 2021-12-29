@@ -7,6 +7,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.validators.StartBeforeEnd;
 import se.sundsvall.vo.*;
 
 import javax.inject.Inject;
@@ -82,7 +83,7 @@ public class ArchiverResource {
             @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
             @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
     })
-    public Response postBatchJob(@NotNull(message = "Request body must not be null") @Valid BatchJob batchJob) throws ApplicationException, ServiceException {
+    public Response postBatchJob(@StartBeforeEnd @NotNull(message = "Request body must not be null") @Valid BatchJob batchJob) throws ApplicationException, ServiceException {
         return Response.ok(archiver.archiveByggrAttachments(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL)).build();
     }
 

@@ -24,6 +24,7 @@ import javax.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -73,7 +74,7 @@ class ArchiveTest {
 
     @BeforeEach
     void beforeEach() throws ServiceException {
-        // Clear all tables between tests
+        // Clear db between tests
         testDao.deleteAllFromAllTables();
 
         /*
@@ -338,11 +339,15 @@ class ArchiveTest {
 
         Assertions.assertEquals(1, archiveDao.getBatchHistories().size());
         Assertions.assertEquals(Status.NOT_COMPLETED, archiveDao.getBatchHistory(firstBatchHistory.getId()).getStatus());
-        List<ArchiveHistory> archiveHistoryList = archiveDao.getArchiveHistories(firstBatchHistory.getId());
-        Assertions.assertEquals(3, archiveHistoryList.size());
+        List<ArchiveHistory> firstArchiveHistoryList = archiveDao.getArchiveHistories(firstBatchHistory.getId());
+        Assertions.assertEquals(3, firstArchiveHistoryList.size());
         // Only one should be NOT_COMPLETED, the other two should be COMPLETED
-        Assertions.assertEquals(1, archiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).count());
-        Assertions.assertEquals(2, archiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).count());
+        List <ArchiveHistory> firstNotCompletedArchiveHistories = firstArchiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
+        List <ArchiveHistory> firstCompletedArchiveHistories = firstArchiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
+        Assertions.assertEquals(1, firstNotCompletedArchiveHistories.size());
+        Assertions.assertEquals(2, firstCompletedArchiveHistories.size());
+
+        System.out.println("1: " + firstNotCompletedArchiveHistories.get(0));
 
         verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
@@ -361,12 +366,14 @@ class ArchiveTest {
         List<ArchiveHistory> reRunArchiveHistoryList = archiveDao.getArchiveHistories(reRunBatchHistory.getId());
         Assertions.assertEquals(3, reRunArchiveHistoryList.size());
         // Now all should be COMPLETED
-        Assertions.assertEquals(0, reRunArchiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).count());
-        Assertions.assertEquals(3, reRunArchiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).count());
+        List <ArchiveHistory> reRunNotCompletedArchiveHistories = reRunArchiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
+        List <ArchiveHistory> reRunCompletedArchiveHistories = reRunArchiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
+        Assertions.assertEquals(0, reRunNotCompletedArchiveHistories.size());
+        Assertions.assertEquals(3, reRunCompletedArchiveHistories.size());
 
         // Both the first batch and the reRun
         verify(caseManagementServiceMock, times(2)).getDocuments(any(), any(), any());
-        // 3+1
+        // 3 the first time + 1 in the reRun
         verify(archiveServiceMock, times(4)).postArchive(any());
         // Only in the rerun when the archiving of GEO success
         verify(messagingServiceMock, times(1)).postEmail(any());

@@ -6,7 +6,7 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
 @ApplicationScoped
-public class TestDao {
+class TestDao {
 
     @Inject
     EntityManager em;

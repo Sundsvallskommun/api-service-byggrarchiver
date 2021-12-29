@@ -8,10 +8,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.filter.log.LogDetail;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import se.sundsvall.util.Constants;
 import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchHistory;
@@ -37,9 +34,18 @@ class ArchiveIntegrationTest {
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     @Inject
+    TestDao testDao;
+
+    @Inject
     ArchiveDao archiveDao;
 
     static WireMockServer wireMockServer = new WireMockServer(WireMockConfiguration.options().port(8090).usingFilesUnderDirectory("src/integration-test/resources"));
+
+    @BeforeEach
+    void beforeEach() {
+        // Clear db between tests
+        testDao.deleteAllFromAllTables();
+    }
 
     @BeforeAll
     public static void beforeAll() {
@@ -51,16 +57,9 @@ class ArchiveIntegrationTest {
         wireMockServer.stop();
     }
 
-
-    // Rerun archive for a specific archivehistory that was completed and verify it did not run
-    // Rerun archive for a specific archivehistory that was not_completed and verify that the same db-row was completed
-    // Try to run batch for future-date
-    // Try to run batch with start date later than end date
-    // Rerun a batch that failed and verify that the documents that was not completed gets completed and vice versa.
-
     // POST batch and then GET batchhistory and archivehistories - verify that the correct is returned
     @Test
-    void testScheduledJob() throws JsonProcessingException {
+    void testStandardPostBatchJob() throws JsonProcessingException {
         BatchJob batchJob = new BatchJob();
         batchJob.setStart(LocalDate.now().minusDays(1));
         batchJob.setEnd(LocalDate.now().minusDays(1));
@@ -119,6 +118,44 @@ class ArchiveIntegrationTest {
                 .body(containsString(Constants.IT_IS_NOT_POSSIBLE_TO_RERUN_A_COMPLETED_BATCH));
     }
 
+    // Try to run batch for today and future date
+    @Test
+    void testRunBatchForFutureDateV1() throws JsonProcessingException {
+        BatchJob batchJob = new BatchJob();
+        batchJob.setStart(LocalDate.now());
+        batchJob.setEnd(LocalDate.now().plusDays(1));
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mapper.writeValueAsString(batchJob))
+                .when().post("/batch-jobs")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .body(containsString("must be a past date"))
+                .and().body(containsString("batchJob.start"))
+                .and().body(containsString("batchJob.end"));
+    }
+
+    // Try to run batch with start date later than end date
+    @Test
+    void testRunBatchWithEndBeforeStart() throws JsonProcessingException {
+        BatchJob batchJob = new BatchJob();
+        batchJob.setStart(LocalDate.now().minusDays(1));
+        batchJob.setEnd(LocalDate.now().minusDays(2));
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mapper.writeValueAsString(batchJob))
+                .when().post("/batch-jobs")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .body(containsString(Constants.END_CAN_NOT_BE_BEFORE_START))
+                .and().body(containsString("postBatchJob.batchJob"));
+    }
+
+    // Test exception from CaseManagement - Should return http 500
     @Test
     void testErrorFromCaseManagement() throws JsonProcessingException {
         BatchJob batchJob = new BatchJob();

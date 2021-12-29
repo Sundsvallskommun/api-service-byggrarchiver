@@ -26,4 +26,5 @@ public final class Constants {
     ////////////////// Error messages
     public static final String ERR_MSG_UNHANDLED_EXCEPTION = "An unhandled exception occurred. Contact the person responsible for the application. More information is provided in the log.";
     public static final String ERR_MSG_EXTERNAL_SERVICE = "Something went wrong in the request to an external service.";
+    public static final String IT_IS_NOT_POSSIBLE_TO_RERUN_A_COMPLETED_BATCH = "It's not possible to rerun a completed batch.";
 }

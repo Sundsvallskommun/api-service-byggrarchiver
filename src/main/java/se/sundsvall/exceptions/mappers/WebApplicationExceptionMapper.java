@@ -5,6 +5,7 @@ import se.sundsvall.util.Constants;
 import se.sundsvall.vo.Information;
 
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
@@ -28,6 +29,8 @@ public class WebApplicationExceptionMapper implements ExceptionMapper<WebApplica
             type = Constants.RFC_LINK_NOT_ALLOWED;
         } else if (exception instanceof NotFoundException) {
             type = Constants.RFC_LINK_NOT_FOUND;
+        } else if (exception instanceof BadRequestException) {
+            type = Constants.RFC_LINK_BAD_REQUEST;
         }
 
         Information info = new Information(type, exception.getResponse().getStatusInfo().getReasonPhrase(),

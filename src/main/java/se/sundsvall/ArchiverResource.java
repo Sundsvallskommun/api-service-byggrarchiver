@@ -1,5 +1,10 @@
 package se.sundsvall;
 
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.vo.*;
@@ -25,6 +30,12 @@ public class ArchiverResource {
     @GET
     @Path("archived/attachments")
     @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = ArchiveHistory.class))),
+            @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
+            @APIResponse(responseCode = "404", description = "Not found", content = @Content(schema = @Schema(implementation = Information.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
+    })
     public Response getArchiveHistory(@QueryParam("status") Status status, @QueryParam("batchHistoryId") Long batchHistoryId) {
         List<ArchiveHistory> archiveHistoryList = archiveDao.getArchiveHistories();
 
@@ -44,8 +55,14 @@ public class ArchiverResource {
     }
 
     @GET
-    @Path("batches")
+    @Path("batch-jobs")
     @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = BatchHistory.class))),
+            @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
+            @APIResponse(responseCode = "404", description = "Not found", content = @Content(schema = @Schema(implementation = Information.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
+    })
     public Response getBatchHistory() {
         List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
 
@@ -57,20 +74,28 @@ public class ArchiverResource {
     }
 
     @POST
-    @Path("batch-job")
+    @Path("batch-jobs")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = BatchHistory.class))),
+            @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
+    })
     public Response postBatchJob(@NotNull(message = "Request body must not be null") @Valid BatchJob batchJob) throws ApplicationException, ServiceException {
         return Response.ok(archiver.archiveByggrAttachments(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL)).build();
     }
 
-    @PUT
-    @Path("batch-job/{batchHistoryId}")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @POST
+    @Path("batch-jobs/{batchHistoryId}/rerun")
     @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = BatchHistory.class))),
+            @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
+            @APIResponse(responseCode = "404", description = "Not found", content = @Content(schema = @Schema(implementation = Information.class))),
+            @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
+            })
     public Response reRunBatchJob(@PathParam("batchHistoryId") Long batchHistoryId) throws ApplicationException, ServiceException {
-
-        archiver.reRunBatch(batchHistoryId);
-        return Response.ok().build();
+        return Response.ok(archiver.reRunBatch(batchHistoryId)).build();
     }
 }

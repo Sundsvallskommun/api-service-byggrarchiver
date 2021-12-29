@@ -16,12 +16,16 @@ import se.sundsvall.sundsvall.messaging.vo.EmailRequest;
 import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
 import se.sundsvall.sundsvall.messaging.vo.Sender1;
 import se.sundsvall.util.Constants;
-import se.sundsvall.vo.*;
+import se.sundsvall.vo.ArchiveHistory;
+import se.sundsvall.vo.BatchHistory;
+import se.sundsvall.vo.BatchTrigger;
+import se.sundsvall.vo.Status;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -50,36 +54,26 @@ public class Archiver {
     ArchiveDao archiveDao;
 
 
-    public void reRunBatch(Long batchHistoryId) throws ApplicationException, ServiceException {
+    public BatchHistory reRunBatch(Long batchHistoryId) throws ApplicationException, ServiceException {
         BatchHistory batchHistory;
         try {
             batchHistory = archiveDao.getBatchHistory(batchHistoryId);
         } catch (EntityNotFoundException e) {
-            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
-                    .entity(new Information(Constants.RFC_LINK_NOT_FOUND,
-                            Response.Status.NOT_FOUND.getReasonPhrase(),
-                            Response.Status.NOT_FOUND.getStatusCode(),
-                            e.getLocalizedMessage(), null))
-                    .build());
+            throw new NotFoundException(e.getLocalizedMessage());
         }
 
         if (batchHistory.getStatus().equals(Status.COMPLETED)) {
-            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new Information(Constants.RFC_LINK_BAD_REQUEST,
-                            Response.Status.BAD_REQUEST.getReasonPhrase(),
-                            Response.Status.BAD_REQUEST.getStatusCode(),
-                            "It's not possible to rerun a completed batch.", null))
-                    .build());
+            throw new BadRequestException(Constants.IT_IS_NOT_POSSIBLE_TO_RERUN_A_COMPLETED_BATCH);
         }
 
         log.info("Rerun batch: " + batchHistory);
 
         // Do the archiving
-        archive(batchHistory.getStart(), batchHistory.getEnd(), batchHistory);
+        return archive(batchHistory.getStart(), batchHistory.getEnd(), batchHistory);
 
     }
 
-    public List<ArchiveHistory> archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
+    public BatchHistory archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
 
         if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
             BatchHistory latestBatch = getLatestCompletedBatch();
@@ -87,8 +81,8 @@ public class Archiver {
             if (latestBatch != null) {
                 // If this batch end-date is not after the latest batch end date, we don't need to run it again
                 if (!end.isAfter(latestBatch.getEnd())) {
-                    log.info("The batch is already done. Cancelling this batch...");
-                    return new ArrayList<>();
+                    log.info("This batch does not have a later end-date(" + end + ") than the latest batch (" + latestBatch.getEnd() + "). Cancelling this batch...");
+                    return null;
                 }
 
                 // If there is a gap between the latest batch end-date and this batch start-date, we would risk to miss something.
@@ -109,7 +103,7 @@ public class Archiver {
         return archive(start, end, batchHistory);
     }
 
-    private List<ArchiveHistory> archive(LocalDate start, LocalDate end, BatchHistory batchHistory) throws ApplicationException, ServiceException {
+    private BatchHistory archive(LocalDate start, LocalDate end, BatchHistory batchHistory) throws ApplicationException, ServiceException {
 
         log.info("Runs batch: " + batchHistory.getId() + " with start-date: " + start + " and end-date: " + end);
 
@@ -161,7 +155,7 @@ public class Archiver {
                     if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
 
                         MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
-                        
+
 
                     }
                 } else {
@@ -182,7 +176,7 @@ public class Archiver {
             archiveDao.updateBatchHistory(batchHistory);
         }
 
-        return processedDocuments;
+        return archiveDao.getBatchHistory(batchHistory.getId());
     }
 
     private ArchiveResponse postArchive(Attachment attachment) {

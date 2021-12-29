@@ -155,6 +155,24 @@ class ArchiveIntegrationTest {
                 .and().body(containsString("postBatchJob.batchJob"));
     }
 
+    @Test
+    void testStandardPostBatchJobNullDate() throws JsonProcessingException {
+        BatchJob batchJob = new BatchJob();
+
+        // POST batchJob
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mapper.writeValueAsString(batchJob))
+                .when().post("/batch-jobs")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .body(containsString("must not be null"))
+                .and().body(containsString("batchJob.start"))
+                .and().body(containsString("batchJob.end"));
+    }
+
+
     // Test exception from CaseManagement - Should return http 500
     @Test
     void testErrorFromCaseManagement() throws JsonProcessingException {

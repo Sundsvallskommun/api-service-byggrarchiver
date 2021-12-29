@@ -62,6 +62,10 @@ public class Archiver {
             throw new NotFoundException(e.getLocalizedMessage());
         }
 
+        if (batchHistory == null) {
+            throw new NotFoundException("Can't find BatchHistory with ID: " + batchHistoryId);
+        }
+
         if (batchHistory.getStatus().equals(Status.COMPLETED)) {
             throw new BadRequestException(Constants.IT_IS_NOT_POSSIBLE_TO_RERUN_A_COMPLETED_BATCH);
         }

@@ -1,5 +1,6 @@
 package se.sundsvall.sundsvall.casemanagement;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 public class ArchiveMetadata {
 
     @Schema(description = "Dokument-ID från underliggande system")

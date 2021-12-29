@@ -1,6 +1,7 @@
 package se.sundsvall.sundsvall.casemanagement;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -13,6 +14,7 @@ import javax.validation.constraints.Pattern;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Setter
+@EqualsAndHashCode
 public class Attachment {
 
     @NotNull

@@ -6,6 +6,8 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
@@ -211,6 +213,48 @@ class ArchiveTest {
         // Only the first batch
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
+    }
+
+    // Try to run batch for a date back in time and verify the scheduled batch change the startDate back in time to the day after latest scheduled batch.
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testTimeGapScheduledThenScheduled(BatchTrigger batchTrigger) throws ServiceException, ApplicationException {
+        LocalDate aLongTimeAgo = LocalDate.now().minusDays(20);
+
+        // Run the first batch
+        BatchHistory firstBatchHistory = archiver.archiveByggrAttachments(aLongTimeAgo, aLongTimeAgo, batchTrigger);
+        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(firstBatchHistory.getId()).getStatus());
+        Assertions.assertTrue(archiveDao.getBatchHistories().contains(firstBatchHistory));
+        Assertions.assertEquals(3, archiveDao.getArchiveHistories(firstBatchHistory.getId()).size());
+
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        BatchHistory secondBatchHistory = archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        Assertions.assertTrue(archiveDao.getBatchHistories().contains(secondBatchHistory));
+        Assertions.assertEquals(aLongTimeAgo.plusDays(1), secondBatchHistory.getStart());
+        Assertions.assertEquals(yesterday, secondBatchHistory.getEnd());
+        Assertions.assertEquals(Status.COMPLETED, secondBatchHistory.getStatus());
+    }
+
+    // Try to run batch for a date back in time and verify the manual batch does NOT change the startDate back in time.
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testTimeGapManualThenScheduled(BatchTrigger batchTrigger) throws ServiceException, ApplicationException {
+        LocalDate aLongTimeAgo = LocalDate.now().minusDays(20);
+
+        // Run the first batch
+        BatchHistory firstBatchHistory = archiver.archiveByggrAttachments(aLongTimeAgo, aLongTimeAgo, batchTrigger);
+        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(firstBatchHistory.getId()).getStatus());
+        Assertions.assertTrue(archiveDao.getBatchHistories().contains(firstBatchHistory));
+        Assertions.assertEquals(3, archiveDao.getArchiveHistories(firstBatchHistory.getId()).size());
+
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        BatchHistory secondBatchHistory = archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.MANUAL);
+
+        Assertions.assertTrue(archiveDao.getBatchHistories().contains(secondBatchHistory));
+        Assertions.assertEquals(yesterday, secondBatchHistory.getStart());
+        Assertions.assertEquals(yesterday, secondBatchHistory.getEnd());
+        Assertions.assertEquals(Status.COMPLETED, secondBatchHistory.getStatus());
     }
 
     // Run batch for attachmentCategory "GEO" and simulate the email was not sent. Verify we log the error and persist all.

@@ -28,8 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-@Provider
-@IfBuildProperty(name = "client.logging.enabled", stringValue = "true")
+//@Provider
+//@IfBuildProperty(name = "client.logging.enabled", stringValue = "true")
 public class ClientLoggingFilter implements ClientRequestFilter, ClientResponseFilter {
 
     private static final Logger LOG = Logger.getLogger("CLIENT-COMMUNICATION");

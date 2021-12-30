@@ -234,7 +234,7 @@ public class Archiver {
 
             // Get the latest batch
             latestBatch = batchHistoryList.get(0);
-            log.info("slutdatum på senaste batchen: " + latestBatch.getEnd());
+            log.info("The latest batch: " + latestBatch);
         }
 
         return latestBatch;

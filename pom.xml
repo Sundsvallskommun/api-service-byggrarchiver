@@ -106,7 +106,7 @@
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>2.1.11</version>
+            <version>2.1.12</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -162,6 +162,18 @@
                 <version>${build-helper-maven-plugin.version}</version>
                 <executions>
                     <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/generated/archive</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>add-test-source</id>
                         <phase>generate-test-sources</phase>
                         <goals>
@@ -190,27 +202,54 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>io.swagger.codegen.v3</groupId>
-                <artifactId>swagger-codegen-maven-plugin</artifactId>
-                <version>3.0.30</version>
-                <executions>
-                    <execution>
-                        <!--                        <goals>-->
-                        <!--                            <goal>generate</goal>-->
-                        <!--                        </goals>-->
-                        <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/messaging-openapi.yaml</inputSpec>
-                            <language>java</language>
-                            <configOptions>
-                                <sourceFolder>src/gen/java/main</sourceFolder>
-                                <library>resteasy</library>
-                                <dateLibrary>java8</dateLibrary>
-                            </configOptions>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            <!-- Remove comment when you need to generate new files -->
+<!--            <plugin>-->
+<!--                <groupId>io.swagger.codegen.v3</groupId>-->
+<!--                <artifactId>swagger-codegen-maven-plugin</artifactId>-->
+<!--                <version>3.0.30</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <goals>-->
+<!--                            <goal>generate</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <inputSpec>${project.basedir}/src/main/resources/messaging-openapi.yaml</inputSpec>-->
+<!--                            <language>java</language>-->
+<!--                            <configOptions>-->
+<!--                                <sourceFolder>src/gen/java/main</sourceFolder>-->
+<!--                                <library>resteasy</library>-->
+<!--                                <dateLibrary>java8</dateLibrary>-->
+<!--                            </configOptions>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+
+            <!-- Remove comment when you need to generate new files -->
+<!--            <plugin>-->
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>jaxb2-maven-plugin</artifactId>-->
+<!--                <version>2.5.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>xsd-to-java</id>-->
+<!--                        <goals>-->
+<!--                            <goal>xjc</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--                <configuration>-->
+<!--                    <addGeneratedAnnotation>true</addGeneratedAnnotation>-->
+<!--                    <packageName>vo</packageName>-->
+<!--                    <outputDirectory>${project.basedir}/src/main/generated/archive</outputDirectory>-->
+<!--                    <sources>-->
+<!--                        <source>${project.basedir}/src/main/resources/Bygglov_v2.xsd</source>-->
+<!--                    </sources>-->
+<!--                    <xjbSources>-->
+<!--                        <xjbSource>${project.basedir}/src/main/resources/bindings.xjb</xjbSource>-->
+<!--                    </xjbSources>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
 
         </plugins>
     </build>

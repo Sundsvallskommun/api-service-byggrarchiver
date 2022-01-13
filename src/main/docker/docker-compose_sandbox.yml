@@ -33,4 +33,4 @@ services:
     ports:
       - "8090:8080"
     volumes:
-      - $PWD/src/integration-test/resources:/home/wiremock
+      - $PWD/src/test/resources:/home/wiremock

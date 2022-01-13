@@ -6,13 +6,16 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
 @ApplicationScoped
-class TestDao {
+public class TestDao {
 
     @Inject
     EntityManager em;
 
+    /**
+     * Used for resetting all db-tables in test
+     */
     @Transactional
-    void deleteAllFromAllTables() {
+    public void deleteAllFromAllTables() {
         em.createQuery("DELETE FROM ArchiveHistory").executeUpdate();
         em.createQuery("DELETE FROM BatchHistory").executeUpdate();
     }

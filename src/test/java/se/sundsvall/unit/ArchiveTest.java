@@ -1,4 +1,4 @@
-package se.sundsvall;
+package se.sundsvall.unit;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
@@ -9,8 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
+import se.sundsvall.ArchiveDao;
+import se.sundsvall.Archiver;
+import se.sundsvall.TestDao;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.sundsvall.archive.ArchiveMessage;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.casemanagement.*;
@@ -373,7 +377,10 @@ class ArchiveTest {
         attachment_2.setName("Filnamn_2");
         attachment_2.setNote("Anteckning 2");
 
-        doThrow(ServiceException.create(POST_ARCHIVE_EXCEPTION_MESSAGE, null, Response.Status.INTERNAL_SERVER_ERROR)).when(archiveServiceMock).postArchive(argThat(new AttachmentMatcher(attachment_2)));
+        ArchiveMessage archiveMessage = new ArchiveMessage();
+        archiveMessage.setAttachment(attachment_2);
+
+        doThrow(ServiceException.create(POST_ARCHIVE_EXCEPTION_MESSAGE, null, Response.Status.INTERNAL_SERVER_ERROR)).when(archiveServiceMock).postArchive(argThat(new ArchiveMessageAttachmentMatcher(archiveMessage)));
 
         LocalDate start = LocalDate.now().minusDays(1);
         LocalDate end = LocalDate.now();

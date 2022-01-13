@@ -5,6 +5,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.sundsvall.archive.ArchiveMessage;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.casemanagement.Attachment;
@@ -20,6 +21,7 @@ import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.BatchTrigger;
 import se.sundsvall.vo.Status;
+import vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -27,7 +29,12 @@ import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import java.io.StringWriter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -147,8 +154,24 @@ public class Archiver {
                     continue;
                 }
 
+                ArchiveMessage archiveMessage = new ArchiveMessage();
+                archiveMessage.setAttachment(attachment);
+
+                String metadataXml;
+                try {
+                    JAXBContext context = JAXBContext.newInstance(LeveransobjektTyp.class);
+                    Marshaller marshaller = context.createMarshaller();
+                    StringWriter stringWriter = new StringWriter();
+                    marshaller.marshal(new ObjectFactory().createLeveransobjekt(getLeveransobjektTyp(attachment)), stringWriter);
+                    metadataXml = stringWriter.toString();
+                } catch (JAXBException e) {
+                    throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
+                }
+
+                archiveMessage.setMetadata(metadataXml);
+
                 // Request to Archive
-                ArchiveResponse archiveResponse = postArchive(attachment);
+                ArchiveResponse archiveResponse = postArchive(archiveMessage);
 
                 if (archiveResponse != null
                         && archiveResponse.getArchiveId() != null) {
@@ -157,10 +180,7 @@ public class Archiver {
                     newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
 
                     if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
-
                         MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
-
-
                     }
                 } else {
                     // Not successful... Set status to not completed
@@ -183,12 +203,101 @@ public class Archiver {
         return archiveDao.getBatchHistory(batchHistory.getId());
     }
 
-    private ArchiveResponse postArchive(Attachment attachment) {
+    private LeveransobjektTyp getLeveransobjektTyp(Attachment attachment) {
+        LeveransobjektTyp leveransobjekt = new LeveransobjektTyp();
+        leveransobjekt.setArkivbildarStruktur(getArkivbildarStrukturTyp());
+        ArkivobjektListaArendenTyp arkivobjektListaArendenTyp = new ArkivobjektListaArendenTyp();
+        arkivobjektListaArendenTyp.getArkivobjektArende().add(getArkivobjektArendeTyp(attachment));
+        leveransobjekt.setArkivobjektListaArenden(arkivobjektListaArendenTyp);
+
+        // TODO - I don't know what to set this fields to right now
+        leveransobjekt.setInformationsklass(attachment.getArchiveMetadata().getArchiveClassification());
+        leveransobjekt.setVerksamhetsbaseradArkivredovisning(null);
+        leveransobjekt.setSystemInfo(null);
+        leveransobjekt.setArkivobjektListaHandlingar(null);
+
+        return leveransobjekt;
+    }
+
+    private ArkivobjektArendeTyp getArkivobjektArendeTyp(Attachment attachment) {
+        ArkivobjektArendeTyp arkivobjektArende = new ArkivobjektArendeTyp();
+
+        arkivobjektArende.setArkivobjektID(attachment.getArchiveMetadata().getCaseId());
+
+        arkivobjektArende.setArendemening(attachment.getArchiveMetadata().getCaseTitle());
+        arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseEndedAt()));
+        arkivobjektArende.setInkommen(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseCreatedAt()));
+        arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseCreatedAt()));
+        StatusArande statusArande = new StatusArande();
+        statusArande.setValue("Avslutat");
+        arkivobjektArende.setStatusArande(statusArande);
+
+        // TODO - I don't know what to set this fields to right now
+        arkivobjektArende.setArendeTyp(null);
+        arkivobjektArende.setInformationsklass(null);
+        arkivobjektArende.setArkiverat(null);
+        arkivobjektArende.setBeskrivning(null);
+        arkivobjektArende.setArkiverat(null);
+        arkivobjektArende.setAtkomst(null);
+        arkivobjektArende.setExpedierad(null);
+        arkivobjektArende.setForvaringsenhetsReferens(null);
+        arkivobjektArende.setGallring(null);
+        arkivobjektArende.setMinaArendeoversikterKlassificering(null);
+        arkivobjektArende.setMinaArendeoversikterStatus(null);
+        arkivobjektArende.setNotering(null);
+        arkivobjektArende.setSistaAnvandandetidpunkt(null);
+        arkivobjektArende.setSystemidentifierare(null);
+        arkivobjektArende.setUpprattad(null);
+
+        ArkivobjektHandlingTyp arkivobjektHandling = new ArkivobjektHandlingTyp();
+        arkivobjektHandling.setArkivobjektID(attachment.getArchiveMetadata().getDocumentId());
+        arkivobjektHandling.setInformationsklass(attachment.getArchiveMetadata().getArchiveClassification());
+        arkivobjektHandling.setHandlingstyp(attachment.getCategory().getDescription());
+        arkivobjektHandling.setRubrik(attachment.getName());
+        arkivobjektHandling.setInkommen(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getDocumentCreatedAt()));
+        arkivobjektHandling.setSkapad(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getDocumentCreatedAt()));
+
+        ArkivobjektListaHandlingarTyp arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
+        arkivobjektListaHandlingarTyp.getArkivobjektHandling().add(arkivobjektHandling);
+        arkivobjektArende.setArkivobjektListaHandlingar(arkivobjektListaHandlingarTyp);
+        return arkivobjektArende;
+    }
+
+    private ArkivbildarStrukturTyp getArkivbildarStrukturTyp() {
+        ArkivbildarStrukturTyp arkivbildarStruktur = new ArkivbildarStrukturTyp();
+        ArkivbildareTyp arkivbildare = new ArkivbildareTyp();
+
+        // TODO - I don't know what to set this fields to right now
+        arkivbildare.setNamn("Sundsvalls kommun Byggr");
+        arkivbildare.setHistorik(null);
+        arkivbildare.setVerksamhetsbeskrivning(null);
+        arkivbildare.setVerksamhetstidFran(null);
+        arkivbildare.setVerksamhetstidTill(null);
+
+        arkivbildarStruktur.setArkivbildare(arkivbildare);
+        return arkivbildarStruktur;
+    }
+
+    private String formatToIsoDateOrReturnNull(LocalDate date) {
+        if (date == null) {
+            return null;
+        }
+        return date.format(DateTimeFormatter.ISO_DATE);
+    }
+
+    private String formatToIsoDateOrReturnNull(LocalDateTime date) {
+        if (date == null) {
+            return null;
+        }
+        return date.format(DateTimeFormatter.ISO_DATE);
+    }
+
+    private ArchiveResponse postArchive(ArchiveMessage archiveMessage) {
         ArchiveResponse archiveResponse = null;
         // POST to archive
         try {
             log.info("Framtida anrop till archive");
-            archiveResponse = archiveService.postArchive(attachment);
+            archiveResponse = archiveService.postArchive(archiveMessage);
             log.info("Response from archive: " + archiveResponse);
         } catch (ServiceException e) {
             // Just log the error and continue with the rest

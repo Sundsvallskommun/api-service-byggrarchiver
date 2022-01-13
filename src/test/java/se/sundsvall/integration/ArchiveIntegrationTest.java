@@ -1,14 +1,18 @@
-package se.sundsvall;
+package se.sundsvall.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.filter.log.LogDetail;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import se.sundsvall.ArchiveDao;
+import se.sundsvall.TestDao;
+import se.sundsvall.integration.support.WireMockLifecycleManager;
 import se.sundsvall.util.Constants;
 import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchHistory;
@@ -26,6 +30,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
 @QuarkusTest
+@QuarkusTestResource(WireMockLifecycleManager.class)
 class ArchiveIntegrationTest {
 
     static ObjectMapper mapper = new ObjectMapper()
@@ -39,22 +44,10 @@ class ArchiveIntegrationTest {
     @Inject
     ArchiveDao archiveDao;
 
-    static WireMockServer wireMockServer = new WireMockServer(WireMockConfiguration.options().port(8090).usingFilesUnderDirectory("src/integration-test/resources"));
-
     @BeforeEach
     void beforeEach() {
         // Clear db between tests
         testDao.deleteAllFromAllTables();
-    }
-
-    @BeforeAll
-    public static void beforeAll() {
-        wireMockServer.start();
-    }
-
-    @AfterAll
-    public static void afterAll() {
-        wireMockServer.stop();
     }
 
     // POST batch and then GET batchhistory and archivehistories - verify that the correct is returned

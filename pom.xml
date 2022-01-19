@@ -213,6 +213,7 @@
 <!--                    </execution>-->
 <!--                </executions>-->
 <!--                <configuration>-->
+<!--                    <encoding>UTF-8</encoding>-->
 <!--                    <addGeneratedAnnotation>true</addGeneratedAnnotation>-->
 <!--                    <packageName>vo</packageName>-->
 <!--                    <outputDirectory>${project.basedir}/src/main/generated/archive</outputDirectory>-->

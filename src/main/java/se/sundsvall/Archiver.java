@@ -164,6 +164,7 @@ public class Archiver {
                     StringWriter stringWriter = new StringWriter();
                     marshaller.marshal(new ObjectFactory().createLeveransobjekt(getLeveransobjektTyp(attachment)), stringWriter);
                     metadataXml = stringWriter.toString();
+                    log.info(metadataXml);
                 } catch (JAXBException e) {
                     throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
                 }
@@ -223,14 +224,15 @@ public class Archiver {
         ArkivobjektArendeTyp arkivobjektArende = new ArkivobjektArendeTyp();
 
         arkivobjektArende.setArkivobjektID(attachment.getArchiveMetadata().getCaseId());
-
         arkivobjektArende.setArendemening(attachment.getArchiveMetadata().getCaseTitle());
         arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseEndedAt()));
         arkivobjektArende.setInkommen(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseCreatedAt()));
         arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseCreatedAt()));
-        StatusArande statusArande = new StatusArande();
-        statusArande.setValue("Avslutat");
-        arkivobjektArende.setStatusArande(statusArande);
+        arkivobjektArende.setStatusArende(StatusArendeEnum.STÄNGT);
+
+        arkivobjektArende.getFastighet().add(getFastighet(attachment));
+
+        arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(attachment));
 
         // TODO - I don't know what to set this fields to right now
         arkivobjektArende.setArendeTyp(null);
@@ -249,6 +251,10 @@ public class Archiver {
         arkivobjektArende.setSystemidentifierare(null);
         arkivobjektArende.setUpprattad(null);
 
+        return arkivobjektArende;
+    }
+
+    private ArkivobjektListaHandlingarTyp getArkivobjektListaHandlingar(Attachment attachment) {
         ArkivobjektHandlingTyp arkivobjektHandling = new ArkivobjektHandlingTyp();
         arkivobjektHandling.setArkivobjektID(attachment.getArchiveMetadata().getDocumentId());
         arkivobjektHandling.setInformationsklass(attachment.getArchiveMetadata().getArchiveClassification());
@@ -259,22 +265,30 @@ public class Archiver {
 
         ArkivobjektListaHandlingarTyp arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
         arkivobjektListaHandlingarTyp.getArkivobjektHandling().add(arkivobjektHandling);
-        arkivobjektArende.setArkivobjektListaHandlingar(arkivobjektListaHandlingarTyp);
-        return arkivobjektArende;
+        return arkivobjektListaHandlingarTyp;
+    }
+
+    private FastighetTyp getFastighet(Attachment attachment) {
+        FastighetTyp fastighet = new FastighetTyp();
+        fastighet.setFastighetsbeteckning(attachment.getArchiveMetadata().getPropertyDesignation());
+        fastighet.setTrakt(attachment.getArchiveMetadata().getRegion());
+        fastighet.setObjektidentitet(attachment.getArchiveMetadata().getRegisterUnit());
+        return fastighet;
     }
 
     private ArkivbildarStrukturTyp getArkivbildarStrukturTyp() {
         ArkivbildarStrukturTyp arkivbildarStruktur = new ArkivbildarStrukturTyp();
-        ArkivbildareTyp arkivbildare = new ArkivbildareTyp();
 
-        // TODO - I don't know what to set this fields to right now
-        arkivbildare.setNamn("Sundsvalls kommun Byggr");
-        arkivbildare.setHistorik(null);
-        arkivbildare.setVerksamhetsbeskrivning(null);
-        arkivbildare.setVerksamhetstidFran(null);
-        arkivbildare.setVerksamhetstidTill(null);
+        ArkivbildareTyp arkivbildareSundsvallsKommun = new ArkivbildareTyp();
+        arkivbildareSundsvallsKommun.setNamn("Sundsvalls kommun");
+        arkivbildareSundsvallsKommun.setVerksamhetstidFran("1974");
 
-        arkivbildarStruktur.setArkivbildare(arkivbildare);
+        ArkivbildareTyp arkivbildareByggOchMiljoNamnden = new ArkivbildareTyp();
+        arkivbildareByggOchMiljoNamnden.setNamn("Bygg- och miljönämnden");
+        arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("1974");
+        arkivbildareSundsvallsKommun.setArkivbildare(arkivbildareByggOchMiljoNamnden);
+
+        arkivbildarStruktur.setArkivbildare(arkivbildareSundsvallsKommun);
         return arkivbildarStruktur;
     }
 

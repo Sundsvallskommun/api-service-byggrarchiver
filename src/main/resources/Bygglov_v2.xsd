@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://xml.ra.se/e-arkiv/FGS-ERMS" targetNamespace="http://xml.ra.se/e-arkiv/FGS-ERMS" elementFormDefault="qualified">
+	<!-- Skapat enums i separata objekt samt korrigerat namn på StatusArande till StatusArende. Dennis Nilsson (Sundsvalls kommun), 2022-01-19-->
 	<!-- Lagt till Fastighetsbeteckning, Elias Caselunghe, 2021-11-08 -->
 	<!-- Ändrat dokumentationen -->
 	<!-- Kardinalitet ändrad på ett antal element, ett element tillags, dokumentationen förfinad, Version 1.0. Niklas Aspenfjäll -->
@@ -163,7 +164,7 @@
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Inkommen" minOccurs="0"/>
-			<xs:element ref="StatusArande" minOccurs="0"/>
+			<xs:element ref="StatusArende" minOccurs="0"/>
 			<xs:element ref="Upprattad" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation xml:lang="se">Tidpunkt då ärendet initierades internt.</xs:documentation>
@@ -452,7 +453,7 @@
 				<xs:documentation xml:lang="se">En pekare till XML-schemat i leveransen som används för att beskriva XML-strukturen.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
-		<xs:attribute name="Esignatur" type="ESignaturTyp" use="optional">
+		<xs:attribute name="Esignatur" type="ESignaturEnum" use="optional">
 			<xs:annotation>
 				<xs:documentation xml:lang="se">Certifikaten tas bort före arkivering. Detta är markören för att handlingen har varit elektroniskt signerad.</xs:documentation>
 			</xs:annotation>
@@ -661,17 +662,10 @@
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
-		<xs:attribute name="Typ" use="required">
+		<xs:attribute name="Typ" type="RestriktionsTypEnum" use="required">
 			<xs:annotation>
 				<xs:documentation xml:lang="se">Definerar typ av restriktion.</xs:documentation>
 			</xs:annotation>
-			<xs:simpleType>
-				<xs:restriction base="xs:string">
-					<xs:enumeration value="Sekretess"/>
-					<xs:enumeration value="Integritet"/>
-					<xs:enumeration value="Annan typ"/>
-				</xs:restriction>
-			</xs:simpleType>
 		</xs:attribute>
 		<xs:attribute name="AnnanTyp" type="xs:string" use="optional">
 			<xs:annotation>
@@ -714,7 +708,7 @@
 		<xs:annotation>
 			<xs:documentation>ID-nummer för person eller organisation.</xs:documentation>
 		</xs:annotation>
-		<xs:attribute name="Typ" use="optional" default="1">
+		<xs:attribute name="Typ" type="IDnummerTypEnum" use="optional" default="1">
 			<xs:annotation>
 				<xs:documentation xml:lang="se">Attribut som innehåller den del som talar om vilken typ av personid detta är. </xs:documentation>
 				<xs:documentation xml:lang="se">Värdemängden är 1, 2 , 3, 4, 5 eller 6. Betydelsen av värdemängden är enligt följande:
@@ -726,30 +720,9 @@
 					6 = Lokalt Reservnummer (d.v.s. lokalt för det aktuella systemet)
 				</xs:documentation>
 			</xs:annotation>
-			<xs:simpleType>
-				<xs:restriction base="xs:integer">
-					<xs:enumeration value="1"/>
-					<xs:enumeration value="2"/>
-					<xs:enumeration value="3"/>
-					<xs:enumeration value="4"/>
-					<xs:enumeration value="5"/>
-					<xs:enumeration value="6"/>
-				</xs:restriction>
-			</xs:simpleType>
 		</xs:attribute>
 	</xs:complexType>
 	<!-- IDnummerTyp slut-->
-	<!-- ESignaturTyp -->
-	<xs:simpleType name="ESignaturTyp">
-		<xs:annotation>
-			<xs:documentation xml:lang="se">Certifikaten tas bort före arkivering. Detta är markören för att handlingen har varit elektroniskt signerad.</xs:documentation>
-		</xs:annotation>
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="Ja"/>
-			<xs:enumeration value="Nej"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<!-- ESignaturTyp slut-->
 	<!-- VerksamhetsbaseradArkivredovisingGrupp -->
 	<xs:group name="VerksamhetsbaseradArkivredovisningGrupp">
 		<xs:sequence>
@@ -803,20 +776,11 @@
 			<xs:documentation>Referens till ett eller flera ärenden.</xs:documentation>
 		</xs:annotation>
 		<xs:complexType mixed="true">
-			<xs:attribute name="Typ" use="optional">
+			<xs:attribute name="Typ" type="ArendeRelationEnum" use="optional">
 				<xs:annotation>
 					<xs:documentation xml:lang="se">Beskriver typen av relation. När värdet ”Egen relationsdefinition” är valt används även attributet ”AnnanTyp”.
 					</xs:documentation>
 				</xs:annotation>
-				<xs:simpleType>
-					<xs:restriction base="xs:string">
-						<xs:enumeration value="Ersätter"/>
-						<xs:enumeration value="Är ersatt med"/>
-						<xs:enumeration value="Referens"/>
-						<xs:enumeration value="Refereras av"/>
-						<xs:enumeration value="Egen relationsdefinition"/>
-					</xs:restriction>
-				</xs:simpleType>
 			</xs:attribute>
 			<xs:attribute name="AnnanTyp" type="xs:string" use="optional">
 				<xs:annotation>
@@ -883,30 +847,11 @@
 			<xs:documentation xml:lang="se">Referens till en eller flera handlingar.</xs:documentation>
 		</xs:annotation>
 		<xs:complexType mixed="true">
-			<xs:attribute name="Typ" use="required">
+			<xs:attribute name="Typ" type="HandlingRelationEnum" use="required">
 				<xs:annotation>
 					<xs:documentation xml:lang="se">Beskriver typen av relation. När värdet ”Egen relationsdefinition” är valt används även attributet ”AnnanTyp”.
 					</xs:documentation>
 				</xs:annotation>
-				<xs:simpleType>
-					<xs:restriction base="xs:string">
-						<xs:enumeration value="Ersätter"/>
-						<xs:enumeration value="Är ersatt med"/>
-						<xs:enumeration value="Referens"/>
-						<xs:enumeration value="Refereras av"/>
-						<xs:enumeration value="Kräver"/>
-						<xs:enumeration value="Krävs av"/>
-						<xs:enumeration value="Innehåller"/>
-						<xs:enumeration value="Ingår i"/>
-						<xs:enumeration value="Annan format version"/>
-						<xs:enumeration value="Är annat format av"/>
-						<xs:enumeration value="Har version"/>
-						<xs:enumeration value="Är version av"/>
-						<xs:enumeration value="Maskad version"/>
-						<xs:enumeration value="Är maskad version av"/>
-						<xs:enumeration value="Egen relationsdefinition"/>
-					</xs:restriction>
-				</xs:simpleType>
 			</xs:attribute>
 			<xs:attribute name="AnnanTyp" type="xs:string" use="optional">
 				<xs:annotation>
@@ -986,46 +931,124 @@
 			<xs:documentation xml:lang="se">Tidpunkt då ärendet eller handlingen lades upp eller registrerades i systemet.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
-	<xs:element name="StatusArande">
+	<xs:element name="StatusArende" type="StatusArendeEnum">
 		<xs:annotation>
 			<xs:documentation xml:lang="se">Ärendets aktuella tillstånd.</xs:documentation>
 		</xs:annotation>
-		<xs:complexType>
-			<xs:simpleContent>
-				<xs:restriction base="xs:anyType">
-					<xs:simpleType>
-						<xs:restriction base="xs:string">
-							<xs:enumeration value="Öppet"/>
-							<xs:enumeration value="Vilande"/>
-							<xs:enumeration value="Stängt"/>
-							<xs:enumeration value="Makulerat"/>
-							<xs:enumeration value="Ad Acta."/>
-						</xs:restriction>
-					</xs:simpleType>
-				</xs:restriction>
-			</xs:simpleContent>
-		</xs:complexType>
 	</xs:element>
-	<xs:element name="StatusHandling">
+	<xs:element name="StatusHandling" type="StatusHandlingEnum">
 		<xs:annotation>
 			<xs:documentation xml:lang="se">Anger om handlingen är inkommen, upprättad m.m.</xs:documentation>
 		</xs:annotation>
-		<xs:complexType>
-			<xs:simpleContent>
-				<xs:restriction base="xs:anyType">
-					<xs:simpleType>
-						<xs:restriction base="xs:string">
-							<xs:enumeration value="Initierad"/>
-							<xs:enumeration value="Under arbete"/>
-							<xs:enumeration value="Inkommen"/>
-							<xs:enumeration value="Upprättad"/>
-							<xs:enumeration value="Expedierad"/>
-						</xs:restriction>
-					</xs:simpleType>
-				</xs:restriction>
-			</xs:simpleContent>
-		</xs:complexType>
 	</xs:element>
 	<xs:element name="Upprattad" type="EgetTidDatum"/>
 	<!-- Element slut-->
+
+	<!-- Enums -->
+	<xs:simpleType name="RestriktionsTypEnum">
+		<xs:annotation>
+			<xs:documentation xml:lang="se">Definerar typ av restriktion.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Sekretess"/>
+			<xs:enumeration value="Integritet"/>
+			<xs:enumeration value="Annan typ"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="IDnummerTypEnum">
+		<xs:annotation>
+			<xs:documentation xml:lang="se">Attribut som innehåller den del som talar om vilken typ av personid detta är. </xs:documentation>
+			<xs:documentation xml:lang="se">Värdemängden är 1, 2 , 3, 4, 5 eller 6. Betydelsen av värdemängden är enligt följande:
+				1 = Personnummer/Organisationsnummer
+				2 = Samordningsnummer
+				3 = Regionalt Reservnummer
+				4 = Nationellt Reservnummer Typ 1
+				5 = Nationellt Reservnummer Typ 2
+				6 = Lokalt Reservnummer (d.v.s. lokalt för det aktuella systemet)
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:enumeration value="1"/>
+			<xs:enumeration value="2"/>
+			<xs:enumeration value="3"/>
+			<xs:enumeration value="4"/>
+			<xs:enumeration value="5"/>
+			<xs:enumeration value="6"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="ArendeRelationEnum">
+		<xs:annotation>
+			<xs:documentation xml:lang="se">Beskriver typen av relation. När värdet ”Egen relationsdefinition” är valt används även attributet ”AnnanTyp”.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Ersätter"/>
+			<xs:enumeration value="Är ersatt med"/>
+			<xs:enumeration value="Referens"/>
+			<xs:enumeration value="Refereras av"/>
+			<xs:enumeration value="Egen relationsdefinition"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="HandlingRelationEnum">
+		<xs:annotation>
+			<xs:documentation xml:lang="se">Beskriver typen av relation. När värdet ”Egen relationsdefinition” är valt används även attributet ”AnnanTyp”.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Ersätter"/>
+			<xs:enumeration value="Är ersatt med"/>
+			<xs:enumeration value="Referens"/>
+			<xs:enumeration value="Refereras av"/>
+			<xs:enumeration value="Kräver"/>
+			<xs:enumeration value="Krävs av"/>
+			<xs:enumeration value="Innehåller"/>
+			<xs:enumeration value="Ingår i"/>
+			<xs:enumeration value="Annan format version"/>
+			<xs:enumeration value="Är annat format av"/>
+			<xs:enumeration value="Har version"/>
+			<xs:enumeration value="Är version av"/>
+			<xs:enumeration value="Maskad version"/>
+			<xs:enumeration value="Är maskad version av"/>
+			<xs:enumeration value="Egen relationsdefinition"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="StatusArendeEnum">
+		<xs:annotation>
+			<xs:documentation xml:lang="se">Ärendets aktuella tillstånd.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Öppet"/>
+			<xs:enumeration value="Vilande"/>
+			<xs:enumeration value="Stängt"/>
+			<xs:enumeration value="Makulerat"/>
+			<xs:enumeration value="Ad Acta."/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="StatusHandlingEnum">
+		<xs:annotation>
+			<xs:documentation xml:lang="se">Anger om handlingen är inkommen, upprättad m.m.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Initierad"/>
+			<xs:enumeration value="Under arbete"/>
+			<xs:enumeration value="Inkommen"/>
+			<xs:enumeration value="Upprättad"/>
+			<xs:enumeration value="Expedierad"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="ESignaturEnum">
+		<xs:annotation>
+			<xs:documentation xml:lang="se">Certifikaten tas bort före arkivering. Detta är markören för att handlingen har varit elektroniskt signerad.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Ja"/>
+			<xs:enumeration value="Nej"/>
+		</xs:restriction>
+	</xs:simpleType>
 </xs:schema>

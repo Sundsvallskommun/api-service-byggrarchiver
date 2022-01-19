@@ -206,13 +206,11 @@ public class Archiver {
 
     private LeveransobjektTyp getLeveransobjektTyp(Attachment attachment) {
         LeveransobjektTyp leveransobjekt = new LeveransobjektTyp();
-        leveransobjekt.setArkivbildarStruktur(getArkivbildarStrukturTyp());
-        ArkivobjektListaArendenTyp arkivobjektListaArendenTyp = new ArkivobjektListaArendenTyp();
-        arkivobjektListaArendenTyp.getArkivobjektArende().add(getArkivobjektArendeTyp(attachment));
-        leveransobjekt.setArkivobjektListaArenden(arkivobjektListaArendenTyp);
+        leveransobjekt.setArkivbildarStruktur(getArkivbildarStruktur());
+        leveransobjekt.setArkivobjektListaArenden(getArkivobjektListaArenden(attachment));
 
-        // TODO - I don't know what to set this fields to right now
-        leveransobjekt.setInformationsklass(attachment.getArchiveMetadata().getArchiveClassification());
+        // TODO - I don't know what to set these fields to right now
+        leveransobjekt.setInformationsklass(null);
         leveransobjekt.setVerksamhetsbaseradArkivredovisning(null);
         leveransobjekt.setSystemInfo(null);
         leveransobjekt.setArkivobjektListaHandlingar(null);
@@ -220,22 +218,25 @@ public class Archiver {
         return leveransobjekt;
     }
 
-    private ArkivobjektArendeTyp getArkivobjektArendeTyp(Attachment attachment) {
+    private ArkivobjektListaArendenTyp getArkivobjektListaArenden(Attachment attachment) {
         ArkivobjektArendeTyp arkivobjektArende = new ArkivobjektArendeTyp();
 
         arkivobjektArende.setArkivobjektID(attachment.getArchiveMetadata().getCaseId());
         arkivobjektArende.setArendemening(attachment.getArchiveMetadata().getCaseTitle());
         arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseEndedAt()));
-        arkivobjektArende.setInkommen(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseCreatedAt()));
         arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseCreatedAt()));
         arkivobjektArende.setStatusArende(StatusArendeEnum.STÄNGT);
-
         arkivobjektArende.getFastighet().add(getFastighet(attachment));
-
         arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(attachment));
 
-        // TODO - I don't know what to set this fields to right now
+        // TODO - lägg till detta i metadata från CaseManagement
         arkivobjektArende.setArendeTyp(null);
+
+        // TODO - Not sure of this one...
+        arkivobjektArende.getKlass().add("F2 Bygglov");
+
+        // TODO - I don't know what to set these fields to right now
+        arkivobjektArende.setInkommen(null);
         arkivobjektArende.setInformationsklass(null);
         arkivobjektArende.setArkiverat(null);
         arkivobjektArende.setBeskrivning(null);
@@ -251,21 +252,47 @@ public class Archiver {
         arkivobjektArende.setSystemidentifierare(null);
         arkivobjektArende.setUpprattad(null);
 
-        return arkivobjektArende;
+        ArkivobjektListaArendenTyp arkivobjektListaArendenTyp = new ArkivobjektListaArendenTyp();
+        arkivobjektListaArendenTyp.getArkivobjektArende().add(arkivobjektArende);
+        return arkivobjektListaArendenTyp;
     }
 
     private ArkivobjektListaHandlingarTyp getArkivobjektListaHandlingar(Attachment attachment) {
         ArkivobjektHandlingTyp arkivobjektHandling = new ArkivobjektHandlingTyp();
         arkivobjektHandling.setArkivobjektID(attachment.getArchiveMetadata().getDocumentId());
-        arkivobjektHandling.setInformationsklass(attachment.getArchiveMetadata().getArchiveClassification());
-        arkivobjektHandling.setHandlingstyp(attachment.getCategory().getDescription());
-        arkivobjektHandling.setRubrik(attachment.getName());
-        arkivobjektHandling.setInkommen(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getDocumentCreatedAt()));
+        arkivobjektHandling.setHandlingstyp(attachment.getArchiveMetadata().getArchiveClassification());
+        arkivobjektHandling.setRubrik(attachment.getCategory().getDescription());
         arkivobjektHandling.setSkapad(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getDocumentCreatedAt()));
+        arkivobjektHandling.getBilaga().add(getBilaga(attachment));
+
+        // TODO - I don't know what to set this fields to right now
+        arkivobjektHandling.setInformationsklass(null);
+        arkivobjektHandling.setInkommen(null);
+        arkivobjektHandling.setAtkomst(null);
+        arkivobjektHandling.setAvsandare(null);
+        arkivobjektHandling.setBeskrivning(null);
+        arkivobjektHandling.setExpedierad(null);
+        arkivobjektHandling.setForvaringsenhetsReferens(null);
+        arkivobjektHandling.setGallring(null);
+        arkivobjektHandling.setLopnummer(null);
+        arkivobjektHandling.setNotering(null);
+        arkivobjektHandling.setSistaAnvandandetidpunkt(null);
+        arkivobjektHandling.setSkannad(null);
+        arkivobjektHandling.setStatusHandling(null);
+        arkivobjektHandling.setSystemidentifierare(null);
+        arkivobjektHandling.setUpprattad(null);
 
         ArkivobjektListaHandlingarTyp arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
         arkivobjektListaHandlingarTyp.getArkivobjektHandling().add(arkivobjektHandling);
         return arkivobjektListaHandlingarTyp;
+    }
+
+    private BilagaTyp getBilaga(Attachment attachment) {
+        BilagaTyp bilaga = new BilagaTyp();
+        bilaga.setNamn(attachment.getName());
+        bilaga.setBeskrivning(attachment.getNote());
+        bilaga.setMimetyp(attachment.getMimeType());
+        return bilaga;
     }
 
     private FastighetTyp getFastighet(Attachment attachment) {
@@ -276,7 +303,7 @@ public class Archiver {
         return fastighet;
     }
 
-    private ArkivbildarStrukturTyp getArkivbildarStrukturTyp() {
+    private ArkivbildarStrukturTyp getArkivbildarStruktur() {
         ArkivbildarStrukturTyp arkivbildarStruktur = new ArkivbildarStrukturTyp();
 
         ArkivbildareTyp arkivbildareSundsvallsKommun = new ArkivbildareTyp();

@@ -14,7 +14,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
-@Path("/2.1")
+@Path("/")
 @RegisterProvider(SundsvallsKommunOauth2Filter.class)
 @RegisterProvider(ServerResponseExceptionMapper.class)
 @RegisterRestClient(configKey = "CASE-MANAGEMENT")
@@ -22,7 +22,7 @@ import java.util.List;
 public interface CaseManagementService {
 
     @GET
-    @Path("/cases/closed/documents/archive")
+    @Path("cases/closed/documents/archive")
     @Produces(MediaType.APPLICATION_JSON)
     List<Attachment> getDocuments(@NotNull
                                   @Schema(description = "Startdatum på sökningen.", format = "date", example = "2022-01-01")

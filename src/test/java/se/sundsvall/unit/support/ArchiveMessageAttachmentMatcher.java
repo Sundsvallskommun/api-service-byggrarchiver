@@ -1,4 +1,4 @@
-package se.sundsvall.unit;
+package se.sundsvall.unit.support;
 
 import org.mockito.ArgumentMatcher;
 import se.sundsvall.sundsvall.archive.ArchiveMessage;

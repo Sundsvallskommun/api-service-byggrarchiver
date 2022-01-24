@@ -20,6 +20,7 @@ import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.casemanagement.*;
 import se.sundsvall.sundsvall.messaging.MessagingService;
 import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
+import se.sundsvall.unit.support.ArchiveMessageAttachmentMatcher;
 import se.sundsvall.vo.ArchiveHistory;
 import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.BatchTrigger;

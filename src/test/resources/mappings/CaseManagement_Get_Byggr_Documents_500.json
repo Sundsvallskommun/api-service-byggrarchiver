@@ -1,7 +1,18 @@
 {
   "request": {
     "method": "GET",
-    "url": "/casemanagement/2.1/cases/closed/documents/archive?search-start=2021-01-01&search-end=2021-01-01&system-type=BYGGR"
+    "urlPath": "/casemanagement/2.1/cases/closed/documents/archive",
+    "queryParameters" : {
+      "search-start" : {
+        "equalTo" : "2021-01-01"
+      },
+      "search-end" : {
+        "equalTo" : "2021-01-01"
+      },
+      "system-type" : {
+        "equalTo" : "BYGGR"
+      }
+    }
   },
   "response": {
     "status": 500,

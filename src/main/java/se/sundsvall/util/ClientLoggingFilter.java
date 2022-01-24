@@ -2,11 +2,11 @@ package se.sundsvall.util;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.quarkus.arc.properties.IfBuildProperty;
 import io.vertx.core.http.HttpServerRequest;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,16 +23,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-//@Provider
+@Provider
 //@IfBuildProperty(name = "client.logging.enabled", stringValue = "true")
 public class ClientLoggingFilter implements ClientRequestFilter, ClientResponseFilter {
 
     private static final Logger LOG = Logger.getLogger("CLIENT-COMMUNICATION");
+    private static final String BASE64_REGEX = "\\\\*\"(file|htmlMessage|content)\\\\*\"\\s*:\\s*\\\\*\".+\\\\*\"";
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
@@ -60,7 +60,7 @@ public class ClientLoggingFilter implements ClientRequestFilter, ClientResponseF
                 .withMethod(requestContext.getMethod())
                 .withUri(requestContext.getUri().toString())
                 .withHeaders(requestContext.getHeaders())
-                .withBody(requestContext.getEntity())
+                .withBody(getEntityBody(requestContext.getEntity()))
                 .build();
 
         LOG.info("Client request:\n" + OBJECT_MAPPER.writeValueAsString(info));
@@ -73,23 +73,38 @@ public class ClientLoggingFilter implements ClientRequestFilter, ClientResponseF
                 .withType("response")
                 .withStatus(responseContext.getStatus())
                 .withHeaders(responseContext.getHeaders())
-                .withBody(getResponseEntityBody(responseContext))
+                .withBody(getEntityBody(responseContext))
                 .build();
 
         LOG.info("Client response:\n" + OBJECT_MAPPER.writeValueAsString(info));
     }
 
-    private String getResponseEntityBody(final ClientResponseContext responseContext) {
+    private String getEntityBody(final Object object) {
+        String text = "";
+        try {
+            text = OBJECT_MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            LOG.error("Error logging request", e);
+        }
+        // Remove base64 because it takes up so much space
+        return text.replaceAll(BASE64_REGEX, "Removed Base64-string");
+    }
+
+    private String getEntityBody(final ClientResponseContext responseContext) {
 
         try {
             InputStream is = responseContext.getEntityStream();
             byte[] data = is.readAllBytes();
             String body = new String(data, StandardCharsets.UTF_8);
+
+            // Remove base64 because it takes up so much space
+            body = body.replaceAll(BASE64_REGEX, "Removed Base64-string");
+
             responseContext.setEntityStream(new ByteArrayInputStream(data));
 
             return body;
         } catch (IOException e) {
-            LOG.error("Error logging response", e);
+            LOG.error("Error logging request", e);
         }
 
         return null;

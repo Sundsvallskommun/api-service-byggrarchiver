@@ -1,12 +1,12 @@
 version: '3.8'
 services:
-  ms-archiver-sandbox:
-    container_name: ms-archiver-sandbox
-    #    logging:
-    #      driver: "syslog"
-    #      options:
-    #        syslog-address: "udp://172.16.254.6:5140"
-    #        tag: "ms-archiver-sandbox"
+  ms-archiver-test:
+    container_name: ms-archiver-test
+#    logging:
+#      driver: "syslog"
+#      options:
+#        syslog-address: "udp://172.16.254.6:5140"
+#        tag: "ms-archiver-test"
     depends_on:
       - ms-archive-mariadb
       - ms-archive-wiremock
@@ -15,11 +15,11 @@ services:
     ports:
       - 8080:8080
     environment:
-      SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN: http://ms-archive-wiremock:8090
-      SUNDSVALLS_KOMMUN_CONSUMER_KEY: sandbox
-      SUNDSVALLS_KOMMUN_CONSUMER_SECRET: sandbox
+      SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN: $SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN
+      SUNDSVALLS_KOMMUN_CONSUMER_KEY: $SUNDSVALLS_KOMMUN_CONSUMER_KEY
+      SUNDSVALLS_KOMMUN_CONSUMER_SECRET: $SUNDSVALLS_KOMMUN_CONSUMER_SECRET
 
-      TEMP_ARCHIVE_ORIGIN: 'ms-archive-wiremock'
+      TEMP_ARCHIVE_ORIGIN: 'host.docker.internal'
 
       DB_KIND: 'mariadb'
       DB_USERNAME: 'dbuser'

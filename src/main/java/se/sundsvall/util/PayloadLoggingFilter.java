@@ -2,6 +2,7 @@ package se.sundsvall.util;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -32,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 public class PayloadLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
     private static final Logger LOG = Logger.getLogger("COMMUNICATION");
+    private static final String BASE64_REGEX = "\\\\*\"(file|htmlMessage|content)\\\\*\"\\s*:\\s*\\\\*\".+\\\\*\"";
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
@@ -73,10 +75,21 @@ public class PayloadLoggingFilter implements ContainerRequestFilter, ContainerRe
                 .withType("response")
                 .withStatus(responseContext.getStatus())
                 .withHeaders(responseContext.getStringHeaders())
-                .withBody(responseContext.getEntity())
+                .withBody(getEntityBody(responseContext.getEntity()))
                 .build();
 
         LOG.info("Outgoing response:\n" + OBJECT_MAPPER.writeValueAsString(info));
+    }
+
+    private String getEntityBody(final Object object) {
+        String text = "";
+        try {
+             text = OBJECT_MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            LOG.error("Error logging request", e);
+        }
+        // Remove base64 because it takes up so much space
+        return text.replaceAll(BASE64_REGEX, "Removed Base64-string");
     }
 
     private String getEntityBody(final ContainerRequestContext requestContext) {
@@ -87,7 +100,7 @@ public class PayloadLoggingFilter implements ContainerRequestFilter, ContainerRe
             String body = new String(data, StandardCharsets.UTF_8);
 
             // Remove base64 because it takes up so much space
-            body = body.replaceAll("\"file\":\\s*\".+\"", "\"file\": \"Removed Base64-string\"");
+            body = body.replaceAll(BASE64_REGEX, "Removed Base64-string");
 
             requestContext.setEntityStream(new ByteArrayInputStream(data));
 

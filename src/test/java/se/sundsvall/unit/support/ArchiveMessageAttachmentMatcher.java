@@ -2,7 +2,7 @@ package se.sundsvall.unit.support;
 
 import org.mockito.ArgumentMatcher;
 import se.sundsvall.sundsvall.archive.ArchiveMessage;
-import se.sundsvall.sundsvall.casemanagement.Attachment;
+import se.sundsvall.vo.Attachment;
 
 /**
  * Only matches based on attachment-field

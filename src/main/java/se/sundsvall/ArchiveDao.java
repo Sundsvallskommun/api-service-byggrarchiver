@@ -1,6 +1,6 @@
 package se.sundsvall;
 
-import se.sundsvall.sundsvall.casemanagement.SystemType;
+import se.sundsvall.vo.SystemType;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.ArchiveHistory;

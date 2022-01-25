@@ -14,19 +14,17 @@ import se.sundsvall.Archiver;
 import se.sundsvall.TestDao;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.sokigo.arendeexport.ByggrMapper;
 import se.sundsvall.sundsvall.archive.ArchiveMessage;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
-import se.sundsvall.sundsvall.casemanagement.*;
 import se.sundsvall.sundsvall.messaging.MessagingService;
 import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
 import se.sundsvall.unit.support.ArchiveMessageAttachmentMatcher;
-import se.sundsvall.vo.ArchiveHistory;
-import se.sundsvall.vo.BatchHistory;
-import se.sundsvall.vo.BatchTrigger;
-import se.sundsvall.vo.Status;
+import se.sundsvall.vo.*;
 
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -67,8 +65,7 @@ class ArchiveTest {
     ArchiveDao archiveDao;
 
     @InjectMock
-    @RestClient
-    CaseManagementService caseManagementServiceMock;
+    ByggrMapper byggrMapper;
 
     @InjectMock
     @RestClient
@@ -80,7 +77,7 @@ class ArchiveTest {
 
 
     @BeforeEach
-    void beforeEach() throws ServiceException {
+    void beforeEach() throws ServiceException, ApplicationException {
         // Clear db between tests
         testDao.deleteAllFromAllTables();
 
@@ -127,7 +124,7 @@ class ArchiveTest {
         attachment_3.setNote("Anteckning 3");
 
         List<Attachment> attachmentList = List.of(attachment_1, attachment_2, attachment_3);
-        Mockito.when(caseManagementServiceMock.getDocuments(any(), any(), any())).thenReturn(attachmentList);
+        Mockito.when(byggrMapper.getArchiveableAttachments(any(), any())).thenReturn(attachmentList);
 
         // Messaging
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
@@ -147,7 +144,7 @@ class ArchiveTest {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         BatchHistory returnedBatchHistory = archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
 
@@ -159,12 +156,12 @@ class ArchiveTest {
     // Standard scenario - Run batch for yesterday - 0 documents found
     @Test
     void testStandardBatchNoDocsFound() throws ServiceException, ApplicationException {
-        when(caseManagementServiceMock.getDocuments(any(), any(), any())).thenReturn(new ArrayList<>());
+        when(byggrMapper.getArchiveableAttachments(any(), any())).thenReturn(new ArrayList<>());
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
         BatchHistory returnedBatchHistory = archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
         verify(archiveServiceMock, times(0)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
 
@@ -189,7 +186,7 @@ class ArchiveTest {
         Assertions.assertNull(secondBatchHistory);
 
         // Only the first batch
-        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
     }
@@ -214,7 +211,7 @@ class ArchiveTest {
         Assertions.assertEquals(0, archiveDao.getArchiveHistories(secondBatchHistory.getId()).size());
 
         // Both first and second batch
-        verify(caseManagementServiceMock, times(2)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(2)).getArchiveableAttachments(any(), any());
         // Only the first batch
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
@@ -282,7 +279,7 @@ class ArchiveTest {
         Assertions.assertEquals(3, archiveDao.getArchiveHistories(batchHistory.getId()).size());
         archiveDao.getArchiveHistories(batchHistory.getId()).forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
 
-        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
 
@@ -309,24 +306,23 @@ class ArchiveTest {
         Assertions.assertEquals(3, archiveDao.getArchiveHistories(batchHistory.getId()).size());
         archiveDao.getArchiveHistories(batchHistory.getId()).forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
 
-        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(1)).postEmail(any());
     }
 
-    // Run batch and simulate request to CaseManagement failure. Verify we handle exception correctly and abort the batch.
+    // Run batch and simulate ByggrMapper failure. Verify we handle exception correctly and abort the batch.
     @Test
-    void testErrorFromCaseManagement() throws ServiceException {
+    void testErrorFromByggrMapperV1() throws ServiceException, ApplicationException {
 
-        String exceptionMessage = "{\"type\":\"https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4\",\"status\":404,\"title\":\"Not Found\",\"detail\":\"RESTEASY003210: Could not find resource for full path: http://microservices-test.sundsvall.se/cases/closed/documents/archive\"}";
-        Mockito.when(caseManagementServiceMock.getDocuments(any(), any(), any())).thenThrow(ServiceException.create(exceptionMessage, null, Response.Status.NOT_FOUND));
+        String exceptionMessage = "Could not parse date";
+        Mockito.when(byggrMapper.getArchiveableAttachments(any(), any())).thenThrow(new BadRequestException(exceptionMessage));
 
         // Test
         LocalDate start = LocalDate.now().minusDays(1);
         LocalDate end = LocalDate.now();
 
-        BatchHistory batchHistory;
-        ServiceException thrown = Assertions.assertThrows(ServiceException.class, () -> archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED));
+        BadRequestException thrown = Assertions.assertThrows(BadRequestException.class, () -> archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED));
 
         Assertions.assertEquals(exceptionMessage, thrown.getLocalizedMessage());
         List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
@@ -334,7 +330,31 @@ class ArchiveTest {
         Assertions.assertEquals(Status.NOT_COMPLETED, archiveDao.getBatchHistory(batchHistoryList.get(0).getId()).getStatus());
         Assertions.assertEquals(0, archiveDao.getArchiveHistories().size());
 
-        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
+        verify(archiveServiceMock, times(0)).postArchive(any());
+        verify(messagingServiceMock, times(0)).postEmail(any());
+    }
+
+    // Run batch and simulate ByggrMapper failure. Verify we handle exception correctly and abort the batch.
+    @Test
+    void testErrorFromByggrMapperV2() throws ServiceException, ApplicationException {
+
+        String exceptionMessage = "The response from arendeExportIntegrationService.getUpdatedArenden(batchFilter) was null. This shouldn't happen.";
+        Mockito.when(byggrMapper.getArchiveableAttachments(any(), any())).thenThrow(new ApplicationException(exceptionMessage));
+
+        // Test
+        LocalDate start = LocalDate.now().minusDays(1);
+        LocalDate end = LocalDate.now();
+
+        ApplicationException thrown = Assertions.assertThrows(ApplicationException.class, () -> archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED));
+
+        Assertions.assertEquals(exceptionMessage, thrown.getLocalizedMessage());
+        List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
+        Assertions.assertEquals(1, batchHistoryList.size());
+        Assertions.assertEquals(Status.NOT_COMPLETED, archiveDao.getBatchHistory(batchHistoryList.get(0).getId()).getStatus());
+        Assertions.assertEquals(0, archiveDao.getArchiveHistories().size());
+
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
         verify(archiveServiceMock, times(0)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
     }
@@ -356,7 +376,7 @@ class ArchiveTest {
         Assertions.assertEquals(3, archiveHistoryList.size());
         archiveHistoryList.forEach(archiveHistory -> Assertions.assertEquals(Status.NOT_COMPLETED, archiveHistory.getStatus()));
 
-        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
     }
@@ -401,7 +421,7 @@ class ArchiveTest {
 
         System.out.println("1: " + firstNotCompletedArchiveHistories.get(0));
 
-        verify(caseManagementServiceMock, times(1)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
         verify(archiveServiceMock, times(3)).postArchive(any());
         verify(messagingServiceMock, times(0)).postEmail(any());
 
@@ -424,7 +444,7 @@ class ArchiveTest {
         Assertions.assertEquals(3, reRunCompletedArchiveHistories.size());
 
         // Both the first batch and the reRun
-        verify(caseManagementServiceMock, times(2)).getDocuments(any(), any(), any());
+        verify(byggrMapper, times(2)).getArchiveableAttachments(any(), any());
         // 3 the first time + 1 in the reRun
         verify(archiveServiceMock, times(4)).postArchive(any());
         // Only in the rerun when the archiving of GEO success

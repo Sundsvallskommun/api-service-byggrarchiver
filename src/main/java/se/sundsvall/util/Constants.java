@@ -29,4 +29,11 @@ public final class Constants {
     public static final String ERR_MSG_EXTERNAL_SERVICE = "Something went wrong in the request to an external service.";
     public static final String IT_IS_NOT_POSSIBLE_TO_RERUN_A_COMPLETED_BATCH = "It's not possible to rerun a completed batch.";
     public static final String END_CAN_NOT_BE_BEFORE_START = "End can not be before start";
+
+    public static final String LANTMATERIET_REFERENS_STATUS_GALLANDE = "Gällande";
+    public static final String FB_DATABASE = "Standard";
+
+    public static final String BYGGR_STATUS_AVSLUTAT = "Avslutat";
+    public static final String BYGGR_HANDELSETYP_ARKIV = "ARKIV";
+    public static final String BYGGR_HANDELSESLAG_SLUTBESKED = "SLU";
 }

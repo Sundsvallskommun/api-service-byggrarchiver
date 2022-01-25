@@ -2,7 +2,7 @@ package se.sundsvall.sundsvall.archive;
 
 import lombok.Getter;
 import lombok.Setter;
-import se.sundsvall.sundsvall.casemanagement.Attachment;
+import se.sundsvall.vo.Attachment;
 
 @Getter
 @Setter

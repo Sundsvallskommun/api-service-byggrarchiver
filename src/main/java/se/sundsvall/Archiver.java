@@ -5,22 +5,16 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.sokigo.arendeexport.ByggrMapper;
 import se.sundsvall.sundsvall.archive.ArchiveMessage;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
-import se.sundsvall.sundsvall.casemanagement.Attachment;
-import se.sundsvall.sundsvall.casemanagement.AttachmentCategory;
-import se.sundsvall.sundsvall.casemanagement.CaseManagementService;
-import se.sundsvall.sundsvall.casemanagement.SystemType;
 import se.sundsvall.sundsvall.messaging.MessagingService;
 import se.sundsvall.sundsvall.messaging.vo.EmailRequest;
 import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
 import se.sundsvall.sundsvall.messaging.vo.Sender1;
 import se.sundsvall.util.Constants;
-import se.sundsvall.vo.ArchiveHistory;
-import se.sundsvall.vo.BatchHistory;
-import se.sundsvall.vo.BatchTrigger;
-import se.sundsvall.vo.Status;
+import se.sundsvall.vo.*;
 import vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -47,10 +41,6 @@ public class Archiver {
 
     @Inject
     @RestClient
-    CaseManagementService caseManagementService;
-
-    @Inject
-    @RestClient
     ArchiveService archiveService;
 
     @Inject
@@ -59,6 +49,9 @@ public class Archiver {
 
     @Inject
     ArchiveDao archiveDao;
+
+    @Inject
+    ByggrMapper byggrMapper;
 
 
     public BatchHistory reRunBatch(Long batchHistoryId) throws ApplicationException, ServiceException {
@@ -125,7 +118,7 @@ public class Archiver {
         List<ArchiveHistory> processedDocuments = new ArrayList<>();
 
         if (attachmentList.isEmpty()) {
-            log.info("AttachmentList is empty - 0 attachments found in CaseManagement for ByggR.");
+            log.info("AttachmentList is empty - 0 attachments found in ByggR.");
         } else {
             for (Attachment attachment : attachmentList) {
                 ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getArchiveMetadata().getDocumentId(), attachment.getArchiveMetadata().getSystem());
@@ -196,12 +189,13 @@ public class Archiver {
 
         if (processedDocuments.stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
             // Persist that this batch is completed
-            log.info("Batch completed.");
             batchHistory.setStatus(Status.COMPLETED);
             archiveDao.updateBatchHistory(batchHistory);
         }
 
-        return archiveDao.getBatchHistory(batchHistory.getId());
+        log.info("Batch with ID: " + batchHistory.getId() + " is " + batchHistory.getStatus());
+
+        return batchHistory;
     }
 
     private LeveransobjektTyp getLeveransobjektTyp(Attachment attachment) {
@@ -348,19 +342,10 @@ public class Archiver {
     }
 
 
-    public List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) throws ServiceException {
-        List<Attachment> attachmentList = new ArrayList<>();
-        try {
-            attachmentList = caseManagementService.getDocuments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), SystemType.BYGGR);
-        } catch (ServiceException e) {
-            if (e.getStatus().equals(Response.Status.NOT_FOUND)
-                    && e.getMessage() != null
-                    && e.getMessage().contains("Documents not found")) {
-                log.info("Status from CaseManagement.getDocuments: HTTP 404 - Documents not found");
-            } else {
-                throw e;
-            }
-        }
+    public List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) throws ServiceException, ApplicationException {
+
+        List<Attachment> attachmentList = byggrMapper.getArchiveableAttachments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
         return attachmentList;
     }
 

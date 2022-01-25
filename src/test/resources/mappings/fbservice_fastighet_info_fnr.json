@@ -1,0 +1,27 @@
+{
+  "request": {
+    "urlPath": "/fbservice/Fastighet/info/fnr",
+    "method": "POST",
+    "queryParameters": {
+      "Database": {
+        "equalTo": "Standard"
+      },
+      "User": {
+        "matches": "\\w+"
+      },
+      "Password": {
+        "matches": "\\w+"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "PostFastighetInfoFnr200.json",
+    "headers": {
+      "Content-Type": "application/json; charset=utf-8",
+      "Server": "Kestrel",
+      "X-Powered-By": "ASP.NET",
+      "Date": "Tue, 27 Jul 2021 13:41:27 GMT"
+    }
+  }
+}

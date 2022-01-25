@@ -1,0 +1,40 @@
+{
+  "statusKod": 0,
+  "statusMeddelande": "",
+  "fel": null,
+  "data": [
+    {
+      "status": "L",
+      "kommunKod": "2281",
+      "kommun": "SUNDSVALL",
+      "beteckning": "BÄCK 3:6",
+      "trakt": "BÄCK",
+      "beteckningsnummer": "3:6",
+      "block": "3",
+      "tecken": ":",
+      "enhet": 6,
+      "ofullstandigRattighetsredovisning": true,
+      "outreddaAndelarISamfalligheter": true,
+      "forvarvstillstandOmarrendering": false,
+      "kronohemman": false,
+      "delagareOfullstandigtRedovisade": false,
+      "felIFR": false,
+      "underAjourforingIFR": false,
+      "senasteAjourforingIFR": "20200324",
+      "utanforBevakningskrets": false,
+      "preliminarTypkod": null,
+      "har3DOmrade": false,
+      "ar3DUrholkad": false,
+      "andelAvserUtforandeOchDrift": null,
+      "samfallighetFarAndraAndel": null,
+      "andelAvserEndastDrift": null,
+      "summaAndelstal": null,
+      "arAgarlagenhet": false,
+      "arUrholkadAvAgarlagenhet": false,
+      "forvarvstillstandGlesbygd": false,
+      "fnr": 22047495,
+      "cfdFnr": "220047495",
+      "uuid": "909a6a80-7a49-90ec-e040-ed8f66444c3f"
+    }
+  ]
+}

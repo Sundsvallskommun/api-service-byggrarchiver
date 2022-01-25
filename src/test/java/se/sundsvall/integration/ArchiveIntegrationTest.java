@@ -80,6 +80,33 @@ class ArchiveIntegrationTest {
         Assertions.assertEquals(archiveDao.getArchiveHistories(postBatchHistoryList.getId()), getArchiveHistoryList);
     }
 
+    // POST batch and then GET batchhistory and archivehistories - verify that the correct is returned
+    @Test
+    void testStandardPostBatchJobZeroArchivedDocs() throws JsonProcessingException {
+        BatchJob batchJob = new BatchJob();
+        batchJob.setStart(LocalDate.parse("2021-01-01"));
+        batchJob.setEnd(LocalDate.parse("2021-01-01"));
+
+        // POST batchJob
+        BatchHistory postBatchHistoryList = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mapper.writeValueAsString(batchJob))
+                .when().post("/batch-jobs")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract().as(BatchHistory.class);
+
+        // GET archiveHistory
+        given()
+                .queryParam("batchHistoryId", postBatchHistoryList.getId())
+                .when().get("archived/attachments")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.NOT_FOUND.getStatusCode())
+                .body(containsString("ArchiveHistory not found"));
+    }
+
     // Rerun an earlier completed batch - verify it did not run
     @Test
     void testRerunWithCompletedBatch() throws JsonProcessingException {

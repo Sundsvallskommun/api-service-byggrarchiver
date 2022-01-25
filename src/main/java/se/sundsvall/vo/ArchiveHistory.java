@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import se.sundsvall.sundsvall.casemanagement.SystemType;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

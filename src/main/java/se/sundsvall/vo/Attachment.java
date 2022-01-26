@@ -31,8 +31,6 @@ public class Attachment {
     @Pattern(regexp = "^(application|image|text)/(bmp|gif|tiff|jpeg|png|html|pdf|rtf|vnd.openxmlformats-officedocument.wordprocessingml.document|plain|vnd.openxmlformats-officedocument.spreadsheetml.sheet|vnd.oasis.opendocument.text|vnd.oasis.opendocument.spreadsheet)$", message = "mimeType must be valid. Must match regex: {regexp}")
     @Schema(example = "application/pdf")
     private String mimeType;
-    @Schema(readOnly = true)
-    private ArchiveMetadata archiveMetadata;
     @NotBlank
     @Pattern(regexp = "^(?:[A-Za-z\\d+/]{4})*(?:[A-Za-z\\d+/]{3}=|[A-Za-z\\d+/]{2}==)?$", message = "file must be a valid Base64 string. Plain text - only the Base64 value.")
     @Schema(type = SchemaType.STRING, format = "byte", description = "Base64-encoded file (plain text)", example = "base64")

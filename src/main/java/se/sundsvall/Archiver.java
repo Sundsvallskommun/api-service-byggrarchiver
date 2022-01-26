@@ -5,8 +5,10 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.sokigo.CaseUtil;
 import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
 import se.sundsvall.sokigo.arendeexport.ByggrMapper;
+import se.sundsvall.sokigo.fb.FastighetDto;
 import se.sundsvall.sundsvall.archive.ArchiveMessage;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
@@ -16,12 +18,11 @@ import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
 import se.sundsvall.sundsvall.messaging.vo.Sender1;
 import se.sundsvall.util.Constants;
 import se.sundsvall.vo.*;
-import se.tekis.arende.Dokument;
-import se.tekis.arende.HandelseHandling;
-import se.tekis.arende.Handling;
+import se.tekis.arende.*;
 import se.tekis.servicecontract.ArendeBatch;
 import se.tekis.servicecontract.BatchFilter;
 import vo.*;
+import vo.ObjectFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -59,10 +60,13 @@ public class Archiver {
     ByggrMapper byggrMapper;
 
     @Inject
+    CaseUtil caseUtil;
+
+    @Inject
     ArendeExportIntegrationService arendeExportIntegrationService;
 
 
-    public BatchHistory reRunBatch(Long batchHistoryId) throws ApplicationException, ServiceException {
+    public BatchHistory reRunBatch(Long batchHistoryId) throws ApplicationException {
         BatchHistory batchHistory;
         try {
             batchHistory = archiveDao.getBatchHistory(batchHistoryId);
@@ -85,7 +89,7 @@ public class Archiver {
 
     }
 
-    public BatchHistory archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
+    public BatchHistory archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
 
         if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
             BatchHistory latestBatch = getLatestCompletedBatch();
@@ -128,8 +132,8 @@ public class Archiver {
         List<Dokument> foundDocuments = new ArrayList<>();
 
         LocalDateTime start = searchStart.atStartOfDay();
-        LocalDateTime end = byggrMapper.getEnd(searchEnd);
-        BatchFilter batchFilter = byggrMapper.getBatchFilter(start, end);
+        LocalDateTime end = getEnd(searchEnd);
+        BatchFilter batchFilter = getBatchFilter(start, end);
 
         ArendeBatch arendeBatch = null;
 
@@ -147,15 +151,12 @@ public class Archiver {
 
             foundCases.addAll(arendeBatch.getArenden().getArende());
 
-            List<String> secrecyDocumentList;
-
             List<se.tekis.arende.Arende> closedCaseList = arendeBatch.getArenden().getArende().stream()
                     .filter(arende -> arende.getStatus().equals(Constants.BYGGR_STATUS_AVSLUTAT))
                     .collect(Collectors.toList());
 
             for (se.tekis.arende.Arende closedCase : closedCaseList) {
                 foundClosedCases.add(closedCase);
-                secrecyDocumentList = byggrMapper.getSecrecyDocumentsList(closedCase.getHandelseLista().getHandelse());
 
                 List<HandelseHandling> handelseHandlingList = closedCase.getHandelseLista().getHandelse().stream()
                         .filter(handelse -> Constants.BYGGR_HANDELSETYP_ARKIV.equals(handelse.getHandelsetyp()))
@@ -192,7 +193,7 @@ public class Archiver {
                             continue;
                         }
 
-                        // Get documents from byggr
+                        // Get documents from Byggr
                         List<Dokument> dokumentList = arendeExportIntegrationService.getDocument(docId);
 
                         if (dokumentList == null) {
@@ -203,10 +204,9 @@ public class Archiver {
                             foundDocuments.add(doc);
                             log.info("Document-Count: " + foundDocuments.size() + ". Found a document that should be archived - Case-ID: " + closedCase.getDnr() + " Document-ID: " + doc.getDokId() + " Document-name: " + doc.getNamn() + " Handling-ID: " + handling.getHandlingId() + " Handlingstyp: " + handling.getTyp());
 
-                            Attachment attachment = new Attachment();
-                            byggrMapper.setAttachmentFields(secrecyDocumentList, closedCase, handling, doc, attachment);
+                            Attachment attachment = byggrMapper.getAttachment(handling, doc);
 
-                            archiveAttachment(attachment, newArchiveHistory).ifPresent(processedDocuments::add);
+                            archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory).ifPresent(processedDocuments::add);
                         }
                     }
                 }
@@ -229,7 +229,7 @@ public class Archiver {
         return batchHistory;
     }
 
-    private Optional<ArchiveHistory> archiveAttachment(Attachment attachment, ArchiveHistory newArchiveHistory) throws ApplicationException {
+    private Optional<ArchiveHistory> archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
 
         ArchiveMessage archiveMessage = new ArchiveMessage();
         archiveMessage.setAttachment(attachment);
@@ -239,9 +239,8 @@ public class Archiver {
             JAXBContext context = JAXBContext.newInstance(LeveransobjektTyp.class);
             Marshaller marshaller = context.createMarshaller();
             StringWriter stringWriter = new StringWriter();
-            marshaller.marshal(new ObjectFactory().createLeveransobjekt(getLeveransobjektTyp(attachment)), stringWriter);
+            marshaller.marshal(new ObjectFactory().createLeveransobjekt(getLeveransobjektTyp(arende, handling, document)), stringWriter);
             metadataXml = stringWriter.toString();
-            log.info(metadataXml);
         } catch (JAXBException e) {
             throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
         }
@@ -270,10 +269,10 @@ public class Archiver {
         return Optional.of(newArchiveHistory);
     }
 
-    private LeveransobjektTyp getLeveransobjektTyp(Attachment attachment) {
+    private LeveransobjektTyp getLeveransobjektTyp(Arende arende, Handling handling, Dokument document) throws ApplicationException {
         LeveransobjektTyp leveransobjekt = new LeveransobjektTyp();
         leveransobjekt.setArkivbildarStruktur(getArkivbildarStruktur());
-        leveransobjekt.setArkivobjektListaArenden(getArkivobjektListaArenden(attachment));
+        leveransobjekt.setArkivobjektListaArenden(getArkivobjektListaArenden(arende, handling, document));
 
         // TODO - I don't know what to set these fields to right now
         leveransobjekt.setInformationsklass(null);
@@ -284,19 +283,17 @@ public class Archiver {
         return leveransobjekt;
     }
 
-    private ArkivobjektListaArendenTyp getArkivobjektListaArenden(Attachment attachment) {
+    private ArkivobjektListaArendenTyp getArkivobjektListaArenden(Arende arende, Handling handling, Dokument document) throws ApplicationException {
         ArkivobjektArendeTyp arkivobjektArende = new ArkivobjektArendeTyp();
 
-        arkivobjektArende.setArkivobjektID(attachment.getArchiveMetadata().getCaseId());
-        arkivobjektArende.setArendemening(attachment.getArchiveMetadata().getCaseTitle());
-        arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseEndedAt()));
-        arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getCaseCreatedAt()));
+        arkivobjektArende.setArkivobjektID(arende.getDnr());
+        arkivobjektArende.setArendemening(arende.getBeskrivning());
+        arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(arende.getSlutDatum()));
+        arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(arende.getRegistreradDatum()));
         arkivobjektArende.setStatusArende(StatusArendeEnum.STÄNGT);
-        arkivobjektArende.getFastighet().add(getFastighet(attachment));
-        arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(attachment));
-
-        // TODO - lägg till detta i metadata
-        arkivobjektArende.setArendeTyp(null);
+        arkivobjektArende.setArendeTyp(arende.getArendetyp());
+        arkivobjektArende.getFastighet().add(getFastighet(arende.getObjektLista().getAbstractArendeObjekt()));
+        arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(handling, document));
 
         // TODO - Not sure of this one...
         arkivobjektArende.getKlass().add("F2 Bygglov");
@@ -323,13 +320,13 @@ public class Archiver {
         return arkivobjektListaArendenTyp;
     }
 
-    private ArkivobjektListaHandlingarTyp getArkivobjektListaHandlingar(Attachment attachment) {
+    private ArkivobjektListaHandlingarTyp getArkivobjektListaHandlingar(Handling handling, Dokument document) {
         ArkivobjektHandlingTyp arkivobjektHandling = new ArkivobjektHandlingTyp();
-        arkivobjektHandling.setArkivobjektID(attachment.getArchiveMetadata().getDocumentId());
-        arkivobjektHandling.setHandlingstyp(attachment.getArchiveMetadata().getArchiveClassification());
-        arkivobjektHandling.setRubrik(attachment.getCategory().getDescription());
-        arkivobjektHandling.setSkapad(formatToIsoDateOrReturnNull(attachment.getArchiveMetadata().getDocumentCreatedAt()));
-        arkivobjektHandling.getBilaga().add(getBilaga(attachment));
+        arkivobjektHandling.setArkivobjektID(document.getDokId());
+        arkivobjektHandling.setHandlingstyp(byggrMapper.getAttachmentCategory(handling).getArchiveClassification());
+        arkivobjektHandling.setRubrik(byggrMapper.getAttachmentCategory(handling).getDescription());
+        arkivobjektHandling.setSkapad(formatToIsoDateOrReturnNull(document.getSkapadDatum()));
+        arkivobjektHandling.getBilaga().add(getBilaga(document));
 
         // TODO - I don't know what to set this fields to right now
         arkivobjektHandling.setInformationsklass(null);
@@ -353,19 +350,38 @@ public class Archiver {
         return arkivobjektListaHandlingarTyp;
     }
 
-    private BilagaTyp getBilaga(Attachment attachment) {
+    private BilagaTyp getBilaga(Dokument document) {
         BilagaTyp bilaga = new BilagaTyp();
-        bilaga.setNamn(attachment.getName());
-        bilaga.setBeskrivning(attachment.getNote());
-        bilaga.setMimetyp(attachment.getMimeType());
+        bilaga.setNamn(document.getNamn());
+        bilaga.setBeskrivning(document.getBeskrivning());
+        bilaga.setChecksumma(document.getChecksum());
         return bilaga;
     }
 
-    private FastighetTyp getFastighet(Attachment attachment) {
+
+
+    private FastighetTyp getFastighet(List<AbstractArendeObjekt> abstractArendeObjektList) throws ApplicationException {
         FastighetTyp fastighet = new FastighetTyp();
-        fastighet.setFastighetsbeteckning(attachment.getArchiveMetadata().getPropertyDesignation());
-        fastighet.setTrakt(attachment.getArchiveMetadata().getRegion());
-        fastighet.setObjektidentitet(attachment.getArchiveMetadata().getRegisterUnit());
+
+        for (AbstractArendeObjekt abstractArendeObjekt : abstractArendeObjektList) {
+            ArendeFastighet arendeFastighet;
+
+            try {
+                arendeFastighet = (ArendeFastighet) abstractArendeObjekt;
+            } catch (ClassCastException e) {
+                log.info("Could not cast AbstractArendeObjekt to ArendeFastighet");
+                continue;
+            }
+
+            if (arendeFastighet != null
+                    && arendeFastighet.isArHuvudObjekt()) {
+                FastighetDto fastighetDto = caseUtil.getPropertyInfoByFnr(arendeFastighet.getFastighet().getFnr());
+                fastighet.setFastighetsbeteckning(fastighetDto.getKommun() + " " + fastighetDto.getBeteckning());
+                fastighet.setTrakt(fastighetDto.getTrakt());
+                fastighet.setObjektidentitet(fastighetDto.getUuid());
+            }
+        }
+
         return fastighet;
     }
 
@@ -463,7 +479,7 @@ public class Archiver {
         Map<String, String> valuesMap = new HashMap<>();
         valuesMap.put("archiveId", getStringOrEmpty(archiveHistory.getArchiveId()));
         valuesMap.put("archiveUrl", getStringOrEmpty(archiveHistory.getArchiveUrl()));
-        valuesMap.put("byggrCaseId", getStringOrEmpty(attachment.getArchiveMetadata().getCaseId()));
+//        valuesMap.put("byggrCaseId", getStringOrEmpty(attachment.getArchiveMetadata().getCaseId()));
         valuesMap.put("byggrDocumentName", getStringOrEmpty(attachment.getName()));
         valuesMap.put("byggrDocumentId", getStringOrEmpty(archiveHistory.getDocumentId()));
 
@@ -484,7 +500,7 @@ public class Archiver {
             } else {
                 log.error("Something went wrong when trying to send e-mail about geoteknisk handling to Lantmäteriet." +
                         "\nArchiveId: " + archiveHistory.getArchiveId() + "" +
-                        "\nDocumentId in Byggr: " + attachment.getArchiveMetadata().getDocumentId() + "" +
+                        "\nDocumentId in Byggr: " + archiveHistory.getDocumentId() + "" +
                         "\nResponse from messaging: " + response);
             }
 
@@ -496,5 +512,23 @@ public class Archiver {
 
     private String getStringOrEmpty(String string) {
         return string != null ? string : "";
+    }
+
+    private LocalDateTime getEnd(LocalDate searchEnd) {
+
+        if (searchEnd.isBefore(LocalDate.now())) {
+            return searchEnd.atTime(23, 59, 59);
+        }
+
+        return LocalDateTime.now();
+    }
+
+    private BatchFilter getBatchFilter(LocalDateTime start, LocalDateTime end) {
+
+        BatchFilter filter = new BatchFilter();
+        filter.setLowerExclusiveBound(start);
+        filter.setUpperInclusiveBound(end);
+
+        return filter;
     }
 }

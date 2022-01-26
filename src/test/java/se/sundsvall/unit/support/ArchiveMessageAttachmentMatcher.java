@@ -25,7 +25,6 @@ public class ArchiveMessageAttachmentMatcher implements ArgumentMatcher<ArchiveM
                 && aLeft.getNote().equals(aRight.getNote())
                 && aLeft.getExtension().equals(aRight.getExtension())
                 && aLeft.getMimeType().equals(aRight.getMimeType())
-                && aLeft.getArchiveMetadata().equals(aRight.getArchiveMetadata())
                 && aLeft.getFile().equals(aRight.getFile());
     }
 }

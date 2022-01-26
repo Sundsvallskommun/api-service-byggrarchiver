@@ -5,6 +5,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
 import se.sundsvall.sokigo.arendeexport.ByggrMapper;
 import se.sundsvall.sundsvall.archive.ArchiveMessage;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
@@ -15,6 +16,11 @@ import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
 import se.sundsvall.sundsvall.messaging.vo.Sender1;
 import se.sundsvall.util.Constants;
 import se.sundsvall.vo.*;
+import se.tekis.arende.Dokument;
+import se.tekis.arende.HandelseHandling;
+import se.tekis.arende.Handling;
+import se.tekis.servicecontract.ArendeBatch;
+import se.tekis.servicecontract.BatchFilter;
 import vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -51,6 +57,9 @@ public class Archiver {
 
     @Inject
     ByggrMapper byggrMapper;
+
+    @Inject
+    ArendeExportIntegrationService arendeExportIntegrationService;
 
 
     public BatchHistory reRunBatch(Long batchHistoryId) throws ApplicationException, ServiceException {
@@ -106,85 +115,108 @@ public class Archiver {
         return archive(start, end, batchHistory);
     }
 
-    private BatchHistory archive(LocalDate start, LocalDate end, BatchHistory batchHistory) throws ApplicationException, ServiceException {
+    private BatchHistory archive(LocalDate searchStart, LocalDate searchEnd, BatchHistory batchHistory) throws ApplicationException {
 
-        log.info("Runs batch: " + batchHistory.getId() + " with start-date: " + start + " and end-date: " + end);
-
-        // Get Byggr-attachments
-        List<Attachment> attachmentList = getByggrAttachments(start, end);
+        log.info("Runs batch: " + batchHistory.getId() + " with start-date: " + searchStart + " and end-date: " + searchEnd);
 
         // Holds the documents that have been processed
         List<ArchiveHistory> processedDocuments = new ArrayList<>();
 
-        if (attachmentList.isEmpty()) {
-            log.info("AttachmentList is empty - 0 attachments found in ByggR.");
-        } else {
-            for (Attachment attachment : attachmentList) {
-                ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(attachment.getArchiveMetadata().getDocumentId(), attachment.getArchiveMetadata().getSystem());
+        // Used for logging only
+        List<se.tekis.arende.Arende> foundCases = new ArrayList<>();
+        List<se.tekis.arende.Arende> foundClosedCases = new ArrayList<>();
+        List<Dokument> foundDocuments = new ArrayList<>();
 
-                // The new archiveHistory
-                ArchiveHistory newArchiveHistory;
+        LocalDateTime start = searchStart.atStartOfDay();
+        LocalDateTime end = byggrMapper.getEnd(searchEnd);
+        BatchFilter batchFilter = byggrMapper.getBatchFilter(start, end);
 
-                if (oldArchiveHistory == null) {
-                    log.info("The document " + attachment.getArchiveMetadata().getDocumentId() + " does not exist in the db. Archive it..");
+        ArendeBatch arendeBatch = null;
 
-                    newArchiveHistory = new ArchiveHistory();
-                    newArchiveHistory.setSystemType(attachment.getArchiveMetadata().getSystem());
-                    newArchiveHistory.setDocumentId(attachment.getArchiveMetadata().getDocumentId());
-                    newArchiveHistory.setBatchHistory(batchHistory);
-                    newArchiveHistory.setStatus(Status.NOT_COMPLETED);
-                    archiveDao.postArchiveHistory(newArchiveHistory);
 
-                } else if (oldArchiveHistory.getStatus().equals(Status.NOT_COMPLETED)) {
-                    log.info("The document " + attachment.getArchiveMetadata().getDocumentId() + " existed but has the status NOT_COMPLETED. Trying again...");
+        do {
+            byggrMapper.setLowerExclusiveBoundWithReturnedValue(batchFilter, arendeBatch);
 
-                    newArchiveHistory = oldArchiveHistory;
-                    newArchiveHistory.setBatchHistory(batchHistory);
+            log.info("Runs batch for start-date: " + batchFilter.getLowerExclusiveBound() + " and end-date: " + batchFilter.getUpperInclusiveBound());
 
-                } else {
-                    log.info("The document " + attachment.getArchiveMetadata().getDocumentId() + " is already archived.");
-                    continue;
-                }
-
-                ArchiveMessage archiveMessage = new ArchiveMessage();
-                archiveMessage.setAttachment(attachment);
-
-                String metadataXml;
-                try {
-                    JAXBContext context = JAXBContext.newInstance(LeveransobjektTyp.class);
-                    Marshaller marshaller = context.createMarshaller();
-                    StringWriter stringWriter = new StringWriter();
-                    marshaller.marshal(new ObjectFactory().createLeveransobjekt(getLeveransobjektTyp(attachment)), stringWriter);
-                    metadataXml = stringWriter.toString();
-                    log.info(metadataXml);
-                } catch (JAXBException e) {
-                    throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
-                }
-
-                archiveMessage.setMetadata(metadataXml);
-
-                // Request to Archive
-                ArchiveResponse archiveResponse = postArchive(archiveMessage);
-
-                if (archiveResponse != null
-                        && archiveResponse.getArchiveId() != null) {
-                    // Success! Set status to completed
-                    newArchiveHistory.setStatus(Status.COMPLETED);
-                    newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
-
-                    if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
-                        MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
-                    }
-                } else {
-                    // Not successful... Set status to not completed
-                    newArchiveHistory.setStatus(Status.NOT_COMPLETED);
-                }
-
-                archiveDao.updateArchiveHistory(newArchiveHistory);
-
-                processedDocuments.add(newArchiveHistory);
+            // Get arenden from Byggr
+            arendeBatch = arendeExportIntegrationService.getUpdatedArenden(batchFilter);
+            if (arendeBatch == null) {
+                throw new ApplicationException("The response from arendeExportIntegrationService.getUpdatedArenden(batchFilter) was null. This shouldn't happen.");
             }
-        }
+
+            foundCases.addAll(arendeBatch.getArenden().getArende());
+
+            List<String> secrecyDocumentList;
+
+            List<se.tekis.arende.Arende> closedCaseList = arendeBatch.getArenden().getArende().stream()
+                    .filter(arende -> arende.getStatus().equals(Constants.BYGGR_STATUS_AVSLUTAT))
+                    .collect(Collectors.toList());
+
+            for (se.tekis.arende.Arende closedCase : closedCaseList) {
+                foundClosedCases.add(closedCase);
+                secrecyDocumentList = byggrMapper.getSecrecyDocumentsList(closedCase.getHandelseLista().getHandelse());
+
+                List<HandelseHandling> handelseHandlingList = closedCase.getHandelseLista().getHandelse().stream()
+                        .filter(handelse -> Constants.BYGGR_HANDELSETYP_ARKIV.equals(handelse.getHandelsetyp()))
+                        .flatMap(handelse -> handelse.getHandlingLista().getHandling().stream())
+                        .collect(Collectors.toList());
+
+                for (Handling handling : handelseHandlingList) {
+                    if (handling.getDokument() != null) {
+
+                        String docId = handling.getDokument().getDokId();
+
+                        ArchiveHistory oldArchiveHistory = archiveDao.getArchiveHistory(docId, SystemType.BYGGR);
+
+                        // The new archiveHistory
+                        ArchiveHistory newArchiveHistory = new ArchiveHistory();
+
+                        if (oldArchiveHistory == null) {
+                            log.info("The document " + docId + " does not exist in the db. Archive it..");
+
+                            newArchiveHistory.setSystemType(SystemType.BYGGR);
+                            newArchiveHistory.setDocumentId(docId);
+                            newArchiveHistory.setBatchHistory(batchHistory);
+                            newArchiveHistory.setStatus(Status.NOT_COMPLETED);
+                            archiveDao.postArchiveHistory(newArchiveHistory);
+
+                        } else if (oldArchiveHistory.getStatus().equals(Status.NOT_COMPLETED)) {
+                            log.info("The document " + docId + " existed but has the status NOT_COMPLETED. Trying again...");
+
+                            newArchiveHistory = oldArchiveHistory;
+                            newArchiveHistory.setBatchHistory(batchHistory);
+
+                        } else {
+                            log.info("The document " + docId + " is already archived.");
+                            continue;
+                        }
+
+                        // Get documents from byggr
+                        List<Dokument> dokumentList = arendeExportIntegrationService.getDocument(docId);
+
+                        if (dokumentList == null) {
+                            throw new ApplicationException("The response from arendeExportIntegrationService.getDocument(" + docId + ") was null. Something went wrong...");
+                        }
+
+                        for (Dokument doc : dokumentList) {
+                            foundDocuments.add(doc);
+                            log.info("Document-Count: " + foundDocuments.size() + ". Found a document that should be archived - Case-ID: " + closedCase.getDnr() + " Document-ID: " + doc.getDokId() + " Document-name: " + doc.getNamn() + " Handling-ID: " + handling.getHandlingId() + " Handlingstyp: " + handling.getTyp());
+
+                            Attachment attachment = new Attachment();
+                            byggrMapper.setAttachmentFields(secrecyDocumentList, closedCase, handling, doc, attachment);
+
+                            archiveAttachment(attachment, newArchiveHistory).ifPresent(processedDocuments::add);
+                        }
+                    }
+                }
+            }
+        } while (batchFilter.getLowerExclusiveBound().isBefore(end));
+
+        log.info("\nTotalt antal arenden: " + foundCases.size()
+                + "\nAntal avslutade arenden: " + foundClosedCases.size()
+                + "\nAntal dokument som ska arkiveras: " + foundDocuments.size());
+
 
         if (processedDocuments.stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
             // Persist that this batch is completed
@@ -195,6 +227,47 @@ public class Archiver {
         log.info("Batch with ID: " + batchHistory.getId() + " is " + batchHistory.getStatus());
 
         return batchHistory;
+    }
+
+    private Optional<ArchiveHistory> archiveAttachment(Attachment attachment, ArchiveHistory newArchiveHistory) throws ApplicationException {
+
+        ArchiveMessage archiveMessage = new ArchiveMessage();
+        archiveMessage.setAttachment(attachment);
+
+        String metadataXml;
+        try {
+            JAXBContext context = JAXBContext.newInstance(LeveransobjektTyp.class);
+            Marshaller marshaller = context.createMarshaller();
+            StringWriter stringWriter = new StringWriter();
+            marshaller.marshal(new ObjectFactory().createLeveransobjekt(getLeveransobjektTyp(attachment)), stringWriter);
+            metadataXml = stringWriter.toString();
+            log.info(metadataXml);
+        } catch (JAXBException e) {
+            throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
+        }
+
+        archiveMessage.setMetadata(metadataXml);
+
+        // Request to Archive
+        ArchiveResponse archiveResponse = postArchive(archiveMessage);
+
+        if (archiveResponse != null
+                && archiveResponse.getArchiveId() != null) {
+            // Success! Set status to completed
+            newArchiveHistory.setStatus(Status.COMPLETED);
+            newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
+
+            if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
+                MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
+            }
+        } else {
+            // Not successful... Set status to not completed
+            newArchiveHistory.setStatus(Status.NOT_COMPLETED);
+        }
+
+        archiveDao.updateArchiveHistory(newArchiveHistory);
+
+        return Optional.of(newArchiveHistory);
     }
 
     private LeveransobjektTyp getLeveransobjektTyp(Attachment attachment) {
@@ -340,12 +413,6 @@ public class Archiver {
         return archiveResponse;
     }
 
-
-    public List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) throws ApplicationException {
-
-        return byggrMapper.getArchiveableAttachments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-
-    }
 
     public BatchHistory getLatestCompletedBatch() {
         List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();

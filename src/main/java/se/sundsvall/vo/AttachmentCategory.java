@@ -9,7 +9,8 @@ public enum AttachmentCategory {
     ///////////////////////////////////
     // ByggR
     ///////////////////////////////////
-    // Ansökan om bygglov
+
+    // archiveClassification "A"
     ARIT("A-ritningar", "A"),
     FAS("Fasad", "A"),
     FS2("Fasad- och sektionsritning", "A"),
@@ -59,6 +60,8 @@ public enum AttachmentCategory {
     SKYL("Skyltritning", "A"),
     UPPM("Uppmätningsritning", "A"),
     ANV("Utställningshandling", "A"),
+
+    // archiveClassification "D"
     ANM("Anmälan", "D"),
     ANMÄ("Anmälan av kontrollansvarig", "D"),
     ANS("Ansökan om bygglov", "D"),
@@ -90,6 +93,7 @@ public enum AttachmentCategory {
     MOTBKR("Mottagningsbekräftelse", "D"),
     OVK("OVK-protokoll", "D"),
     PM("PM", "D"),
+    PMINN("Påminnelse", "D"),
     PROARB("Protokoll arbetsplatsbesök", "D"),
     PROTAU("Protokoll AU", "D"),
     PROTKS("Protokoll KS", "D"),
@@ -97,11 +101,13 @@ public enum AttachmentCategory {
     PROTSBN("Protokoll SBN", "D"),
     PROSS("Protokoll slutsamråd", "D"),
     PROTS("Protokoll tekniskt samråd", "D"),
+    REMISS("Remiss", "D"),
     REMS("Remissvar", "D"),
     RÄTT("Rättidsprövning", "D"),
     SKP("Signerad kontrollplan", "D"),
     SBES("Slutbesked", "D"),
     STAB("Startbesked", "D"),
+    SVAR("Svar", "D"),
     SVAR2år("Svar 2-årsbrev", "D"),
     TJÄ("Tjänsteskrivelse", "D"),
     UNDER("Underrättelsesvar", "D"),
@@ -123,6 +129,7 @@ public enum AttachmentCategory {
     BEKMOTANS("Bekräftelse mottagen ansökan", "D"),
     BEMÖ("Bemötande", "D"),
     BESKA("Besöksrapporter KA", "D"),
+    BESLUT("Beslut", "D"),
     BIL("Bilaga", "D"),
     BRS("Brandskiss", "D"),
     BRAB("Brandskyddsbeskrivning", "D"),
@@ -164,6 +171,7 @@ public enum AttachmentCategory {
     MAIL("Mail", "D"),
     MAPL("Markplaneringsritning", "D"),
     MATINV("Materialinventering", "D"),
+    MEDDEL("Meddelanden", "D"),
     MIRP("Miljöinventering/ rivningsplan", "D"),
     MINN("Minnesanteckningar", "D"),
     POIT("PoIT", "D"),
@@ -204,10 +212,17 @@ public enum AttachmentCategory {
     UNDUT("Underrättelse", "D"),
     UBGARBO("Uppdragsbekräftelse", "D"),
     UTBEU("Utbetalningsunderlag", "D"),
+    UTSK("Utskick", "D"),
+    UTSKP("Påminnelseutskick", "D"),
+    UTSKS("Svar utskick", "D"),
     BRAU("Utförandekontroll brandskydd", "D"),
     UKA("Utlåtande KA", "D"),
     ÅTG("Åtgärdsföreläggande", "D"),
+
+    // archiveClassification "GU"
     GEO("Geotekniska handling", "GU"),
+
+    // archiveClassification "K"
     GRUNDP("Grundplan", "K"),
     GRUNDR("Grundritning", "K"),
     KOND("Konstruktionsdokument", "K"),
@@ -216,15 +231,20 @@ public enum AttachmentCategory {
     STOMR("Stomritningar", "K"),
     TAPL("Takplan", "K"),
     TSR("Takstolsritning", "K"),
+
+    // archiveClassification "S"
     KART("Karta", "S"),
     NYKA("Nybyggnadskarta", "S"),
     SITU("Situationsplan", "S"),
     TOMTPLBE("Tomtplatsbestämning", "S"),
+
+    // archiveClassification "VVS"
     VAH("VA-handling", "VVS"),
     VENT("Ventilationshandling", "VVS"),
     UVEN("Ventilationsritning", "VVS"),
     VS("VS-handling", "VVS"),
     VVSH("VVS-handling", "VVS"),
+
 
     ///////////////////////////////////
     // Ecos

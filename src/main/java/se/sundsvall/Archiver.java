@@ -22,7 +22,6 @@ import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -111,7 +110,7 @@ public class Archiver {
 
         log.info("Runs batch: " + batchHistory.getId() + " with start-date: " + start + " and end-date: " + end);
 
-        // Get Byggr-attachments from CaseManagement
+        // Get Byggr-attachments
         List<Attachment> attachmentList = getByggrAttachments(start, end);
 
         // Holds the documents that have been processed
@@ -223,7 +222,7 @@ public class Archiver {
         arkivobjektArende.getFastighet().add(getFastighet(attachment));
         arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(attachment));
 
-        // TODO - lägg till detta i metadata från CaseManagement
+        // TODO - lägg till detta i metadata
         arkivobjektArende.setArendeTyp(null);
 
         // TODO - Not sure of this one...
@@ -342,11 +341,10 @@ public class Archiver {
     }
 
 
-    public List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) throws ServiceException, ApplicationException {
+    public List<Attachment> getByggrAttachments(LocalDate start, LocalDate end) throws ApplicationException {
 
-        List<Attachment> attachmentList = byggrMapper.getArchiveableAttachments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        return byggrMapper.getArchiveableAttachments(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
-        return attachmentList;
     }
 
     public BatchHistory getLatestCompletedBatch() {

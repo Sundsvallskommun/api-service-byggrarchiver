@@ -85,7 +85,7 @@ class ArchiveTest {
         Mocks
          */
 
-        // CaseManagement
+        // ByggrMapper
 
         Attachment attachment_1 = new Attachment();
         ArchiveMetadata archiveMetadata_1 = new ArchiveMetadata();
@@ -385,7 +385,7 @@ class ArchiveTest {
     @Test
     void testReRunNotCompletedBatch() throws ServiceException, ApplicationException {
 
-        // The same object as the CaseManagement mock
+        // The same object as the Byggr-mock
         Attachment attachment_2 = new Attachment();
         ArchiveMetadata archiveMetadata_2 = new ArchiveMetadata();
         archiveMetadata_2.setSystem(SystemType.BYGGR);

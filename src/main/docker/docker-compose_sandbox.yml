@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   ms-archiver-sandbox:
+    network_mode: bridge
     container_name: ms-archiver-sandbox
 #    logging:
 #      driver: "syslog"
@@ -8,6 +9,8 @@ services:
 #        syslog-address: "udp://172.16.254.6:5140"
 #        tag: "ms-archiver-sandbox"
     depends_on:
+      - ms-archive-wiremock
+    links:
       - ms-archive-wiremock
     restart: always
     image: ms-archiver
@@ -32,6 +35,7 @@ services:
       DB_HIBERNATE_GENERATION: "drop-and-create"
 
   ms-archive-wiremock:
+    network_mode: bridge
     image: wiremock/wiremock
     restart: always
     expose:

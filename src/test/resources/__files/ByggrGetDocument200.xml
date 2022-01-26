@@ -1,7 +1,7 @@
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
     <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
         <GetDocumentResponse xmlns="www.tekis.se/ServiceContract">
-            <GetDocumentResult dokId="433467" checksum="-1465822860">
+            <GetDocumentResult dokId="dokId" checksum="-1465822860">
                 <namn xmlns="www.tekis.se/arende">2017 Inget bygglov krävs.docx</namn>
                 <beskrivning xmlns="www.tekis.se/arende">Beslut</beskrivning>
                 <skapadDatum xmlns="www.tekis.se/arende">2018-01-30T12:30:55+01:00</skapadDatum>

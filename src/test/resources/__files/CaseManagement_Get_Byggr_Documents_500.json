@@ -1,6 +1,0 @@
-{
-  "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-  "status": 500,
-  "title": "Internal Server Error",
-  "detail": "Some fake error from CaseManagement"
-}

@@ -9,15 +9,15 @@
             "contains": "GetUpdatedArenden"
           },
           {
-            "contains": "<UpperInclusiveBound>2021-01-01T23:59:59"
+            "contains": "<UpperInclusiveBound>1999-01-01T23:59:59"
           }
         ]
       }
     ]
   },
   "response": {
-    "status": 200,
-    "bodyFileName": "ByggrGetUpdatedArendenNotFound.xml",
+    "status": 500,
+    "bodyFileName": "ByggrGetUpdatedArenden500.xml",
     "headers": {
       "Content-Type": "text/xml; charset=utf-8",
       "Vary": "Accept-Encoding",

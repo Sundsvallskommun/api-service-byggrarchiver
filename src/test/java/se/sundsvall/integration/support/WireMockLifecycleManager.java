@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.core.Options;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.sundsvall.integration.support.transformers.GetDocumentTransformer;
 
 import javax.net.ServerSocketFactory;
 import java.net.InetAddress;
@@ -28,8 +29,9 @@ public class WireMockLifecycleManager implements QuarkusTestResourceLifecycleMan
     @Override
     public Map<String, String> start() {
         Options options = options()
-            .port(findAvailablePort())
-            .usingFilesUnderClasspath("");
+                .port(findAvailablePort())
+                .usingFilesUnderClasspath("")
+                .extensions(GetDocumentTransformer.class);
         wireMockServer = new WireMockServer(options);
         wireMockServer.start();
 
@@ -55,7 +57,7 @@ public class WireMockLifecycleManager implements QuarkusTestResourceLifecycleMan
     @Override
     public void inject(final TestInjector testInjector) {
         testInjector.injectIntoFields(wireMockServer,
-            new TestInjector.AnnotatedAndMatchesType(InjectWireMock.class, WireMockServer.class));
+                new TestInjector.AnnotatedAndMatchesType(InjectWireMock.class, WireMockServer.class));
     }
 
     private int findAvailablePort() {
@@ -66,7 +68,7 @@ public class WireMockLifecycleManager implements QuarkusTestResourceLifecycleMan
         do {
             if (searchCounter > portRange) {
                 throw new IllegalStateException(String.format(
-                    "Could not find an available port in the range [%d, %d] after %d attempts",
+                        "Could not find an available port in the range [%d, %d] after %d attempts",
                         PORT_RANGE_MIN, PORT_RANGE_MAX, searchCounter));
             }
             candidatePort = findRandomPort();
@@ -85,7 +87,7 @@ public class WireMockLifecycleManager implements QuarkusTestResourceLifecycleMan
     private boolean isPortAvailable(final int port) {
         try {
             ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(
-                port, 1, InetAddress.getByName("localhost"));
+                    port, 1, InetAddress.getByName("localhost"));
             serverSocket.close();
             return true;
         } catch (Exception e) {

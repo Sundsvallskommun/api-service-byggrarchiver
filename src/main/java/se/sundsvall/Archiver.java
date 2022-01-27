@@ -65,6 +65,36 @@ public class Archiver {
     @Inject
     ArendeExportIntegrationService arendeExportIntegrationService;
 
+    public BatchHistory runBatch(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
+
+        if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
+            BatchHistory latestBatch = getLatestCompletedBatch();
+
+            if (latestBatch != null) {
+                // If this batch end-date is not after the latest batch end date, we don't need to run it again
+                if (!end.isAfter(latestBatch.getEnd())) {
+                    log.info("This batch does not have a later end-date(" + end + ") than the latest batch (" + latestBatch.getEnd() + "). Cancelling this batch...");
+                    return null;
+                }
+
+                // If there is a gap between the latest batch end-date and this batch start-date, we would risk to miss something.
+                // Therefore - set the start-date to the latest batch end-date, plus one day.
+                LocalDate dayAfterLatestBatch = latestBatch.getEnd().plusDays(1);
+                if (start.isAfter(dayAfterLatestBatch)) {
+                    log.info("It was a gap between the latest batch end-date and this batch start-date. Sets the start-date to: " + latestBatch.getEnd().plusDays(1));
+                    start = dayAfterLatestBatch;
+                }
+
+            }
+        }
+
+        // Persist the start of this batch
+        BatchHistory batchHistory = new BatchHistory(start, end, batchTrigger, Status.NOT_COMPLETED);
+        archiveDao.postBatchHistory(batchHistory);
+
+        // Do the archiving
+        return archive(start, end, batchHistory);
+    }
 
     public BatchHistory reRunBatch(Long batchHistoryId) throws ApplicationException {
         BatchHistory batchHistory;
@@ -87,36 +117,6 @@ public class Archiver {
         // Do the archiving
         return archive(batchHistory.getStart(), batchHistory.getEnd(), batchHistory);
 
-    }
-
-    public BatchHistory archiveByggrAttachments(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
-
-        if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
-            BatchHistory latestBatch = getLatestCompletedBatch();
-
-            if (latestBatch != null) {
-                // If this batch end-date is not after the latest batch end date, we don't need to run it again
-                if (!end.isAfter(latestBatch.getEnd())) {
-                    log.info("This batch does not have a later end-date(" + end + ") than the latest batch (" + latestBatch.getEnd() + "). Cancelling this batch...");
-                    return null;
-                }
-
-                // If there is a gap between the latest batch end-date and this batch start-date, we would risk to miss something.
-                // Therefore - set the start-date to the latest batch end-date, plus one day.
-                if (start.isAfter(latestBatch.getEnd())) {
-                    log.info("It was a gap between the latest batch end-date and this batch start-date. Sets the start-date to: " + latestBatch.getEnd().plusDays(1));
-                    start = latestBatch.getEnd().plusDays(1);
-                }
-
-            }
-        }
-
-        // Persist the start of this batch
-        BatchHistory batchHistory = new BatchHistory(start, end, batchTrigger, Status.NOT_COMPLETED);
-        archiveDao.postBatchHistory(batchHistory);
-
-        // Do the archiving
-        return archive(start, end, batchHistory);
     }
 
     private BatchHistory archive(LocalDate searchStart, LocalDate searchEnd, BatchHistory batchHistory) throws ApplicationException {
@@ -213,9 +213,9 @@ public class Archiver {
             }
         } while (batchFilter.getLowerExclusiveBound().isBefore(end));
 
-        log.info("\nTotalt antal arenden: " + foundCases.size()
-                + "\nAntal avslutade arenden: " + foundClosedCases.size()
-                + "\nAntal dokument som ska arkiveras: " + foundDocuments.size());
+        log.info("\nTotal number of cases: " + foundCases.size()
+                + "\nTotal number of closed cases: " + foundClosedCases.size()
+                + "\nTotal number of documents ready for archiving: " + foundDocuments.size());
 
 
         if (processedDocuments.stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
@@ -292,8 +292,11 @@ public class Archiver {
         arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(arende.getRegistreradDatum()));
         arkivobjektArende.setStatusArende(StatusArendeEnum.STÄNGT);
         arkivobjektArende.setArendeTyp(arende.getArendetyp());
-        arkivobjektArende.getFastighet().add(getFastighet(arende.getObjektLista().getAbstractArendeObjekt()));
         arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(handling, document));
+
+        if (Objects.nonNull(arende.getObjektLista())) {
+            arkivobjektArende.getFastighet().add(getFastighet(arende.getObjektLista().getAbstractArendeObjekt()));
+        }
 
         // TODO - Not sure of this one...
         arkivobjektArende.getKlass().add("F2 Bygglov");
@@ -323,10 +326,12 @@ public class Archiver {
     private ArkivobjektListaHandlingarTyp getArkivobjektListaHandlingar(Handling handling, Dokument document) {
         ArkivobjektHandlingTyp arkivobjektHandling = new ArkivobjektHandlingTyp();
         arkivobjektHandling.setArkivobjektID(document.getDokId());
-        arkivobjektHandling.setHandlingstyp(byggrMapper.getAttachmentCategory(handling).getArchiveClassification());
-        arkivobjektHandling.setRubrik(byggrMapper.getAttachmentCategory(handling).getDescription());
         arkivobjektHandling.setSkapad(formatToIsoDateOrReturnNull(document.getSkapadDatum()));
         arkivobjektHandling.getBilaga().add(getBilaga(document));
+        if (Objects.nonNull(handling.getTyp())) {
+            arkivobjektHandling.setHandlingstyp(byggrMapper.getAttachmentCategory(handling.getTyp()).getArchiveClassification());
+            arkivobjektHandling.setRubrik(byggrMapper.getAttachmentCategory(handling.getTyp()).getDescription());
+        }
 
         // TODO - I don't know what to set this fields to right now
         arkivobjektHandling.setInformationsklass(null);
@@ -357,7 +362,6 @@ public class Archiver {
         bilaga.setChecksumma(document.getChecksum());
         return bilaga;
     }
-
 
 
     private FastighetTyp getFastighet(List<AbstractArendeObjekt> abstractArendeObjektList) throws ApplicationException {
@@ -430,7 +434,7 @@ public class Archiver {
     }
 
 
-    public BatchHistory getLatestCompletedBatch() {
+    private BatchHistory getLatestCompletedBatch() {
         List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
 
         // Filter completed batches

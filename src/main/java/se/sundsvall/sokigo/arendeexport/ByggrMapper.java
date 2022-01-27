@@ -24,7 +24,7 @@ public class ByggrMapper {
 
     public Attachment getAttachment(Handling handling, Dokument doc) {
         Attachment attachment = new Attachment();
-        attachment.setCategory(getAttachmentCategory(handling));
+        attachment.setCategory(getAttachmentCategory(handling.getTyp()));
         attachment.setExtension("." + doc.getFil().getFilAndelse().toLowerCase());
         attachment.setMimeType(null);
         attachment.setName(doc.getNamn());
@@ -34,9 +34,9 @@ public class ByggrMapper {
         return attachment;
     }
 
-    public AttachmentCategory getAttachmentCategory(Handling handling) {
+    public AttachmentCategory getAttachmentCategory(String handlingsTyp) {
         try {
-            return AttachmentCategory.valueOf(handling.getTyp());
+            return AttachmentCategory.valueOf(handlingsTyp);
         } catch (IllegalArgumentException e) {
             // All the "handlingstyper" we don't recognize, we set to AttachmentCategory.BIL,
             // which means they get the archiveClassification D,

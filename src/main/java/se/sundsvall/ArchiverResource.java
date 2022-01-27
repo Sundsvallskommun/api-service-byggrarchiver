@@ -6,7 +6,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import se.sundsvall.exceptions.ApplicationException;
-import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.validators.StartBeforeEnd;
 import se.sundsvall.vo.*;
 
@@ -83,8 +82,8 @@ public class ArchiverResource {
             @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
             @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
     })
-    public Response postBatchJob(@StartBeforeEnd @NotNull(message = "Request body must not be null") @Valid BatchJob batchJob) throws ApplicationException, ServiceException {
-        return Response.ok(archiver.archiveByggrAttachments(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL)).build();
+    public Response postBatchJob(@StartBeforeEnd @NotNull(message = "Request body must not be null") @Valid BatchJob batchJob) throws ApplicationException {
+        return Response.ok(archiver.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL)).build();
     }
 
     @POST
@@ -96,7 +95,7 @@ public class ArchiverResource {
             @APIResponse(responseCode = "404", description = "Not found", content = @Content(schema = @Schema(implementation = Information.class))),
             @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
             })
-    public Response reRunBatchJob(@PathParam("batchHistoryId") Long batchHistoryId) throws ApplicationException, ServiceException {
+    public Response reRunBatchJob(@PathParam("batchHistoryId") Long batchHistoryId) throws ApplicationException {
         return Response.ok(archiver.reRunBatch(batchHistoryId)).build();
     }
 }

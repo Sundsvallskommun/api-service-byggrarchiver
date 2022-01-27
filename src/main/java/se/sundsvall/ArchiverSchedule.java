@@ -4,7 +4,6 @@ import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
 import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
-import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.vo.BatchTrigger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -24,10 +23,10 @@ public class ArchiverSchedule {
 
 
     @Scheduled(cron = "{cron.expression}")
-    void archive(ScheduledExecution execution) throws ApplicationException, ServiceException {
+    void archive(ScheduledExecution execution) throws ApplicationException {
         log.info("Running archiving on schedule. Timestamp: " + LocalDateTime.ofInstant(execution.getFireTime(), ZoneId.of("Europe/Stockholm")));
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
-        archiver.archiveByggrAttachments(yesterday, yesterday, BatchTrigger.SCHEDULED);
+        archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
     }
 }

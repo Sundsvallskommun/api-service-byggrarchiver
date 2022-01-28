@@ -15,6 +15,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped
+@Transactional
 public class ArchiveDao {
 
     @Inject
@@ -57,22 +58,18 @@ public class ArchiveDao {
     }
 
 
-    @Transactional
     public void postArchiveHistory(ArchiveHistory archiveHistory) {
         em.persist(archiveHistory);
     }
 
-    @Transactional
     public void updateArchiveHistory(ArchiveHistory archiveHistory) {
         em.merge(archiveHistory);
     }
 
-    @Transactional
     public void postBatchHistory(BatchHistory batchHistory) {
         em.persist(batchHistory);
     }
 
-    @Transactional
     public void updateBatchHistory(BatchHistory batchHistory) {
         em.merge(batchHistory);
     }

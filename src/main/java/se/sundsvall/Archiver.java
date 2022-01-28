@@ -21,8 +21,8 @@ import se.sundsvall.vo.*;
 import se.tekis.arende.*;
 import se.tekis.servicecontract.ArendeBatch;
 import se.tekis.servicecontract.BatchFilter;
-import vo.*;
 import vo.ObjectFactory;
+import vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -123,9 +123,6 @@ public class Archiver {
 
         log.info("Runs batch: " + batchHistory.getId() + " with start-date: " + searchStart + " and end-date: " + searchEnd);
 
-        // Holds the documents that have been processed
-        List<ArchiveHistory> processedDocuments = new ArrayList<>();
-
         // Used for logging only
         List<se.tekis.arende.Arende> foundCases = new ArrayList<>();
         List<se.tekis.arende.Arende> foundClosedCases = new ArrayList<>();
@@ -136,7 +133,6 @@ public class Archiver {
         BatchFilter batchFilter = getBatchFilter(start, end);
 
         ArendeBatch arendeBatch = null;
-
 
         do {
             byggrMapper.setLowerExclusiveBoundWithReturnedValue(batchFilter, arendeBatch);
@@ -206,7 +202,7 @@ public class Archiver {
 
                             Attachment attachment = byggrMapper.getAttachment(handling, doc);
 
-                            archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory).ifPresent(processedDocuments::add);
+                            archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
                         }
                     }
                 }
@@ -218,7 +214,7 @@ public class Archiver {
                 + "\nTotal number of documents ready for archiving: " + foundDocuments.size());
 
 
-        if (processedDocuments.stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
+        if (archiveDao.getArchiveHistories(batchHistory.getId()).stream().noneMatch(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED))) {
             // Persist that this batch is completed
             batchHistory.setStatus(Status.COMPLETED);
             archiveDao.updateBatchHistory(batchHistory);
@@ -229,7 +225,7 @@ public class Archiver {
         return batchHistory;
     }
 
-    private Optional<ArchiveHistory> archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
+    private void archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
 
         ArchiveMessage archiveMessage = new ArchiveMessage();
         archiveMessage.setAttachment(attachment);
@@ -259,14 +255,15 @@ public class Archiver {
             if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
                 MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
             }
+
+            log.info("The archive-process of document with ID: " + newArchiveHistory.getDocumentId() + " succeeded!");
         } else {
             // Not successful... Set status to not completed
             newArchiveHistory.setStatus(Status.NOT_COMPLETED);
+            log.info("The archive-process of document with ID: " + newArchiveHistory.getDocumentId() + " did not succeed.");
         }
 
         archiveDao.updateArchiveHistory(newArchiveHistory);
-
-        return Optional.of(newArchiveHistory);
     }
 
     private LeveransobjektTyp getLeveransobjektTyp(Arende arende, Handling handling, Dokument document) throws ApplicationException {

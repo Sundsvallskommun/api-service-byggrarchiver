@@ -165,19 +165,141 @@ class ArchiveTest {
     // TODO - tests for mixed handelsetyper
 
     // Standard scenario - Run batch for yesterday - 0 cases and documents found
-    @Test
-    void testStandardBatchNoDocsFound() throws ServiceException, ApplicationException {
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testBatch0Cases0Docs(BatchTrigger batchTrigger) throws ServiceException, ApplicationException {
         LocalDate yesterday = LocalDate.now().minusDays(1);
-        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, batchTrigger);
 
         verifyCalls(25, 0, 0, 0);
 
         verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 0);
     }
 
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testBatch1Cases0Docs(BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(start);
+        arendeBatch.setBatchEnd(end);
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, new ArrayList<>());
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, batchTrigger);
+
+        verifyCalls(2, 0, 0, 0);
+
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 0);
+    }
+
+    // GetDocument returns empty list for one of the documents
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testBatch1Cases3DocsGetDocumentReturnsEmpty(BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(start);
+        arendeBatch.setBatchEnd(end);
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        // Return empty document-list for one document
+        Mockito.doReturn(new ArrayList<>()).when(arendeExportIntegrationService).getDocument(arende1.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(1).getDokument().getDokId());
+
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, batchTrigger);
+
+        verifyCalls(2, 3, 2, 0);
+        verifyBatchHistory(returnedBatchHistory, Status.NOT_COMPLETED, 3);
+    }
+
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testBatch1CaseWithWrongStatus3Docs(BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(start);
+        arendeBatch.setBatchEnd(end);
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(ONGOING, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, batchTrigger);
+
+        verifyCalls(2, 0, 0, 0);
+
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 0);
+    }
+
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testBatch2Cases1WithWrongHandelseslag2Docs(BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(start);
+        arendeBatch.setBatchEnd(end);
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, "BESLUT", List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        Arende arende2 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.LUTE, AttachmentCategory.RUE));
+        arrayOfArende.getArende().addAll(List.of(arende1, arende2));
+        arendeBatch.setArenden(arrayOfArende);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, batchTrigger);
+
+        verifyCalls(2, 2, 2, 0);
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 2);
+    }
+
+
     // Standard scenario - Run batch for yesterday - 1 case and 3 documents found
-    @Test
-    void testStandardBatchThreeDocsFound() throws ApplicationException, ServiceException {
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testBatch1Case3Docs(BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
         LocalDate yesterday = LocalDate.now().minusDays(1);
 
         ArendeBatch arendeBatch = new ArendeBatch();
@@ -197,15 +319,16 @@ class ArchiveTest {
 
         Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
 
-        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, batchTrigger);
 
         verifyCalls(3, 3, 3, 0);
 
         verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 3);
     }
 
-    @Test
-    void testStandardBatch3Cases1Ended1document() throws ApplicationException, ServiceException {
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testBatch3Cases1Ended1Doc(BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
         LocalDate yesterday = LocalDate.now().minusDays(1);
 
         LocalDateTime start = yesterday.atStartOfDay();
@@ -227,15 +350,16 @@ class ArchiveTest {
 
         Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
 
-        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, batchTrigger);
 
         verifyCalls(2, 1, 1, 0);
 
         verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 1);
     }
 
-    @Test
-    void testStandardBatch3Cases2Ended4document() throws ApplicationException, ServiceException {
+    @ParameterizedTest
+    @EnumSource(BatchTrigger.class)
+    void testBatch3Cases2Ended4Docs(BatchTrigger batchTrigger) throws ApplicationException, ServiceException {
         LocalDate yesterday = LocalDate.now().minusDays(1);
 
         LocalDateTime start = yesterday.atStartOfDay();
@@ -257,7 +381,7 @@ class ArchiveTest {
 
         Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
 
-        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, batchTrigger);
 
         verifyCalls(2, 4, 4, 0);
         verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 4);
@@ -346,7 +470,6 @@ class ArchiveTest {
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
         BatchHistory secondBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
-
 
         verifyBatchHistory(secondBatchHistory, Status.COMPLETED, 0);
 
@@ -503,6 +626,8 @@ class ArchiveTest {
     }
 
     // Rerun an earlier not_completed batch - GET batchhistory and verify it was completed
+//    @ParameterizedTest
+//    @EnumSource(BatchTrigger.class)
     @Test
     void testReRunNotCompletedBatch() throws ServiceException, ApplicationException {
 
@@ -551,14 +676,14 @@ class ArchiveTest {
 
         // ReRun, success
         ArchiveResponse archiveResponse = new ArchiveResponse();
-        archiveResponse.setArchiveId("FORMPIPE ID 123-123-123");
+        archiveResponse.setArchiveId("FORMPIPE ID 111-111-111");
         Mockito.doReturn(archiveResponse).when(archiveServiceMock).postArchive(any());
 
         BatchHistory reRunBatchHistory = archiver.reRunBatch(firstBatchHistory.getId());
+
         Assertions.assertEquals(firstBatchHistory.getId(), reRunBatchHistory.getId());
         Assertions.assertEquals(Status.COMPLETED, reRunBatchHistory.getStatus());
         Assertions.assertEquals(1, archiveDao.getBatchHistories().size());
-
         List<ArchiveHistory> reRunArchiveHistoryList = archiveDao.getArchiveHistories(reRunBatchHistory.getId());
         Assertions.assertEquals(3, reRunArchiveHistoryList.size());
         // Now all should be COMPLETED
@@ -652,8 +777,13 @@ class ArchiveTest {
 
     private void verifyBatchHistory(BatchHistory returnedBatchHistory, Status status, int expectedNumberOfRelatedArchiveHistories) {
         Assertions.assertEquals(status, archiveDao.getBatchHistory(returnedBatchHistory.getId()).getStatus());
+
+        List<ArchiveHistory> relatedArchiveHistories = archiveDao.getArchiveHistories(returnedBatchHistory.getId());
+        if (Status.COMPLETED.equals(status)) {
+            relatedArchiveHistories.forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
+        }
         Assertions.assertTrue(archiveDao.getBatchHistories().contains(returnedBatchHistory));
-        Assertions.assertEquals(expectedNumberOfRelatedArchiveHistories, archiveDao.getArchiveHistories(returnedBatchHistory.getId()).size());
+        Assertions.assertEquals(expectedNumberOfRelatedArchiveHistories, relatedArchiveHistories.size());
     }
 
     private void verifyCalls(int nrOfCallsToUpdatedArenden, int nrOfCallsToGetDocument, int nrOfCallsToPostArchive, int nrOfCallsToPostEmail) throws ServiceException {

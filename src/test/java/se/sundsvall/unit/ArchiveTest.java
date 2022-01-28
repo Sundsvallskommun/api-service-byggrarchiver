@@ -44,9 +44,6 @@ import static org.mockito.Mockito.verify;
 @QuarkusTest
 class ArchiveTest {
 
-    public static final String DOCUMENT_ID_1 = "ABC123";
-    public static final String DOCUMENT_ID_2 = "aaaaaaaaaaaaaaaaabbbbbbbbbbbccccccccccc";
-    public static final String DOCUMENT_ID_3 = "12345678";
     public static final String POST_ARCHIVE_EXCEPTION_MESSAGE = "{\n" +
             "  \"httpCode\": 500,\n" +
             "  \"message\": \"Service error\",\n" +
@@ -61,6 +58,7 @@ class ArchiveTest {
             "    ]\n" +
             "  }\n" +
             "}";
+    public static final String ONGOING = "Pågående";
 
     @Inject
     TestDao testDao;
@@ -85,13 +83,11 @@ class ArchiveTest {
     @InjectMock
     ArendeExportIntegrationService arendeExportIntegrationService;
 
-    // TODO - tests for cases with mixed statuses
-    // TODO - tests for mixed handelsetyper
-
     /**
      * Util method for creating arende-objects
-     * @param status - status for the arende
-     * @param handelsetyp - type of handelse that should be included
+     *
+     * @param status               - status for the arende
+     * @param handelsetyp          - type of handelse that should be included
      * @param attachmentCategories - the documents that should be generated
      * @return Arende
      */
@@ -165,20 +161,18 @@ class ArchiveTest {
         Mockito.when(archiveServiceMock.postArchive(any())).thenReturn(archiveResponse);
     }
 
+    // TODO - tests for cases with mixed statuses
+    // TODO - tests for mixed handelsetyper
+
     // Standard scenario - Run batch for yesterday - 0 cases and documents found
     @Test
     void testStandardBatchNoDocsFound() throws ServiceException, ApplicationException {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        verify(arendeExportIntegrationService, times(25)).getUpdatedArenden(any());
-        verify(arendeExportIntegrationService, times(0)).getDocument(any());
-        verify(archiveServiceMock, times(0)).postArchive(any());
-        verify(messagingServiceMock, times(0)).postEmail(any());
+        verifyCalls(25, 0, 0, 0);
 
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(returnedBatchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(returnedBatchHistory));
-        Assertions.assertEquals(0, archiveDao.getArchiveHistories(returnedBatchHistory.getId()).size());
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 0);
     }
 
     // Standard scenario - Run batch for yesterday - 1 case and 3 documents found
@@ -205,15 +199,70 @@ class ArchiveTest {
 
         BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        verify(arendeExportIntegrationService, times(3)).getUpdatedArenden(any());
-        verify(arendeExportIntegrationService, times(3)).getDocument(any());
-        verify(archiveServiceMock, times(3)).postArchive(any());
-        verify(messagingServiceMock, times(0)).postEmail(any());
+        verifyCalls(3, 3, 3, 0);
 
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(returnedBatchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(returnedBatchHistory));
-        Assertions.assertEquals(3, archiveDao.getArchiveHistories(returnedBatchHistory.getId()).size());
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 3);
     }
+
+    @Test
+    void testStandardBatch3Cases1Ended1document() throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(start);
+        arendeBatch.setBatchEnd(end);
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.TOMTPLBE));
+        Arende arende2 = createArendeObject(ONGOING, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        Arende arende3 = createArendeObject(ONGOING, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        arrayOfArende.getArende().addAll(List.of(arende1, arende2, arende3));
+        arendeBatch.setArenden(arrayOfArende);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        verifyCalls(2, 1, 1, 0);
+
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 1);
+    }
+
+    @Test
+    void testStandardBatch3Cases2Ended4document() throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(start);
+        arendeBatch.setBatchEnd(end);
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.TOMTPLBE));
+        Arende arende2 = createArendeObject(ONGOING, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        Arende arende3 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        arrayOfArende.getArende().addAll(List.of(arende1, arende2, arende3));
+        arendeBatch.setArenden(arrayOfArende);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        verifyCalls(2, 4, 4, 0);
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 4);
+    }
+
 
     // Try to run scheduled batch for the same date and verify it doesn't run
     @Test
@@ -239,19 +288,14 @@ class ArchiveTest {
 
         // Run the first batch
         BatchHistory firstBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(firstBatchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(firstBatchHistory));
-        Assertions.assertEquals(3, archiveDao.getArchiveHistories(firstBatchHistory.getId()).size());
+        verifyBatchHistory(firstBatchHistory, Status.COMPLETED, 3);
 
         // Run second batch with the same date
         BatchHistory secondBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
         Assertions.assertNull(secondBatchHistory);
 
         // Only the first batch
-        verify(arendeExportIntegrationService, times(2)).getUpdatedArenden(any());
-        verify(arendeExportIntegrationService, times(3)).getDocument(any());
-        verify(archiveServiceMock, times(3)).postArchive(any());
-        verify(messagingServiceMock, times(0)).postEmail(any());
+        verifyCalls(2, 3, 3, 0);
     }
 
     // Try to run manual batch for the same date and verify it runs
@@ -278,25 +322,16 @@ class ArchiveTest {
 
         // Run the first batch
         BatchHistory firstBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(firstBatchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(firstBatchHistory));
-        Assertions.assertEquals(3, archiveDao.getArchiveHistories(firstBatchHistory.getId()).size());
+        verifyBatchHistory(firstBatchHistory, Status.COMPLETED, 3);
 
         BatchHistory secondBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.MANUAL);
 
         Assertions.assertEquals(2, archiveDao.getBatchHistories().size());
         Assertions.assertEquals(3, archiveDao.getArchiveHistories().size());
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(secondBatchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(secondBatchHistory));
-        Assertions.assertEquals(0, archiveDao.getArchiveHistories(secondBatchHistory.getId()).size());
+        verifyBatchHistory(secondBatchHistory, Status.COMPLETED, 0);
 
         // Both first and second batch
-        verify(arendeExportIntegrationService, times(4)).getUpdatedArenden(any());
-
-        // Only the first batch
-        verify(arendeExportIntegrationService, times(3)).getDocument(any());
-        verify(archiveServiceMock, times(3)).postArchive(any());
-        verify(messagingServiceMock, times(0)).postEmail(any());
+        verifyCalls(4, 3, 3, 0);
     }
 
     // Try to run batch for a date back in time and verify the scheduled batch change the startDate back in time to the day after latest scheduled batch.
@@ -307,17 +342,17 @@ class ArchiveTest {
 
         // Run the first batch
         BatchHistory firstBatchHistory = archiver.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger);
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(firstBatchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(firstBatchHistory));
-        Assertions.assertEquals(0, archiveDao.getArchiveHistories(firstBatchHistory.getId()).size());
+        verifyBatchHistory(firstBatchHistory, Status.COMPLETED, 0);
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
         BatchHistory secondBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(secondBatchHistory));
+
+        verifyBatchHistory(secondBatchHistory, Status.COMPLETED, 0);
+
         Assertions.assertEquals(aLongTimeAgo.plusDays(1), secondBatchHistory.getStart());
         Assertions.assertEquals(yesterday, secondBatchHistory.getEnd());
-        Assertions.assertEquals(Status.COMPLETED, secondBatchHistory.getStatus());
+
     }
 
     // Try to run batch for a date back in time and verify the manual batch does NOT change the startDate back in time.
@@ -328,17 +363,15 @@ class ArchiveTest {
 
         // Run the first batch
         BatchHistory firstBatchHistory = archiver.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger);
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(firstBatchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(firstBatchHistory));
-        Assertions.assertEquals(0, archiveDao.getArchiveHistories(firstBatchHistory.getId()).size());
+        verifyBatchHistory(firstBatchHistory, Status.COMPLETED, 0);
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
         BatchHistory secondBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.MANUAL);
 
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(secondBatchHistory));
+        verifyBatchHistory(secondBatchHistory, Status.COMPLETED, 0);
+
         Assertions.assertEquals(yesterday, secondBatchHistory.getStart());
         Assertions.assertEquals(yesterday, secondBatchHistory.getEnd());
-        Assertions.assertEquals(Status.COMPLETED, secondBatchHistory.getStatus());
     }
 
     @Test
@@ -356,11 +389,12 @@ class ArchiveTest {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         BatchHistory latestBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(latestBatchHistory));
+        verifyBatchHistory(latestBatchHistory, Status.COMPLETED, 0);
+
         // Should be nr 2 because the latest is not completed
         Assertions.assertEquals(batchHistory2.getEnd().plusDays(1), latestBatchHistory.getStart());
         Assertions.assertEquals(yesterday, latestBatchHistory.getEnd());
-        Assertions.assertEquals(Status.COMPLETED, latestBatchHistory.getStatus());
+
     }
 
     @Test
@@ -378,14 +412,13 @@ class ArchiveTest {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         BatchHistory latestBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(latestBatchHistory));
+        verifyBatchHistory(latestBatchHistory, Status.COMPLETED, 0);
         // Should be nr 1 because it's the latest
         Assertions.assertEquals(batchHistory1.getEnd().plusDays(1), latestBatchHistory.getStart());
         Assertions.assertEquals(yesterday, latestBatchHistory.getEnd());
-        Assertions.assertEquals(Status.COMPLETED, latestBatchHistory.getStatus());
     }
 
-//    // Run batch and simulate ByggrMapper failure. Verify we handle exception correctly and abort the batch.
+    //    // Run batch and simulate ByggrMapper failure. Verify we handle exception correctly and abort the batch.
 //    @Test
 //    void testErrorFromByggrMapperV1() throws ServiceException, ApplicationException {
 //
@@ -466,10 +499,7 @@ class ArchiveTest {
         Assertions.assertEquals(3, archiveHistoryList.size());
         archiveHistoryList.forEach(archiveHistory -> Assertions.assertEquals(Status.NOT_COMPLETED, archiveHistory.getStatus()));
 
-        verify(arendeExportIntegrationService, times(2)).getUpdatedArenden(any());
-        verify(arendeExportIntegrationService, times(3)).getDocument(any());
-        verify(archiveServiceMock, times(3)).postArchive(any());
-        verify(messagingServiceMock, times(0)).postEmail(any());
+        verifyCalls(2, 3, 3, 0);
     }
 
     // Rerun an earlier not_completed batch - GET batchhistory and verify it was completed
@@ -510,17 +540,14 @@ class ArchiveTest {
         List<ArchiveHistory> firstArchiveHistoryList = archiveDao.getArchiveHistories(firstBatchHistory.getId());
         Assertions.assertEquals(3, firstArchiveHistoryList.size());
         // Only one should be NOT_COMPLETED, the other two should be COMPLETED
-        List <ArchiveHistory> firstNotCompletedArchiveHistories = firstArchiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
-        List <ArchiveHistory> firstCompletedArchiveHistories = firstArchiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
+        List<ArchiveHistory> firstNotCompletedArchiveHistories = firstArchiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
+        List<ArchiveHistory> firstCompletedArchiveHistories = firstArchiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
         Assertions.assertEquals(1, firstNotCompletedArchiveHistories.size());
         Assertions.assertEquals(2, firstCompletedArchiveHistories.size());
 
         System.out.println("1: " + firstNotCompletedArchiveHistories.get(0));
 
-        verify(arendeExportIntegrationService, times(2)).getUpdatedArenden(any());
-        verify(arendeExportIntegrationService, times(3)).getDocument(any());
-        verify(archiveServiceMock, times(3)).postArchive(any());
-        verify(messagingServiceMock, times(0)).postEmail(any());
+        verifyCalls(2, 3, 3, 0);
 
         // ReRun, success
         ArchiveResponse archiveResponse = new ArchiveResponse();
@@ -535,18 +562,13 @@ class ArchiveTest {
         List<ArchiveHistory> reRunArchiveHistoryList = archiveDao.getArchiveHistories(reRunBatchHistory.getId());
         Assertions.assertEquals(3, reRunArchiveHistoryList.size());
         // Now all should be COMPLETED
-        List <ArchiveHistory> reRunNotCompletedArchiveHistories = reRunArchiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
-        List <ArchiveHistory> reRunCompletedArchiveHistories = reRunArchiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
+        List<ArchiveHistory> reRunNotCompletedArchiveHistories = reRunArchiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
+        List<ArchiveHistory> reRunCompletedArchiveHistories = reRunArchiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
         Assertions.assertEquals(0, reRunNotCompletedArchiveHistories.size());
         Assertions.assertEquals(3, reRunCompletedArchiveHistories.size());
 
         // Both the first batch and the reRun
-        verify(arendeExportIntegrationService, times(4)).getUpdatedArenden(any());
-        // 3 the first time + 1 in the reRun
-        verify(arendeExportIntegrationService, times(4)).getDocument(any());
-        verify(archiveServiceMock, times(4)).postArchive(any());
-        // Only in the rerun when the archiving of GEO success
-        verify(messagingServiceMock, times(1)).postEmail(any());
+        verifyCalls(4, 4, 4, 1);
     }
 
     // Run batch for attachmentCategory "GEO" and verify email was sent
@@ -582,15 +604,10 @@ class ArchiveTest {
 
         BatchHistory batchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(batchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(batchHistory));
-        Assertions.assertEquals(3, archiveDao.getArchiveHistories(batchHistory.getId()).size());
+        verifyBatchHistory(batchHistory, Status.COMPLETED, 3);
         archiveDao.getArchiveHistories(batchHistory.getId()).forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
 
-        verify(arendeExportIntegrationService, times(2)).getUpdatedArenden(any());
-        verify(arendeExportIntegrationService, times(3)).getDocument(any());
-        verify(archiveServiceMock, times(3)).postArchive(any());
-        verify(messagingServiceMock, times(2)).postEmail(any());
+        verifyCalls(2, 3, 3, 2);
     }
 
     // Run batch for attachmentCategory "GEO" and simulate the email was not sent. Verify we log the error and persist all.
@@ -625,16 +642,24 @@ class ArchiveTest {
         // Test
         BatchHistory batchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        Assertions.assertEquals(Status.COMPLETED, archiveDao.getBatchHistory(batchHistory.getId()).getStatus());
-        Assertions.assertTrue(archiveDao.getBatchHistories().contains(batchHistory));
-        Assertions.assertEquals(3, archiveDao.getArchiveHistories(batchHistory.getId()).size());
+        verifyBatchHistory(batchHistory, Status.COMPLETED, 3);
         archiveDao.getArchiveHistories(batchHistory.getId()).forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
 
-        verify(arendeExportIntegrationService, times(2)).getUpdatedArenden(any());
-        verify(arendeExportIntegrationService, times(3)).getDocument(any());
-        verify(archiveServiceMock, times(3)).postArchive(any());
-        verify(messagingServiceMock, times(1)).postEmail(any());
+        verifyCalls(2, 3, 3, 1);
 
         // TODO verify error message in the log
+    }
+
+    private void verifyBatchHistory(BatchHistory returnedBatchHistory, Status status, int expectedNumberOfRelatedArchiveHistories) {
+        Assertions.assertEquals(status, archiveDao.getBatchHistory(returnedBatchHistory.getId()).getStatus());
+        Assertions.assertTrue(archiveDao.getBatchHistories().contains(returnedBatchHistory));
+        Assertions.assertEquals(expectedNumberOfRelatedArchiveHistories, archiveDao.getArchiveHistories(returnedBatchHistory.getId()).size());
+    }
+
+    private void verifyCalls(int nrOfCallsToUpdatedArenden, int nrOfCallsToGetDocument, int nrOfCallsToPostArchive, int nrOfCallsToPostEmail) throws ServiceException {
+        verify(arendeExportIntegrationService, times(nrOfCallsToUpdatedArenden)).getUpdatedArenden(any());
+        verify(arendeExportIntegrationService, times(nrOfCallsToGetDocument)).getDocument(any());
+        verify(archiveServiceMock, times(nrOfCallsToPostArchive)).postArchive(any());
+        verify(messagingServiceMock, times(nrOfCallsToPostEmail)).postEmail(any());
     }
 }

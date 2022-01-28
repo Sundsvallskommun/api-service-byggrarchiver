@@ -161,9 +161,6 @@ class ArchiveTest {
         Mockito.when(archiveServiceMock.postArchive(any())).thenReturn(archiveResponse);
     }
 
-    // TODO - tests for cases with mixed statuses
-    // TODO - tests for mixed handelsetyper
-
     // Standard scenario - Run batch for yesterday - 0 cases and documents found
     @ParameterizedTest
     @EnumSource(BatchTrigger.class)

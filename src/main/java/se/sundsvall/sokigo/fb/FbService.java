@@ -3,6 +3,7 @@ package se.sundsvall.sokigo.fb;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.annotations.jaxrs.QueryParam;
+import se.sundsvall.sokigo.fb.vo.ResponseDto;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.Consumes;

@@ -8,7 +8,7 @@ import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sokigo.CaseUtil;
 import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
 import se.sundsvall.sokigo.arendeexport.ByggrMapper;
-import se.sundsvall.sokigo.fb.FastighetDto;
+import se.sundsvall.sokigo.fb.vo.FastighetDto;
 import se.sundsvall.sundsvall.archive.ArchiveMessage;
 import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;

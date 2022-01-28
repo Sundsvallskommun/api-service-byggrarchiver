@@ -31,12 +31,6 @@ public class ArchiveDao {
                 .setParameter("batchHistory", getBatchHistory(batchHistoryId)).getResultList();
     }
 
-    public List<ArchiveHistory> getArchiveHistories(Status status) {
-        TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.status LIKE :status", ArchiveHistory.class)
-                .setParameter("status", status);
-        return archiveHistoryList.getResultList();
-    }
-
     public ArchiveHistory getArchiveHistory(String documentId, SystemType systemType) throws ApplicationException {
         TypedQuery<ArchiveHistory> archiveHistoryList = em.createQuery("SELECT a FROM ArchiveHistory a WHERE a.documentId LIKE :documentId AND a.systemType LIKE :systemType", ArchiveHistory.class)
                 .setParameter("documentId", documentId)
@@ -56,7 +50,6 @@ public class ArchiveDao {
 
         return batchHistoryList.getResultList();
     }
-
 
     public void postArchiveHistory(ArchiveHistory archiveHistory) {
         em.persist(archiveHistory);

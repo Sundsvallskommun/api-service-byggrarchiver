@@ -1,4 +1,4 @@
-package se.sundsvall.sokigo.fb;
+package se.sundsvall.sokigo.fb.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;

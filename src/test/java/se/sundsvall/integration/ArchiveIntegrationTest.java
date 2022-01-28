@@ -58,7 +58,7 @@ class ArchiveIntegrationTest {
         batchJob.setEnd(LocalDate.now().minusDays(1));
 
         // POST batchJob
-        BatchHistory postBatchHistoryList = given()
+        BatchHistory postBatchHistory = given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(mapper.writeValueAsString(batchJob))
                 .when().post("/batch-jobs")
@@ -67,17 +67,29 @@ class ArchiveIntegrationTest {
                 .statusCode(Response.Status.OK.getStatusCode())
                 .extract().as(BatchHistory.class);
 
+        // GET batchJob
+        List<BatchHistory> postBatchHistoryList = Arrays.asList(given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mapper.writeValueAsString(batchJob))
+                .when().get("/batch-jobs")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract().as(BatchHistory[].class));
+
+        Assertions.assertTrue(postBatchHistoryList.contains(postBatchHistory));
+
         // GET archiveHistory
         List<ArchiveHistory> getArchiveHistoryList = Arrays.asList(given()
-                .queryParam("batchHistoryId", postBatchHistoryList.getId())
+                .queryParam("batchHistoryId", postBatchHistory.getId())
                 .when().get("archived/attachments")
                 .then()
                 .log().ifValidationFails(LogDetail.BODY)
                 .statusCode(Response.Status.OK.getStatusCode()).extract().as(ArchiveHistory[].class));
 
-        getArchiveHistoryList.forEach(ah -> Assertions.assertEquals(postBatchHistoryList, ah.getBatchHistory()));
+        getArchiveHistoryList.forEach(ah -> Assertions.assertEquals(postBatchHistory, ah.getBatchHistory()));
         getArchiveHistoryList.forEach(ah -> Assertions.assertEquals(Status.COMPLETED, ah.getStatus()));
-        Assertions.assertEquals(archiveDao.getArchiveHistories(postBatchHistoryList.getId()), getArchiveHistoryList);
+        Assertions.assertEquals(archiveDao.getArchiveHistories(postBatchHistory.getId()), getArchiveHistoryList);
     }
 
     // POST batch and then GET batchhistory and archivehistories - verify that the correct is returned

@@ -17,18 +17,6 @@ public class ArendeExportIntegrationService {
     @CXFClient("ARENDEEXPORT")
     IExportArenden iExportArenden;
 
-//    @PostConstruct
-//    void configureClient() {
-//        Client client = ClientProxy.getClient(iExportArenden);
-//
-////        LoggingInInterceptor loggingInInterceptor = new LoggingInInterceptor();
-////        loggingInInterceptor.setPrettyLogging(true);
-////        client.getInInterceptors().add(loggingInInterceptor);
-//        LoggingOutInterceptor loggingOutInterceptor = new LoggingOutInterceptor();
-//        loggingOutInterceptor.setPrettyLogging(true);
-//        client.getOutInterceptors().add(loggingOutInterceptor);
-//    }
-
     public ArendeBatch getUpdatedArenden(BatchFilter filter) {
         return iExportArenden.getUpdatedArenden(filter);
     }

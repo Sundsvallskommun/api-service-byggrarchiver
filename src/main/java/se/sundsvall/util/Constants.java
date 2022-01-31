@@ -16,7 +16,7 @@ public final class Constants {
             "<li><strong>Dokument-ID i Byggr: </strong>${byggrDocumentId}</li>" +
             "</ul>" +
             "<p>Vid eventuella problem, svara p&aring; detta mail.</p>" +
-            "<p>Mvh<br />Archiver</p>";
+            "<p>Mvh<br />ByggrArchiver</p>";
 
     ////////////////// RFC-url
     public static final String RFC_LINK_BAD_REQUEST = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1";

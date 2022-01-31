@@ -1,10 +1,9 @@
 package se.sundsvall;
 
-import se.sundsvall.vo.SystemType;
 import se.sundsvall.exceptions.ApplicationException;
-import se.sundsvall.vo.BatchHistory;
 import se.sundsvall.vo.ArchiveHistory;
-import se.sundsvall.vo.Status;
+import se.sundsvall.vo.BatchHistory;
+import se.sundsvall.vo.SystemType;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

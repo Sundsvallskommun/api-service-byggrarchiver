@@ -209,7 +209,7 @@ public class Archiver {
                                     && attachment.getCategory().equals(AttachmentCategory.GEO)) {
                                 boolean success = sendEmailToLantmateriet(attachment, newArchiveHistory);
 
-                                if (success == false) {
+                                if (!success) {
                                     newArchiveHistory.setStatus(Status.NOT_COMPLETED);
                                     archiveDao.updateArchiveHistory(newArchiveHistory);
 
@@ -506,7 +506,6 @@ public class Archiver {
         Map<String, String> valuesMap = new HashMap<>();
         valuesMap.put("archiveId", getStringOrEmpty(archiveHistory.getArchiveId()));
         valuesMap.put("archiveUrl", getStringOrEmpty(archiveHistory.getArchiveUrl()));
-//        valuesMap.put("byggrCaseId", getStringOrEmpty(attachment.getArchiveMetadata().getCaseId()));
         valuesMap.put("byggrDocumentName", getStringOrEmpty(attachment.getName()));
         valuesMap.put("byggrDocumentId", getStringOrEmpty(archiveHistory.getDocumentId()));
 

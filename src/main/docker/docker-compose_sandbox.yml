@@ -1,31 +1,31 @@
 version: '3.8'
 services:
-  ms-archiver-sandbox:
+  ms-byggrarchiver-sandbox:
     network_mode: bridge
-    container_name: ms-archiver-sandbox
+    container_name: ms-byggrarchiver-sandbox
 #    logging:
 #      driver: "syslog"
 #      options:
 #        syslog-address: "udp://172.16.254.6:5140"
-#        tag: "ms-archiver-sandbox"
+#        tag: "ms-byggrarchiver-sandbox"
     depends_on:
-      - ms-archive-wiremock
+      - ms-byggrarchiver-wiremock
     links:
-      - ms-archive-wiremock
+      - ms-byggrarchiver-wiremock
     restart: always
-    image: ms-archiver
+    image: ms-byggrarchiver
     ports:
       - 8080:8080
     environment:
-      SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN: http://ms-archive-wiremock:8080
+      SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN: http://ms-byggrarchiver-wiremock:8080
       SUNDSVALLS_KOMMUN_CONSUMER_KEY: sandbox
       SUNDSVALLS_KOMMUN_CONSUMER_SECRET: sandbox
 
-      TEMP_ARCHIVE_ORIGIN: ms-archive-wiremock
+      TEMP_ARCHIVE_ORIGIN: ms-byggrarchiver-wiremock
       WIREMOCK_SERVER_PORT: 8080
 
-      ARENDEEXPORT_SOAP_ORIGIN: http://ms-archive-wiremock:8080
-      FBWEBB_ORIGIN: http://ms-archive-wiremock:8080
+      ARENDEEXPORT_SOAP_ORIGIN: http://ms-byggrarchiver-wiremock:8080
+      FBWEBB_ORIGIN: http://ms-byggrarchiver-wiremock:8080
       FB_USER: sandbox
       FB_PASSWORD: sandbox
 
@@ -34,7 +34,7 @@ services:
       DB_URL: "jdbc:h2:mem:sandbox;DB_CLOSE_DELAY=-1"
       DB_HIBERNATE_GENERATION: "drop-and-create"
 
-  ms-archive-wiremock:
+  ms-byggrarchiver-wiremock:
     network_mode: bridge
     image: wiremock/wiremock
     restart: always

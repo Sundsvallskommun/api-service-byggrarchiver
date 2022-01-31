@@ -14,17 +14,16 @@ import se.sundsvall.ArchiveDao;
 import se.sundsvall.TestDao;
 import se.sundsvall.integration.support.WireMockLifecycleManager;
 import se.sundsvall.util.Constants;
-import se.sundsvall.vo.ArchiveHistory;
-import se.sundsvall.vo.BatchHistory;
-import se.sundsvall.vo.BatchJob;
-import se.sundsvall.vo.Status;
+import se.sundsvall.vo.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
@@ -87,6 +86,15 @@ class ArchiveIntegrationTest {
                 .log().ifValidationFails(LogDetail.BODY)
                 .statusCode(Response.Status.OK.getStatusCode()).extract().as(ArchiveHistory[].class));
 
+        // GET archiveHistory with status COMPLETED
+        List<ArchiveHistory> getArchiveHistoryListCompleted = Arrays.asList(given()
+                .queryParam("status", Status.COMPLETED)
+                .when().get("archived/attachments")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.OK.getStatusCode()).extract().as(ArchiveHistory[].class));
+
+        Assertions.assertEquals(getArchiveHistoryList, getArchiveHistoryListCompleted);
         getArchiveHistoryList.forEach(ah -> Assertions.assertEquals(postBatchHistory, ah.getBatchHistory()));
         getArchiveHistoryList.forEach(ah -> Assertions.assertEquals(Status.COMPLETED, ah.getStatus()));
         Assertions.assertEquals(archiveDao.getArchiveHistories(postBatchHistory.getId()), getArchiveHistoryList);
@@ -119,6 +127,38 @@ class ArchiveIntegrationTest {
                 .body(containsString("ArchiveHistory not found"));
     }
 
+    @Test
+    void testGetBatchHistoryNotFound() {
+        given()
+                .when().get("batch-jobs")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.NOT_FOUND.getStatusCode())
+                .body(containsString("BatchHistory not found"));
+    }
+
+    // Rerun an earlier batch
+    @Test
+    void testRerun() throws JsonProcessingException {
+
+        BatchHistory batchHistory = new BatchHistory();
+        batchHistory.setStatus(Status.NOT_COMPLETED);
+        batchHistory.setStart(LocalDate.now().minusDays(2));
+        batchHistory.setEnd(LocalDate.now());
+        batchHistory.setBatchTrigger(BatchTrigger.SCHEDULED);
+
+        archiveDao.postBatchHistory(batchHistory);
+
+        // PUT batchJob (reRun)
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .pathParams("batchHistoryId", batchHistory.getId())
+                .when().post("batch-jobs/{batchHistoryId}/rerun")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.OK.getStatusCode());
+    }
+
     // Rerun an earlier completed batch - verify it did not run
     @Test
     void testRerunWithCompletedBatch() throws JsonProcessingException {
@@ -148,6 +188,22 @@ class ArchiveIntegrationTest {
                 .log().ifValidationFails(LogDetail.BODY)
                 .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .body(containsString(Constants.IT_IS_NOT_POSSIBLE_TO_RERUN_A_COMPLETED_BATCH));
+    }
+
+    // Rerun a non existing batch
+    @Test
+    void testRerunNonExistingBatch() throws JsonProcessingException {
+        int randomNumber = new Random().nextInt(999999);
+
+        // PUT batchJob (reRun)
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .pathParams("batchHistoryId", randomNumber)
+                .when().post("batch-jobs/{batchHistoryId}/rerun")
+                .then()
+                .log().ifValidationFails(LogDetail.BODY)
+                .statusCode(Response.Status.NOT_FOUND.getStatusCode())
+                .body(containsString("Can't find BatchHistory with ID: " + randomNumber));
     }
 
     // Try to run batch with start today and end tomorrow

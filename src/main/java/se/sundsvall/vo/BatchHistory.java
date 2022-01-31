@@ -10,8 +10,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
@@ -27,20 +25,29 @@ public class BatchHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Schema(readOnly = true)
     @Column(nullable = false)
+    @Getter
     private Long id;
 
     @Column(nullable = false)
+    @Getter
+    @Setter
     private LocalDate start;
 
     @Column(nullable = false)
+    @Getter
+    @Setter
     private LocalDate end;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @Getter
+    @Setter
     private Status status;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @Getter
+    @Setter
     private BatchTrigger batchTrigger;
 
     @Getter

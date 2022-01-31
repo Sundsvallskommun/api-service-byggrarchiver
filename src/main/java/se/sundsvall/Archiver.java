@@ -202,7 +202,20 @@ public class Archiver {
 
                             Attachment attachment = byggrMapper.getAttachment(handling, doc);
 
-                            archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
+                            newArchiveHistory = archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
+
+                            if (newArchiveHistory.getStatus().equals(Status.COMPLETED)
+                                    && newArchiveHistory.getArchiveId() != null
+                                    && attachment.getCategory().equals(AttachmentCategory.GEO)) {
+                                boolean success = sendEmailToLantmateriet(attachment, newArchiveHistory);
+
+                                if (success == false) {
+                                    newArchiveHistory.setStatus(Status.NOT_COMPLETED);
+                                    archiveDao.updateArchiveHistory(newArchiveHistory);
+
+                                    log.info("The email to Lantmateriet failed for document with archive-ID: " + newArchiveHistory.getArchiveId() + ". Set status to " + Status.NOT_COMPLETED);
+                                }
+                            }
                         }
                     }
                 }
@@ -225,45 +238,49 @@ public class Archiver {
         return batchHistory;
     }
 
-    private void archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
+    private ArchiveHistory archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
 
-        ArchiveMessage archiveMessage = new ArchiveMessage();
-        archiveMessage.setAttachment(attachment);
+        if (newArchiveHistory.getArchiveId() == null) {
+            ArchiveMessage archiveMessage = new ArchiveMessage();
+            archiveMessage.setAttachment(attachment);
 
-        String metadataXml;
-        try {
-            JAXBContext context = JAXBContext.newInstance(LeveransobjektTyp.class);
-            Marshaller marshaller = context.createMarshaller();
-            StringWriter stringWriter = new StringWriter();
-            marshaller.marshal(new ObjectFactory().createLeveransobjekt(getLeveransobjektTyp(arende, handling, document)), stringWriter);
-            metadataXml = stringWriter.toString();
-        } catch (JAXBException e) {
-            throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
-        }
-
-        archiveMessage.setMetadata(metadataXml);
-
-        // Request to Archive
-        ArchiveResponse archiveResponse = postArchive(archiveMessage);
-
-        if (archiveResponse != null
-                && archiveResponse.getArchiveId() != null) {
-            // Success! Set status to completed
-            newArchiveHistory.setStatus(Status.COMPLETED);
-            newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
-
-            if (attachment.getCategory().equals(AttachmentCategory.GEO)) {
-                MessageStatusResponse response = sendEmailToLantmateriet(attachment, newArchiveHistory);
+            String metadataXml;
+            try {
+                JAXBContext context = JAXBContext.newInstance(LeveransobjektTyp.class);
+                Marshaller marshaller = context.createMarshaller();
+                StringWriter stringWriter = new StringWriter();
+                marshaller.marshal(new ObjectFactory().createLeveransobjekt(getLeveransobjektTyp(arende, handling, document)), stringWriter);
+                metadataXml = stringWriter.toString();
+            } catch (JAXBException e) {
+                throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
             }
 
-            log.info("The archive-process of document with ID: " + newArchiveHistory.getDocumentId() + " succeeded!");
+            archiveMessage.setMetadata(metadataXml);
+
+            // Request to Archive
+            ArchiveResponse archiveResponse = postArchive(archiveMessage);
+
+            if (archiveResponse != null
+                    && archiveResponse.getArchiveId() != null) {
+
+                // Success! Set status to completed
+                newArchiveHistory.setStatus(Status.COMPLETED);
+                newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
+
+                log.info("The archive-process of document with ID: " + newArchiveHistory.getDocumentId() + " succeeded!");
+            } else {
+                // Not successful... Set status to not completed
+                newArchiveHistory.setStatus(Status.NOT_COMPLETED);
+                log.info("The archive-process of document with ID: " + newArchiveHistory.getDocumentId() + " did not succeed.");
+            }
         } else {
-            // Not successful... Set status to not completed
-            newArchiveHistory.setStatus(Status.NOT_COMPLETED);
-            log.info("The archive-process of document with ID: " + newArchiveHistory.getDocumentId() + " did not succeed.");
+            log.info("ArchiveHistory already got a archive-ID. Set status to " + Status.COMPLETED);
+            newArchiveHistory.setStatus(Status.COMPLETED);
         }
 
         archiveDao.updateArchiveHistory(newArchiveHistory);
+
+        return newArchiveHistory;
     }
 
     private LeveransobjektTyp getLeveransobjektTyp(Arende arende, Handling handling, Dokument document) throws ApplicationException {
@@ -376,10 +393,14 @@ public class Archiver {
 
             if (arendeFastighet != null
                     && arendeFastighet.isArHuvudObjekt()) {
+
                 FastighetDto fastighetDto = caseUtil.getPropertyInfoByFnr(arendeFastighet.getFastighet().getFnr());
-                fastighet.setFastighetsbeteckning(fastighetDto.getKommun() + " " + fastighetDto.getBeteckning());
-                fastighet.setTrakt(fastighetDto.getTrakt());
-                fastighet.setObjektidentitet(fastighetDto.getUuid());
+
+                if (fastighetDto != null) {
+                    fastighet.setFastighetsbeteckning(fastighetDto.getKommun() + " " + fastighetDto.getBeteckning());
+                    fastighet.setTrakt(fastighetDto.getTrakt());
+                    fastighet.setObjektidentitet(fastighetDto.getUuid());
+                }
             }
         }
 
@@ -457,7 +478,12 @@ public class Archiver {
         return latestBatch;
     }
 
-    private MessageStatusResponse sendEmailToLantmateriet(Attachment attachment, ArchiveHistory archiveHistory) throws ApplicationException {
+    /**
+     * @param attachment
+     * @param archiveHistory
+     * @return true if successful, false if unsuccessful
+     */
+    private boolean sendEmailToLantmateriet(Attachment attachment, ArchiveHistory archiveHistory) {
 
         EmailRequest emailRequest = new EmailRequest();
 
@@ -491,13 +517,14 @@ public class Archiver {
 
         emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 
-        MessageStatusResponse response;
+        MessageStatusResponse response = null;
         try {
             response = messagingService.postEmail(emailRequest);
 
             if (response != null
                     && response.isSent()) {
                 log.info("E-mail sent to Lantmäteriet with information about geoteknisk handling for ArchiveId: " + archiveHistory.getArchiveId() + " MessageId: " + response.getMessageId());
+                return true;
             } else {
                 log.error("Something went wrong when trying to send e-mail about geoteknisk handling to Lantmäteriet." +
                         "\nArchiveId: " + archiveHistory.getArchiveId() + "" +
@@ -506,9 +533,10 @@ public class Archiver {
             }
 
         } catch (ServiceException e) {
-            throw new ApplicationException("The request to messagingService.postEmail failed", e);
+            log.error("The request to messagingService.postEmail failed. ServiceException was thrown.", e);
         }
-        return response;
+
+        return false;
     }
 
     private String getStringOrEmpty(String string) {

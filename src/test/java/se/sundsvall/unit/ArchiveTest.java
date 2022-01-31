@@ -153,12 +153,12 @@ class ArchiveTest {
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
         messageStatusResponse.setMessageId("b9535bce-fed9-4a42-a8b7-6fb6540aa3f3");
         messageStatusResponse.setSent(true);
-        Mockito.when(messagingServiceMock.postEmail(any())).thenReturn(messageStatusResponse);
+        Mockito.doReturn(messageStatusResponse).when(messagingServiceMock).postEmail(any());
 
         // Archiver
         ArchiveResponse archiveResponse = new ArchiveResponse();
         archiveResponse.setArchiveId("FORMPIPE ID 123-123-123");
-        Mockito.when(archiveServiceMock.postArchive(any())).thenReturn(archiveResponse);
+        Mockito.doReturn(archiveResponse).when(archiveServiceMock).postArchive(any());
     }
 
     // Standard scenario - Run batch for yesterday - 0 cases and documents found
@@ -538,54 +538,6 @@ class ArchiveTest {
         Assertions.assertEquals(yesterday, latestBatchHistory.getEnd());
     }
 
-    //    // Run batch and simulate ByggrMapper failure. Verify we handle exception correctly and abort the batch.
-//    @Test
-//    void testErrorFromByggrMapperV1() throws ServiceException, ApplicationException {
-//
-//        String exceptionMessage = "Could not parse date";
-//        Mockito.when(byggrMapper.getArchiveableAttachments(any(), any())).thenThrow(new BadRequestException(exceptionMessage));
-//
-//        // Test
-//        LocalDate start = LocalDate.now().minusDays(1);
-//        LocalDate end = LocalDate.now();
-//
-//        BadRequestException thrown = Assertions.assertThrows(BadRequestException.class, () -> archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED));
-//
-//        Assertions.assertEquals(exceptionMessage, thrown.getLocalizedMessage());
-//        List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
-//        Assertions.assertEquals(1, batchHistoryList.size());
-//        Assertions.assertEquals(Status.NOT_COMPLETED, archiveDao.getBatchHistory(batchHistoryList.get(0).getId()).getStatus());
-//        Assertions.assertEquals(0, archiveDao.getArchiveHistories().size());
-//
-//        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
-//        verify(archiveServiceMock, times(0)).postArchive(any());
-//        verify(messagingServiceMock, times(0)).postEmail(any());
-//    }
-//
-//    // Run batch and simulate ByggrMapper failure. Verify we handle exception correctly and abort the batch.
-//    @Test
-//    void testErrorFromByggrMapperV2() throws ServiceException, ApplicationException {
-//
-//        String exceptionMessage = "The response from arendeExportIntegrationService.getUpdatedArenden(batchFilter) was null. This shouldn't happen.";
-//        Mockito.when(byggrMapper.getArchiveableAttachments(any(), any())).thenThrow(new ApplicationException(exceptionMessage));
-//
-//        // Test
-//        LocalDate start = LocalDate.now().minusDays(1);
-//        LocalDate end = LocalDate.now();
-//
-//        ApplicationException thrown = Assertions.assertThrows(ApplicationException.class, () -> archiver.archiveByggrAttachments(start, end, BatchTrigger.SCHEDULED));
-//
-//        Assertions.assertEquals(exceptionMessage, thrown.getLocalizedMessage());
-//        List<BatchHistory> batchHistoryList = archiveDao.getBatchHistories();
-//        Assertions.assertEquals(1, batchHistoryList.size());
-//        Assertions.assertEquals(Status.NOT_COMPLETED, archiveDao.getBatchHistory(batchHistoryList.get(0).getId()).getStatus());
-//        Assertions.assertEquals(0, archiveDao.getArchiveHistories().size());
-//
-//        verify(byggrMapper, times(1)).getArchiveableAttachments(any(), any());
-//        verify(archiveServiceMock, times(0)).postArchive(any());
-//        verify(messagingServiceMock, times(0)).postEmail(any());
-//    }
-//
     // Run batch and simulate request to Archive failure. Verify we handle exception correctly and continue with the rest.
     @Test
     void testErrorFromArchive() throws ServiceException, ApplicationException {
@@ -720,7 +672,7 @@ class ArchiveTest {
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
         messageStatusResponse.setMessageId("12312-3123-123-123-123");
         messageStatusResponse.setSent(true);
-        Mockito.when(messagingServiceMock.postEmail(any())).thenReturn(messageStatusResponse);
+        Mockito.doReturn(messageStatusResponse).when(messagingServiceMock).postEmail(any());
 
         // Test
 
@@ -759,15 +711,70 @@ class ArchiveTest {
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
         messageStatusResponse.setMessageId("12312-3123-123-123-123");
         messageStatusResponse.setSent(false);
-        Mockito.when(messagingServiceMock.postEmail(any())).thenReturn(messageStatusResponse);
+        Mockito.doReturn(messageStatusResponse).when(messagingServiceMock).postEmail(any());
 
         // Test
         BatchHistory batchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
 
-        verifyBatchHistory(batchHistory, Status.COMPLETED, 3);
-        archiveDao.getArchiveHistories(batchHistory.getId()).forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
+        verifyBatchHistory(batchHistory, Status.NOT_COMPLETED, 3);
+        List<ArchiveHistory> archiveHistoryList = archiveDao.getArchiveHistories(batchHistory.getId());
+        Assertions.assertEquals(1, archiveHistoryList.stream().filter(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED)).count());
+        Assertions.assertEquals(2, archiveHistoryList.stream().filter(archiveHistory -> archiveHistory.getStatus().equals(Status.COMPLETED)).count());
 
         verifyCalls(2, 3, 3, 1);
+
+        // TODO verify error message in the log
+    }
+
+    // Run batch for attachmentCategory "GEO" and simulate error when sending email. Rerun later with successful result.
+    @Test
+    void runBatchGeotekniskUndersokningErrorThenReRun() throws ServiceException, ApplicationException {
+
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(start);
+        arendeBatch.setBatchEnd(end);
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.GEO, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        // mocks messaging
+        Mockito.doThrow(ServiceException.create(POST_ARCHIVE_EXCEPTION_MESSAGE, null, Response.Status.INTERNAL_SERVER_ERROR)).when(messagingServiceMock).postEmail(any());
+
+        // Test
+        BatchHistory batchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        List<ArchiveHistory> archiveHistoryList = archiveDao.getArchiveHistories(batchHistory.getId());
+        Assertions.assertEquals(1, archiveHistoryList.stream().filter(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED)).count());
+        Assertions.assertEquals(2, archiveHistoryList.stream().filter(archiveHistory -> archiveHistory.getStatus().equals(Status.COMPLETED)).count());
+        verifyBatchHistory(batchHistory, Status.NOT_COMPLETED, 3);
+        verifyCalls(2, 3, 3, 1);
+
+        // Rerun
+        MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
+        messageStatusResponse.setMessageId("b9535bce-fed9-4a42-a8b7-6fb6540aa3f3");
+        messageStatusResponse.setSent(true);
+        Mockito.doReturn(messageStatusResponse).when(messagingServiceMock).postEmail(any());
+
+        BatchHistory reRunBatchHistory = archiver.reRunBatch(batchHistory.getId());
+        List<ArchiveHistory> reRunArchiveHistoryList = archiveDao.getArchiveHistories(reRunBatchHistory.getId());
+        Assertions.assertEquals(0, reRunArchiveHistoryList.stream().filter(archiveHistory -> archiveHistory.getStatus().equals(Status.NOT_COMPLETED)).count());
+        Assertions.assertEquals(3, reRunArchiveHistoryList.stream().filter(archiveHistory -> archiveHistory.getStatus().equals(Status.COMPLETED)).count());
+        // The batchHistory should now be completed
+        verifyBatchHistory(reRunBatchHistory, Status.COMPLETED, 3);
+        // The previous batch + this one with 2, 1, 0, 1
+        verifyCalls(4, 4, 3, 2);
 
         // TODO verify error message in the log
     }
@@ -779,6 +786,8 @@ class ArchiveTest {
         if (Status.COMPLETED.equals(status)) {
             relatedArchiveHistories.forEach(archiveHistory -> Assertions.assertEquals(Status.COMPLETED, archiveHistory.getStatus()));
         }
+
+        System.out.println(archiveDao.getBatchHistories());
         Assertions.assertTrue(archiveDao.getBatchHistories().contains(returnedBatchHistory));
         Assertions.assertEquals(expectedNumberOfRelatedArchiveHistories, relatedArchiveHistories.size());
     }

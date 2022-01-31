@@ -1,7 +1,7 @@
 FROM maven:3.8.4-jdk-11 AS build
 
 WORKDIR /code
-# COPY settings.xml /root/.m2/settings.xml
+COPY settings.xml /root/.m2/settings.xml
 
 COPY pom.xml pom.xml
 RUN mvn dependency:go-offline --batch-mode

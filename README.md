@@ -1,56 +1,61 @@
-# byggrarchiver Project
+# ByggrArchiver
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+https://sundsvall.atlassian.net/wiki/spaces/SK/pages/718274575/ByggrArchiver
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+## Config
 
-## Running the application in dev mode
+### Production-config
 
-You can run your application in dev mode that enables live coding using:
-```shell script
-./mvnw compile quarkus:dev
-```
+- **API Gateway:**                  api-i.sundsvall.se
+    - **Endpoint:**                 Production
+- **Server:**                       microservices.sundsvall.se
+- **DB:**                           Maria DB
+- **Version av integrationer:**     Production
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
+### Test-config
 
-## Packaging and running the application
+- **API Gateway:**                  api-i-test.sundsvall.se
+    - **Endpoint:**                 Production
+- **Server:**                       microservices-test.sundsvall.se
+- **DB:**                           Maria DB
+- **Version av integrationer:**     Test
 
-The application can be packaged using:
-```shell script
-./mvnw package
-```
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+### Sandbox-config
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+- **API Gateway:**                  api-i-test.sundsvall.se
+    - **Endpoint:**                 Sandbox
+- **Server:**                       microservices-test.sundsvall.se
+- **DB:**                           H2 (in-memory)
+- **Version av integrationer:**     Mocked (Wiremock)
 
-If you want to build an _über-jar_, execute the following command:
-```shell script
-./mvnw package -Dquarkus.package.type=uber-jar
-```
+## Integrationer
+Denna applikation har direkta integrationer mot:
+* Archive
+* Messaging
+* Sokigo FB
+* ByggR
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+## Miljövariabler
+Dessa miljövariabler måste sättas för att det ska gå att köra applikationen.
 
-## Creating a native executable
+FBWEBB_ORIGIN<br/>
+FB_USER<br/>
+FB_PASSWORD<br/>
+SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN<br/>
+SUNDSVALLS_KOMMUN_CONSUMER_KEY<br/>
+SUNDSVALLS_KOMMUN_CONSUMER_SECRET<br/>
+ARENDEEXPORT_SOAP_ORIGIN<br/>
+DB_USERNAME<br/>
+DB_PWD<br/>
+DB_URL<br/>
+DB_HIBERNATE_GENERATION<br/>
 
-You can create a native executable using: 
-```shell script
-./mvnw package -Pnative
-```
+## Kör applikationen lokalt
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
-```shell script
-./mvnw package -Pnative -Dquarkus.native.container-build=true
-```
+För att köra applikationen lokalt måste du ha Docker installerat på din dator.
 
-You can then execute your native executable with: `./target/byggrarchiver-1.0.0-SNAPSHOT-runner`
+Använd dessa kommandon för att bygga och starta applikationen med test-config: <br/>
+`docker build -f ./src/main/docker/Dockerfile -t ms-byggrarchiver:test .`<br/>
+`docker-compose -f src/main/docker/docker-compose_test.yml up`
 
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
 
-## Provided Code
-
-### RESTEasy JAX-RS
-
-Easily start your RESTful Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started#the-jax-rs-resources)

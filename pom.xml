@@ -160,6 +160,7 @@
                         <FB_PASSWORD>test</FB_PASSWORD>
                         <SUNDSVALLS_KOMMUN_CONSUMER_KEY>test</SUNDSVALLS_KOMMUN_CONSUMER_KEY>
                         <SUNDSVALLS_KOMMUN_CONSUMER_SECRET>test</SUNDSVALLS_KOMMUN_CONSUMER_SECRET>
+                        <SCHEDULED_JOB_CRON_EXPRESSION>0 0 7 ? * *</SCHEDULED_JOB_CRON_EXPRESSION>
                     </environmentVariables>
                 </configuration>
             </plugin>

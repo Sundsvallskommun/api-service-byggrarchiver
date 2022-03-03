@@ -4,7 +4,7 @@
     "method": "POST",
     "queryParameters": {
       "Database": {
-        "equalTo": "Standard"
+        "matches": "\\w+"
       },
       "User": {
         "matches": "\\w+"

@@ -41,6 +41,7 @@ Dessa miljövariabler måste sättas för att det ska gå att köra applikatione
 FBWEBB_ORIGIN<br/>
 FB_USER<br/>
 FB_PASSWORD<br/>
+FB_DATABASE<br/>
 SUNDSVALLS_KOMMUN_INTERNAL_ORIGIN<br/>
 SUNDSVALLS_KOMMUN_CONSUMER_KEY<br/>
 SUNDSVALLS_KOMMUN_CONSUMER_SECRET<br/>

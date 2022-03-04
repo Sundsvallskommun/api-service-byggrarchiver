@@ -1,12 +1,12 @@
 package se.sundsvall.sundsvall.archive;
 
+import generated.se.sundsvall.archive.ArchiveResponse;
+import generated.se.sundsvall.archive.ByggRArchiveRequest;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.exceptions.mappers.ServerResponseExceptionMapper;
 import se.sundsvall.sundsvall.SundsvallsKommunOauth2Filter;
-import se.sundsvall.sundsvall.archive.vo.ArchiveMessage;
-import se.sundsvall.sundsvall.archive.vo.ArchiveResponse;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.validation.Valid;
@@ -28,6 +28,6 @@ public interface ArchiveService {
     @Path("archive/byggr")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    ArchiveResponse postArchive(@NotNull @Valid ArchiveMessage archiveMessage) throws ServiceException;
+    ArchiveResponse postArchive(@NotNull @Valid ByggRArchiveRequest archiveMessage) throws ServiceException;
 
 }

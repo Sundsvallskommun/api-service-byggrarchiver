@@ -1,12 +1,12 @@
 package se.sundsvall.sokigo;
 
+import generated.sokigo.fb.FastighetDto;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ExternalServiceException;
 import se.sundsvall.sokigo.fb.FbService;
-import se.sundsvall.sokigo.fb.vo.FastighetDto;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

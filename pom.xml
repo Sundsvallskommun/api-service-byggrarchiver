@@ -15,12 +15,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>2.5.3.Final</quarkus.platform.version>
+        <quarkus.platform.version>2.7.3.Final</quarkus.platform.version>
         <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
         <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
         <openapi-generator-maven-plugin>5.4.0</openapi-generator-maven-plugin>
         <generated-sources-path>${project.build.directory}/generated-sources</generated-sources-path>
-        <generated-sources-java-path>/src/main/java</generated-sources-java-path>
+        <generated-sources-java-path>src/main/java</generated-sources-java-path>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -86,7 +86,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>4.4.0</version>
+            <version>4.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -107,11 +107,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-annotations</artifactId>
-            <version>2.1.12</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <version>1.9</version>
@@ -119,7 +114,7 @@
         <dependency>
             <groupId>io.quarkiverse.cxf</groupId>
             <artifactId>quarkus-cxf</artifactId>
-            <version>0.12.0</version>
+            <version>0.13.1</version>
         </dependency>
     </dependencies>
     <build>
@@ -231,26 +226,6 @@
             </plugin>
 
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${build-helper-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${generated-sources-path}${generated-sources-java-path}</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>${openapi-generator-maven-plugin}</version>
@@ -280,6 +255,56 @@
                             </configOptions>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>archive-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/archive-openapi.json</inputSpec>
+                            <output>${generated-sources-path}</output>
+                            <generatorName>jaxrs-spec</generatorName>
+                            <generateApis>false</generateApis>
+                            <additionalProperties>useSwaggerAnnotations=false</additionalProperties>
+                            <configOptions>
+                                <sourceFolder>${generated-sources-java-path}</sourceFolder>
+                                <generateSupportingFiles>false</generateSupportingFiles>
+                                <dateLibrary>java8</dateLibrary>
+                                <apiPackage>generated</apiPackage>
+                                <modelPackage>generated.se.sundsvall.archive</modelPackage>
+                                <openApiNullable>false</openApiNullable>
+                                <generatePom>false</generatePom>
+                                <useBeanValidation>false</useBeanValidation>
+                                <useSwaggerAnnotations>false</useSwaggerAnnotations>
+                                <interfaceOnly>true</interfaceOnly>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>fb-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/fb-openapi.json</inputSpec>
+                            <output>${generated-sources-path}</output>
+                            <generatorName>jaxrs-spec</generatorName>
+                            <generateApis>false</generateApis>
+                            <additionalProperties>useSwaggerAnnotations=false</additionalProperties>
+                            <configOptions>
+                                <sourceFolder>${generated-sources-java-path}</sourceFolder>
+                                <generateSupportingFiles>false</generateSupportingFiles>
+                                <dateLibrary>java8</dateLibrary>
+                                <apiPackage>generated</apiPackage>
+                                <modelPackage>generated.sokigo.fb</modelPackage>
+                                <openApiNullable>false</openApiNullable>
+                                <generatePom>false</generatePom>
+                                <useBeanValidation>false</useBeanValidation>
+                                <useSwaggerAnnotations>false</useSwaggerAnnotations>
+                                <interfaceOnly>true</interfaceOnly>
+                            </configOptions>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -296,7 +321,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <outputDirectory>${generated-sources-path}${generated-sources-java-path}</outputDirectory>
+                    <outputDirectory>${generated-sources-path}/src/main/soap</outputDirectory>
                     <encoding>UTF-8</encoding>
                     <addGeneratedAnnotation>true</addGeneratedAnnotation>
                     <sources>
@@ -320,7 +345,7 @@
                             <goal>wsdl2java</goal>
                         </goals>
                         <configuration>
-                            <sourceRoot>${generated-sources-path}${generated-sources-java-path}</sourceRoot>
+                            <sourceRoot>${generated-sources-path}/src/main/soap</sourceRoot>
                             <defaultOptions>
                                 <bindingFiles>
                                     <bindingFile>${project.basedir}/src/main/resources/bindings.xjb

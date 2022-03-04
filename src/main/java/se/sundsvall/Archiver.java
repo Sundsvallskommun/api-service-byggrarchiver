@@ -1,5 +1,12 @@
 package se.sundsvall;
 
+import generated.se.sundsvall.archive.ArchiveResponse;
+import generated.se.sundsvall.archive.Attachment;
+import generated.se.sundsvall.archive.ByggRArchiveRequest;
+import generated.se.sundsvall.messaging.EmailRequest;
+import generated.se.sundsvall.messaging.MessageStatusResponse;
+import generated.se.sundsvall.messaging.Sender1;
+import generated.sokigo.fb.FastighetDto;
 import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
@@ -11,14 +18,8 @@ import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sokigo.CaseUtil;
 import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
 import se.sundsvall.sokigo.arendeexport.ByggrMapper;
-import se.sundsvall.sokigo.fb.vo.FastighetDto;
 import se.sundsvall.sundsvall.archive.ArchiveService;
-import se.sundsvall.sundsvall.archive.vo.ArchiveMessage;
-import se.sundsvall.sundsvall.archive.vo.ArchiveResponse;
 import se.sundsvall.sundsvall.messaging.MessagingService;
-import se.sundsvall.sundsvall.messaging.vo.EmailRequest;
-import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
-import se.sundsvall.sundsvall.messaging.vo.Sender1;
 import se.sundsvall.util.Constants;
 import se.sundsvall.vo.*;
 import se.tekis.arende.*;
@@ -205,13 +206,13 @@ public class Archiver {
                             foundDocuments.add(doc);
                             log.info("Document-Count: " + foundDocuments.size() + ". Found a document that should be archived - Case-ID: " + closedCase.getDnr() + " Document-ID: " + doc.getDokId() + " Document-name: " + doc.getNamn() + " Handling-ID: " + handling.getHandlingId() + " Handlingstyp: " + handling.getTyp());
 
-                            Attachment attachment = byggrMapper.getAttachment(handling, doc);
+                            Attachment attachment = byggrMapper.getAttachment(doc);
 
-                            newArchiveHistory = archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
+                            archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
 
                             if (newArchiveHistory.getStatus().equals(Status.COMPLETED)
                                     && newArchiveHistory.getArchiveId() != null
-                                    && attachment.getCategory().equals(AttachmentCategory.GEO)) {
+                                    && byggrMapper.getAttachmentCategory(handling.getTyp()).equals(AttachmentCategory.GEO)) {
                                 boolean success = sendEmailToLantmateriet(attachment, newArchiveHistory);
 
                                 if (!success) {
@@ -243,10 +244,10 @@ public class Archiver {
         return batchHistory;
     }
 
-    private ArchiveHistory archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
+    private void archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
 
         if (newArchiveHistory.getArchiveId() == null) {
-            ArchiveMessage archiveMessage = new ArchiveMessage();
+            ByggRArchiveRequest archiveMessage = new ByggRArchiveRequest();
             archiveMessage.setAttachment(attachment);
 
             String metadataXml;
@@ -284,8 +285,6 @@ public class Archiver {
         }
 
         archiveDao.updateArchiveHistory(newArchiveHistory);
-
-        return newArchiveHistory;
     }
 
     private LeveransobjektTyp getLeveransobjektTyp(Arende arende, Handling handling, Dokument document) throws ApplicationException {
@@ -408,7 +407,7 @@ public class Archiver {
                 if (fastighetDto != null) {
                     fastighet.setFastighetsbeteckning(fastighetDto.getKommun() + " " + fastighetDto.getBeteckning());
                     fastighet.setTrakt(fastighetDto.getTrakt());
-                    fastighet.setObjektidentitet(fastighetDto.getUuid());
+                    fastighet.setObjektidentitet(fastighetDto.getUuid().toString());
                 }
             }
         }
@@ -446,7 +445,7 @@ public class Archiver {
         return date.format(DateTimeFormatter.ISO_DATE);
     }
 
-    private ArchiveResponse postArchive(ArchiveMessage archiveMessage) {
+    private ArchiveResponse postArchive(ByggRArchiveRequest archiveMessage) {
         ArchiveResponse archiveResponse = null;
         // POST to archive
         try {
@@ -496,10 +495,9 @@ public class Archiver {
         EmailRequest emailRequest = new EmailRequest();
 
         // Email-attachment
-        se.sundsvall.sundsvall.messaging.vo.Attachment emailAttachment = new se.sundsvall.sundsvall.messaging.vo.Attachment();
+        generated.se.sundsvall.messaging.Attachment emailAttachment = new generated.se.sundsvall.messaging.Attachment();
         emailAttachment.setName(attachment.getName());
         emailAttachment.setContent(attachment.getFile());
-        emailAttachment.setContentType(attachment.getMimeType());
         emailRequest.setAttachments(List.of(emailAttachment));
 
         // Sender
@@ -524,12 +522,12 @@ public class Archiver {
 
         emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 
-        MessageStatusResponse response = null;
+        MessageStatusResponse response;
         try {
             response = messagingService.postEmail(emailRequest);
 
             if (response != null
-                    && response.isSent()) {
+                    && response.getSent()) {
                 log.info("E-mail sent to Lantmäteriet with information about geoteknisk handling for ArchiveId: " + archiveHistory.getArchiveId() + " MessageId: " + response.getMessageId());
                 return true;
             } else {

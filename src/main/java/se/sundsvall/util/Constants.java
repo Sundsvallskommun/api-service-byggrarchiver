@@ -23,14 +23,15 @@ public final class Constants {
     public static final String RFC_LINK_NOT_FOUND = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4";
     public static final String RFC_LINK_NOT_ALLOWED = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.5";
     public static final String RFC_LINK_INTERNAL_SERVER_ERROR = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1";
+    public static final String RFC_LINK_SERVICE_UNAVAILABLE = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.4";
+    public static final String RFC_LINK_NOT_IMPLEMENTED = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.2";
 
     ////////////////// Error messages
     public static final String ERR_MSG_UNHANDLED_EXCEPTION = "An unhandled exception occurred. Contact the person responsible for the application. More information is provided in the log.";
-    public static final String ERR_MSG_EXTERNAL_SERVICE = "Something went wrong in the request to an external service.";
+    public static final String ERR_MSG_EXTERNAL_SERVICE = "Error in external service.";
     public static final String IT_IS_NOT_POSSIBLE_TO_RERUN_A_COMPLETED_BATCH = "It's not possible to rerun a completed batch.";
     public static final String END_CAN_NOT_BE_BEFORE_START = "End can not be before start";
 
     public static final String BYGGR_STATUS_AVSLUTAT = "Avslutat";
     public static final String BYGGR_HANDELSETYP_ARKIV = "ARKIV";
-    public static final String BYGGR_HANDELSESLAG_SLUTBESKED = "SLU";
 }

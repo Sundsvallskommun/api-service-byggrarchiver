@@ -4,13 +4,14 @@ import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
+import se.sundsvall.exceptions.ExternalServiceException;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sokigo.CaseUtil;
 import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
 import se.sundsvall.sokigo.arendeexport.ByggrMapper;
 import se.sundsvall.sokigo.fb.vo.FastighetDto;
-import se.sundsvall.sundsvall.archive.ArchiveMessage;
-import se.sundsvall.sundsvall.archive.ArchiveResponse;
+import se.sundsvall.sundsvall.archive.vo.ArchiveMessage;
+import se.sundsvall.sundsvall.archive.vo.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.messaging.MessagingService;
 import se.sundsvall.sundsvall.messaging.vo.EmailRequest;
@@ -140,9 +141,11 @@ public class Archiver {
             log.info("Runs batch for start-date: " + batchFilter.getLowerExclusiveBound() + " and end-date: " + batchFilter.getUpperInclusiveBound());
 
             // Get arenden from Byggr
-            arendeBatch = arendeExportIntegrationService.getUpdatedArenden(batchFilter);
-            if (arendeBatch == null) {
-                throw new ApplicationException("The response from arendeExportIntegrationService.getUpdatedArenden(batchFilter) was null. This shouldn't happen.");
+            try {
+                arendeBatch = arendeExportIntegrationService.getUpdatedArenden(batchFilter);
+            } catch (Exception e) {
+                log.error("Request to arendeExportIntegrationService.getUpdatedArenden() failed.", e);
+                throw new ExternalServiceException();
             }
 
             foundCases.addAll(arendeBatch.getArenden().getArende());
@@ -190,10 +193,12 @@ public class Archiver {
                         }
 
                         // Get documents from Byggr
-                        List<Dokument> dokumentList = arendeExportIntegrationService.getDocument(docId);
-
-                        if (dokumentList == null) {
-                            throw new ApplicationException("The response from arendeExportIntegrationService.getDocument(" + docId + ") was null. Something went wrong...");
+                        List<Dokument> dokumentList;
+                        try {
+                            dokumentList = arendeExportIntegrationService.getDocument(docId);
+                        } catch (Exception e) {
+                            log.error("Request to arendeExportIntegrationService.getDocument(" + docId + ") failed.", e);
+                            throw new ExternalServiceException();
                         }
 
                         for (Dokument doc : dokumentList) {
@@ -304,7 +309,9 @@ public class Archiver {
         arkivobjektArende.setArendemening(arende.getBeskrivning());
         arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(arende.getSlutDatum()));
         arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(arende.getRegistreradDatum()));
-        arkivobjektArende.setStatusArende(StatusArendeEnum.STÄNGT);
+        StatusArande statusArande = new StatusArande();
+        statusArande.setValue("Stängt");
+        arkivobjektArende.setStatusArande(statusArande);
         arkivobjektArende.setArendeTyp(arende.getArendetyp());
         arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(handling, document));
 
@@ -373,7 +380,9 @@ public class Archiver {
         BilagaTyp bilaga = new BilagaTyp();
         bilaga.setNamn(document.getNamn());
         bilaga.setBeskrivning(document.getBeskrivning());
-        bilaga.setChecksumma(document.getChecksum());
+//        bilaga.setChecksumma(document.getChecksum());
+
+        bilaga.setLank("Bilagor\\" + bilaga.getNamn());
         return bilaga;
     }
 
@@ -441,7 +450,6 @@ public class Archiver {
         ArchiveResponse archiveResponse = null;
         // POST to archive
         try {
-            log.info("Framtida anrop till archive");
             archiveResponse = archiveService.postArchive(archiveMessage);
             log.info("Response from archive: " + archiveResponse);
         } catch (ServiceException e) {

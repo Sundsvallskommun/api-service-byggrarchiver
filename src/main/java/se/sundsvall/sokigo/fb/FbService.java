@@ -17,12 +17,6 @@ import java.util.List;
 @RegisterRestClient(configKey = "FB")
 @ApplicationScoped
 public interface FbService {
-    @POST
-    @Path("Fastighet/info/uuid")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    ResponseDto getPropertyInfoByUuid(@RequestBody List<String> registerenheter, @QueryParam("Database") String database,
-                                      @QueryParam("User") String user, @QueryParam("Password") String password);
 
     @POST
     @Path("Fastighet/info/fnr")
@@ -31,10 +25,4 @@ public interface FbService {
     ResponseDto getPropertyInfoByFnr(@RequestBody List<Integer> fnrList, @QueryParam("Database") String database,
                                 @QueryParam("User") String user, @QueryParam("Password") String password);
 
-    @POST
-    @Path("adress/search/fastighet/uuid")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    ResponseDto getAddressInfoByUuid(@RequestBody List<String> registerenheter, @QueryParam("Database") String database,
-                                     @QueryParam("User") String user, @QueryParam("Password") String password);
 }

@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-//@Provider
+@Provider
 public class ClientLoggingFilter implements ClientRequestFilter, ClientResponseFilter {
 
     private static final Logger LOG = Logger.getLogger("CLIENT-COMMUNICATION");

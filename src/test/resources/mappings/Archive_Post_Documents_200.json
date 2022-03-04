@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "POST",
-    "urlPath": "/archive/1.0/documents"
+    "urlPath": "/archive/0.1/archive/byggr"
   },
   "response": {
     "status": 200,

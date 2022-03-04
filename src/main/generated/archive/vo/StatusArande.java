@@ -11,66 +11,63 @@ package vo;
 import javax.annotation.Generated;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
 
 
 /**
- * Ett element som behöver definieras.
- * 
- * <p>Java class for SystemInfoTyp complex type.
+ * <p>Java class for anonymous complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="SystemInfoTyp"&gt;
- *   &lt;complexContent&gt;
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
- *       &lt;sequence&gt;
- *         &lt;element name="AnpassadMetadataInformation" type="{http://xml.ra.se/e-arkiv/FGS-ERMS}UtokandeKomplexTyp" minOccurs="0"/&gt;
- *       &lt;/sequence&gt;
+ * &lt;complexType&gt;
+ *   &lt;simpleContent&gt;
+ *     &lt;restriction base="&lt;http://www.w3.org/2001/XMLSchema&gt;anyType"&gt;
  *     &lt;/restriction&gt;
- *   &lt;/complexContent&gt;
+ *   &lt;/simpleContent&gt;
  * &lt;/complexType&gt;
  * </pre>
  * 
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "SystemInfoTyp", propOrder = {
-    "anpassadMetadataInformation"
+@XmlType(name = "", propOrder = {
+    "value"
 })
+@XmlRootElement(name = "StatusArande")
 @Generated(value = "com.sun.tools.xjc.Driver", date = "2022-02-28T11:45:52+01:00", comments = "JAXB RI v2.3.2")
-public class SystemInfoTyp {
+public class StatusArande {
 
-    @XmlElement(name = "AnpassadMetadataInformation")
+    @XmlValue
     @Generated(value = "com.sun.tools.xjc.Driver", date = "2022-02-28T11:45:52+01:00", comments = "JAXB RI v2.3.2")
-    protected UtokandeKomplexTyp anpassadMetadataInformation;
+    protected String value;
 
     /**
-     * Gets the value of the anpassadMetadataInformation property.
+     * Gets the value of the value property.
      * 
      * @return
      *     possible object is
-     *     {@link UtokandeKomplexTyp }
+     *     {@link String }
      *     
      */
     @Generated(value = "com.sun.tools.xjc.Driver", date = "2022-02-28T11:45:52+01:00", comments = "JAXB RI v2.3.2")
-    public UtokandeKomplexTyp getAnpassadMetadataInformation() {
-        return anpassadMetadataInformation;
+    public String getValue() {
+        return value;
     }
 
     /**
-     * Sets the value of the anpassadMetadataInformation property.
+     * Sets the value of the value property.
      * 
      * @param value
      *     allowed object is
-     *     {@link UtokandeKomplexTyp }
+     *     {@link String }
      *     
      */
     @Generated(value = "com.sun.tools.xjc.Driver", date = "2022-02-28T11:45:52+01:00", comments = "JAXB RI v2.3.2")
-    public void setAnpassadMetadataInformation(UtokandeKomplexTyp value) {
-        this.anpassadMetadataInformation = value;
+    public void setValue(String value) {
+        this.value = value;
     }
 
 }

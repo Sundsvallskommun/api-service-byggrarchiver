@@ -292,8 +292,8 @@ class ArchiveIntegrationTest {
                 .when().post("/batch-jobs")
                 .then()
                 .log().ifValidationFails(LogDetail.BODY)
-                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
-                .assertThat().body(containsString(Constants.ERR_MSG_UNHANDLED_EXCEPTION));
+                .statusCode(Response.Status.SERVICE_UNAVAILABLE.getStatusCode())
+                .assertThat().body(containsString(Constants.ERR_MSG_EXTERNAL_SERVICE));
 
         // GET archiveHistory
         given()

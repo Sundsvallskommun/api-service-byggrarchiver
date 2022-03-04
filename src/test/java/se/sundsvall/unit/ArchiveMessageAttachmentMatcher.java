@@ -1,7 +1,7 @@
 package se.sundsvall.unit;
 
 import org.mockito.ArgumentMatcher;
-import se.sundsvall.sundsvall.archive.ArchiveMessage;
+import se.sundsvall.sundsvall.archive.vo.ArchiveMessage;
 import se.sundsvall.vo.Attachment;
 
 /**

@@ -1,4 +1,4 @@
-package se.sundsvall.sundsvall.archive;
+package se.sundsvall.sundsvall.archive.vo;
 
 import lombok.Getter;
 import lombok.Setter;

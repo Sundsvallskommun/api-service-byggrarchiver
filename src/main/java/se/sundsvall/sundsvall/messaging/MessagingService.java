@@ -13,7 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 
-@Path("/1.1")
+@Path("/")
 @RegisterProvider(SundsvallsKommunOauth2Filter.class)
 @RegisterProvider(ServerResponseExceptionMapper.class)
 @RegisterRestClient(configKey = "MESSAGING")
@@ -27,6 +27,6 @@ public interface MessagingService {
      * @return MessageStatusResponse
      */
     @POST
-    @Path("/messages/email")
+    @Path("messages/email")
     MessageStatusResponse postEmail(@RequestBody EmailRequest emailRequest) throws ServiceException;
 }

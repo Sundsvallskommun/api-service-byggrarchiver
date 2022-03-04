@@ -5,6 +5,8 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.exceptions.mappers.ServerResponseExceptionMapper;
 import se.sundsvall.sundsvall.SundsvallsKommunOauth2Filter;
+import se.sundsvall.sundsvall.archive.vo.ArchiveMessage;
+import se.sundsvall.sundsvall.archive.vo.ArchiveResponse;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.validation.Valid;
@@ -15,7 +17,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-@Path("/1.0")
+@Path("/")
 @RegisterProvider(SundsvallsKommunOauth2Filter.class)
 @RegisterProvider(ServerResponseExceptionMapper.class)
 @RegisterRestClient(configKey = "ARCHIVE")
@@ -23,7 +25,7 @@ import javax.ws.rs.core.MediaType;
 public interface ArchiveService {
 
     @POST
-    @Path("/documents")
+    @Path("archive/byggr")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     ArchiveResponse postArchive(@NotNull @Valid ArchiveMessage archiveMessage) throws ServiceException;

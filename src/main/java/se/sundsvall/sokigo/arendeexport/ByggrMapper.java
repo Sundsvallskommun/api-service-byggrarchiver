@@ -54,8 +54,7 @@ public class ByggrMapper {
             log.info("Last ArendeBatch start: " + arendeBatch.getBatchStart() + " end: " + arendeBatch.getBatchEnd());
             if (arendeBatch.getBatchEnd() == null
                     || arendeBatch.getBatchEnd().isEqual(filter.getLowerExclusiveBound())
-                    || arendeBatch.getBatchEnd().isBefore(filter.getLowerExclusiveBound())
-                    || Duration.between(arendeBatch.getBatchStart(), arendeBatch.getBatchEnd()).toMinutes() <= 60) {
+                    || arendeBatch.getBatchEnd().isBefore(filter.getLowerExclusiveBound())) {
 
                 LocalDateTime plusOneHour = filter.getLowerExclusiveBound().plusHours(1);
                 filter.setLowerExclusiveBound(plusOneHour.isAfter(filter.getUpperInclusiveBound()) ? filter.getUpperInclusiveBound() : plusOneHour);

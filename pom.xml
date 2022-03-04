@@ -236,7 +236,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/messaging-openapi.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging-openapi.yaml</inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
@@ -261,7 +261,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/archive-openapi.json</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/archive-openapi.json</inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
@@ -286,7 +286,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/fb-openapi.json</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/fb-openapi.json</inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
@@ -325,10 +325,10 @@
                     <encoding>UTF-8</encoding>
                     <addGeneratedAnnotation>true</addGeneratedAnnotation>
                     <sources>
-                        <source>${project.basedir}/src/main/resources/Bygglov_v2.xsd</source>
+                        <source>${project.basedir}/src/main/resources/integrations/Bygglov_v2.xsd</source>
                     </sources>
                     <xjbSources>
-                        <xjbSource>${project.basedir}/src/main/resources/bindings.xjb</xjbSource>
+                        <xjbSource>${project.basedir}/src/main/resources/integrations/bindings.xjb</xjbSource>
                     </xjbSources>
                 </configuration>
             </plugin>
@@ -348,14 +348,14 @@
                             <sourceRoot>${generated-sources-path}/src/main/soap</sourceRoot>
                             <defaultOptions>
                                 <bindingFiles>
-                                    <bindingFile>${project.basedir}/src/main/resources/bindings.xjb
+                                    <bindingFile>${project.basedir}/src/main/resources/integrations/bindings.xjb
                                     </bindingFile>
                                 </bindingFiles>
                             </defaultOptions>
                             <wsdlOptions>
                                 <wsdlOption>
                                     <wsdl>
-                                        ${project.basedir}/src/main/resources/saas151_ArendeExportWS.xml
+                                        ${project.basedir}/src/main/resources/integrations/saas151_ArendeExportWS.xml
                                     </wsdl>
                                     <wsdlLocation>classpath:saas151_ArendeExportWS.xml</wsdlLocation>
                                     <extraargs>

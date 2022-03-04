@@ -1,5 +1,9 @@
 package se.sundsvall.unit;
 
+import generated.se.sundsvall.archive.ArchiveResponse;
+import generated.se.sundsvall.archive.Attachment;
+import generated.se.sundsvall.archive.ByggRArchiveRequest;
+import generated.se.sundsvall.messaging.MessageStatusResponse;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -16,11 +20,8 @@ import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
 import se.sundsvall.sokigo.arendeexport.ByggrMapper;
-import se.sundsvall.sundsvall.archive.ArchiveMessage;
-import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.messaging.MessagingService;
-import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
 import se.sundsvall.util.Constants;
 import se.sundsvall.vo.*;
 import se.tekis.arende.*;
@@ -575,8 +576,6 @@ class ArchiveTest {
     }
 
     // Rerun an earlier not_completed batch - GET batchhistory and verify it was completed
-//    @ParameterizedTest
-//    @EnumSource(BatchTrigger.class)
     @Test
     void testReRunNotCompletedBatch() throws ServiceException, ApplicationException {
 
@@ -601,8 +600,8 @@ class ArchiveTest {
 
         // Mock
         Handling handling = arende1.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0);
-        Attachment attachment = byggrMapper.getAttachment(handling, handling.getDokument());
-        ArchiveMessage archiveMessage = new ArchiveMessage();
+        Attachment attachment = byggrMapper.getAttachment(handling.getDokument());
+        ByggRArchiveRequest archiveMessage = new ByggRArchiveRequest();
         archiveMessage.setAttachment(attachment);
         Mockito.doThrow(ServiceException.create(POST_ARCHIVE_EXCEPTION_MESSAGE, null, Response.Status.INTERNAL_SERVER_ERROR)).when(archiveServiceMock).postArchive(Mockito.argThat(new ArchiveMessageAttachmentMatcher(archiveMessage)));
 
@@ -613,13 +612,10 @@ class ArchiveTest {
         Assertions.assertEquals(Status.NOT_COMPLETED, archiveDao.getBatchHistory(firstBatchHistory.getId()).getStatus());
         List<ArchiveHistory> firstArchiveHistoryList = archiveDao.getArchiveHistories(firstBatchHistory.getId());
         Assertions.assertEquals(3, firstArchiveHistoryList.size());
-        // Only one should be NOT_COMPLETED, the other two should be COMPLETED
         List<ArchiveHistory> firstNotCompletedArchiveHistories = firstArchiveHistoryList.stream().filter(archiveHistory -> Status.NOT_COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
         List<ArchiveHistory> firstCompletedArchiveHistories = firstArchiveHistoryList.stream().filter(archiveHistory -> Status.COMPLETED.equals(archiveHistory.getStatus())).collect(Collectors.toList());
-        Assertions.assertEquals(1, firstNotCompletedArchiveHistories.size());
-        Assertions.assertEquals(2, firstCompletedArchiveHistories.size());
-
-        System.out.println("1: " + firstNotCompletedArchiveHistories.get(0));
+        Assertions.assertEquals(3, firstNotCompletedArchiveHistories.size());
+        Assertions.assertEquals(0, firstCompletedArchiveHistories.size());
 
         verifyCalls(2, 3, 3, 0);
 
@@ -642,7 +638,7 @@ class ArchiveTest {
         Assertions.assertEquals(3, reRunCompletedArchiveHistories.size());
 
         // Both the first batch and the reRun
-        verifyCalls(4, 4, 4, 1);
+        verifyCalls(4, 6, 6, 1);
     }
 
     // Run batch for attachmentCategory "GEO" and verify email was sent

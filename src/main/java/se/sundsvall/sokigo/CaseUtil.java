@@ -1,10 +1,12 @@
 package se.sundsvall.sokigo;
 
+import generated.sokigo.fb.FastighetDto;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.logging.Logger;
 import se.sundsvall.exceptions.ApplicationException;
+import se.sundsvall.exceptions.ExternalServiceException;
 import se.sundsvall.sokigo.fb.FbService;
-import se.sundsvall.sokigo.fb.vo.FastighetDto;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -22,11 +24,20 @@ public class CaseUtil {
     String fbDatabase;
 
     @Inject
+    Logger log;
+
+    @Inject
     @RestClient
     FbService fbService;
 
     public FastighetDto getPropertyInfoByFnr(Integer fnr) throws ApplicationException {
-        List<FastighetDto> fastighetDtoList = fbService.getPropertyInfoByFnr(List.of(fnr), fbDatabase, fbUsername, fbPassword).getData();
+        List<FastighetDto> fastighetDtoList;
+        try {
+            fastighetDtoList = fbService.getPropertyInfoByFnr(List.of(fnr), fbDatabase, fbUsername, fbPassword).getData();
+        } catch (Exception e) {
+            log.error("Request to fbService.getPropertyInfoByFnr(" + fnr + ") failed.", e);
+            throw new ExternalServiceException();
+        }
 
         if (fastighetDtoList.isEmpty()) {
             return null;

@@ -1,28 +1,30 @@
 package se.sundsvall;
 
+import generated.se.sundsvall.archive.ArchiveResponse;
+import generated.se.sundsvall.archive.Attachment;
+import generated.se.sundsvall.archive.ByggRArchiveRequest;
+import generated.se.sundsvall.messaging.EmailRequest;
+import generated.se.sundsvall.messaging.MessageStatusResponse;
+import generated.se.sundsvall.messaging.Sender1;
+import generated.sokigo.fb.FastighetDto;
 import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
+import se.ra.xml.e_arkiv.fgs_erms.ObjectFactory;
+import se.ra.xml.e_arkiv.fgs_erms.*;
 import se.sundsvall.exceptions.ApplicationException;
+import se.sundsvall.exceptions.ExternalServiceException;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sokigo.CaseUtil;
 import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
 import se.sundsvall.sokigo.arendeexport.ByggrMapper;
-import se.sundsvall.sokigo.fb.vo.FastighetDto;
-import se.sundsvall.sundsvall.archive.ArchiveMessage;
-import se.sundsvall.sundsvall.archive.ArchiveResponse;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.messaging.MessagingService;
-import se.sundsvall.sundsvall.messaging.vo.EmailRequest;
-import se.sundsvall.sundsvall.messaging.vo.MessageStatusResponse;
-import se.sundsvall.sundsvall.messaging.vo.Sender1;
 import se.sundsvall.util.Constants;
 import se.sundsvall.vo.*;
 import se.tekis.arende.*;
 import se.tekis.servicecontract.ArendeBatch;
 import se.tekis.servicecontract.BatchFilter;
-import vo.ObjectFactory;
-import vo.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -140,9 +142,11 @@ public class Archiver {
             log.info("Runs batch for start-date: " + batchFilter.getLowerExclusiveBound() + " and end-date: " + batchFilter.getUpperInclusiveBound());
 
             // Get arenden from Byggr
-            arendeBatch = arendeExportIntegrationService.getUpdatedArenden(batchFilter);
-            if (arendeBatch == null) {
-                throw new ApplicationException("The response from arendeExportIntegrationService.getUpdatedArenden(batchFilter) was null. This shouldn't happen.");
+            try {
+                arendeBatch = arendeExportIntegrationService.getUpdatedArenden(batchFilter);
+            } catch (Exception e) {
+                log.error("Request to arendeExportIntegrationService.getUpdatedArenden() failed.", e);
+                throw new ExternalServiceException();
             }
 
             foundCases.addAll(arendeBatch.getArenden().getArende());
@@ -190,23 +194,25 @@ public class Archiver {
                         }
 
                         // Get documents from Byggr
-                        List<Dokument> dokumentList = arendeExportIntegrationService.getDocument(docId);
-
-                        if (dokumentList == null) {
-                            throw new ApplicationException("The response from arendeExportIntegrationService.getDocument(" + docId + ") was null. Something went wrong...");
+                        List<Dokument> dokumentList;
+                        try {
+                            dokumentList = arendeExportIntegrationService.getDocument(docId);
+                        } catch (Exception e) {
+                            log.error("Request to arendeExportIntegrationService.getDocument(" + docId + ") failed.", e);
+                            throw new ExternalServiceException();
                         }
 
                         for (Dokument doc : dokumentList) {
                             foundDocuments.add(doc);
                             log.info("Document-Count: " + foundDocuments.size() + ". Found a document that should be archived - Case-ID: " + closedCase.getDnr() + " Document-ID: " + doc.getDokId() + " Document-name: " + doc.getNamn() + " Handling-ID: " + handling.getHandlingId() + " Handlingstyp: " + handling.getTyp());
 
-                            Attachment attachment = byggrMapper.getAttachment(handling, doc);
+                            Attachment attachment = byggrMapper.getAttachment(doc);
 
-                            newArchiveHistory = archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
+                            archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
 
                             if (newArchiveHistory.getStatus().equals(Status.COMPLETED)
                                     && newArchiveHistory.getArchiveId() != null
-                                    && attachment.getCategory().equals(AttachmentCategory.GEO)) {
+                                    && byggrMapper.getAttachmentCategory(handling.getTyp()).equals(AttachmentCategory.GEO)) {
                                 boolean success = sendEmailToLantmateriet(attachment, newArchiveHistory);
 
                                 if (!success) {
@@ -238,10 +244,10 @@ public class Archiver {
         return batchHistory;
     }
 
-    private ArchiveHistory archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
+    private void archiveAttachment(Attachment attachment, Arende arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
 
         if (newArchiveHistory.getArchiveId() == null) {
-            ArchiveMessage archiveMessage = new ArchiveMessage();
+            ByggRArchiveRequest archiveMessage = new ByggRArchiveRequest();
             archiveMessage.setAttachment(attachment);
 
             String metadataXml;
@@ -279,8 +285,6 @@ public class Archiver {
         }
 
         archiveDao.updateArchiveHistory(newArchiveHistory);
-
-        return newArchiveHistory;
     }
 
     private LeveransobjektTyp getLeveransobjektTyp(Arende arende, Handling handling, Dokument document) throws ApplicationException {
@@ -304,7 +308,9 @@ public class Archiver {
         arkivobjektArende.setArendemening(arende.getBeskrivning());
         arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(arende.getSlutDatum()));
         arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(arende.getRegistreradDatum()));
-        arkivobjektArende.setStatusArende(StatusArendeEnum.STÄNGT);
+        StatusArande statusArande = new StatusArande();
+        statusArande.setValue("Stängt");
+        arkivobjektArende.setStatusArande(statusArande);
         arkivobjektArende.setArendeTyp(arende.getArendetyp());
         arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(handling, document));
 
@@ -373,7 +379,9 @@ public class Archiver {
         BilagaTyp bilaga = new BilagaTyp();
         bilaga.setNamn(document.getNamn());
         bilaga.setBeskrivning(document.getBeskrivning());
-        bilaga.setChecksumma(document.getChecksum());
+//        bilaga.setChecksumma(document.getChecksum());
+
+        bilaga.setLank("Bilagor\\" + bilaga.getNamn());
         return bilaga;
     }
 
@@ -399,7 +407,7 @@ public class Archiver {
                 if (fastighetDto != null) {
                     fastighet.setFastighetsbeteckning(fastighetDto.getKommun() + " " + fastighetDto.getBeteckning());
                     fastighet.setTrakt(fastighetDto.getTrakt());
-                    fastighet.setObjektidentitet(fastighetDto.getUuid());
+                    fastighet.setObjektidentitet(fastighetDto.getUuid().toString());
                 }
             }
         }
@@ -437,11 +445,10 @@ public class Archiver {
         return date.format(DateTimeFormatter.ISO_DATE);
     }
 
-    private ArchiveResponse postArchive(ArchiveMessage archiveMessage) {
+    private ArchiveResponse postArchive(ByggRArchiveRequest archiveMessage) {
         ArchiveResponse archiveResponse = null;
         // POST to archive
         try {
-            log.info("Framtida anrop till archive");
             archiveResponse = archiveService.postArchive(archiveMessage);
             log.info("Response from archive: " + archiveResponse);
         } catch (ServiceException e) {
@@ -488,10 +495,9 @@ public class Archiver {
         EmailRequest emailRequest = new EmailRequest();
 
         // Email-attachment
-        se.sundsvall.sundsvall.messaging.vo.Attachment emailAttachment = new se.sundsvall.sundsvall.messaging.vo.Attachment();
+        generated.se.sundsvall.messaging.Attachment emailAttachment = new generated.se.sundsvall.messaging.Attachment();
         emailAttachment.setName(attachment.getName());
         emailAttachment.setContent(attachment.getFile());
-        emailAttachment.setContentType(attachment.getMimeType());
         emailRequest.setAttachments(List.of(emailAttachment));
 
         // Sender
@@ -516,12 +522,12 @@ public class Archiver {
 
         emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 
-        MessageStatusResponse response = null;
+        MessageStatusResponse response;
         try {
             response = messagingService.postEmail(emailRequest);
 
             if (response != null
-                    && response.isSent()) {
+                    && response.getSent()) {
                 log.info("E-mail sent to Lantmäteriet with information about geoteknisk handling for ArchiveId: " + archiveHistory.getArchiveId() + " MessageId: " + response.getMessageId());
                 return true;
             } else {

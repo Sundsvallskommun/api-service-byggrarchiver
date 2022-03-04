@@ -1,8 +1,8 @@
 package se.sundsvall.sokigo.arendeexport;
 
+import generated.se.sundsvall.archive.Attachment;
 import org.jboss.logging.Logger;
 import se.sundsvall.sokigo.CaseUtil;
-import se.sundsvall.vo.Attachment;
 import se.sundsvall.vo.AttachmentCategory;
 import se.tekis.arende.*;
 import se.tekis.servicecontract.ArendeBatch;
@@ -10,7 +10,6 @@ import se.tekis.servicecontract.BatchFilter;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 @ApplicationScoped
@@ -22,13 +21,10 @@ public class ByggrMapper {
     @Inject
     CaseUtil caseUtil;
 
-    public Attachment getAttachment(Handling handling, Dokument doc) {
+    public Attachment getAttachment(Dokument doc) {
         Attachment attachment = new Attachment();
-        attachment.setCategory(getAttachmentCategory(handling.getTyp()));
         attachment.setExtension("." + doc.getFil().getFilAndelse().toLowerCase());
-        attachment.setMimeType(null);
         attachment.setName(doc.getNamn());
-        attachment.setNote(doc.getBeskrivning());
         attachment.setFile(caseUtil.byteArrayToBase64(doc.getFil().getFilBuffer()));
 
         return attachment;
@@ -54,8 +50,7 @@ public class ByggrMapper {
             log.info("Last ArendeBatch start: " + arendeBatch.getBatchStart() + " end: " + arendeBatch.getBatchEnd());
             if (arendeBatch.getBatchEnd() == null
                     || arendeBatch.getBatchEnd().isEqual(filter.getLowerExclusiveBound())
-                    || arendeBatch.getBatchEnd().isBefore(filter.getLowerExclusiveBound())
-                    || Duration.between(arendeBatch.getBatchStart(), arendeBatch.getBatchEnd()).toMinutes() <= 60) {
+                    || arendeBatch.getBatchEnd().isBefore(filter.getLowerExclusiveBound())) {
 
                 LocalDateTime plusOneHour = filter.getLowerExclusiveBound().plusHours(1);
                 filter.setLowerExclusiveBound(plusOneHour.isAfter(filter.getUpperInclusiveBound()) ? filter.getUpperInclusiveBound() : plusOneHour);

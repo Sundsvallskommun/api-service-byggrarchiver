@@ -32,6 +32,18 @@ public class ArchiveHistory {
 
     @Getter
     @Setter
+    private String caseId;
+
+    @Getter
+    @Setter
+    private String documentName;
+
+    @Getter
+    @Setter
+    private String documentType;
+
+    @Getter
+    @Setter
     private String archiveId;
 
     @Getter

@@ -17,7 +17,6 @@ import se.sundsvall.exceptions.ExternalServiceException;
 import se.sundsvall.exceptions.ServiceException;
 import se.sundsvall.sokigo.CaseUtil;
 import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
-import se.sundsvall.sokigo.arendeexport.ByggrMapper;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.messaging.MessagingService;
 import se.sundsvall.util.Constants;
@@ -39,6 +38,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -57,9 +57,6 @@ public class Archiver {
 
     @Inject
     ArchiveDao archiveDao;
-
-    @Inject
-    ByggrMapper byggrMapper;
 
     @Inject
     CaseUtil caseUtil;
@@ -137,7 +134,7 @@ public class Archiver {
         ArendeBatch arendeBatch = null;
 
         do {
-            byggrMapper.setLowerExclusiveBoundWithReturnedValue(batchFilter, arendeBatch);
+            setLowerExclusiveBoundWithReturnedValue(batchFilter, arendeBatch);
 
             log.info("Runs batch for start-date: " + batchFilter.getLowerExclusiveBound() + " and end-date: " + batchFilter.getUpperInclusiveBound());
 
@@ -178,6 +175,9 @@ public class Archiver {
 
                             newArchiveHistory.setSystemType(SystemType.BYGGR);
                             newArchiveHistory.setDocumentId(docId);
+                            newArchiveHistory.setDocumentName(handling.getDokument().getNamn());
+                            newArchiveHistory.setDocumentType(getAttachmentCategory(handling.getTyp()).getDescription());
+                            newArchiveHistory.setCaseId(closedCase.getDnr());
                             newArchiveHistory.setBatchHistory(batchHistory);
                             newArchiveHistory.setStatus(Status.NOT_COMPLETED);
                             archiveDao.postArchiveHistory(newArchiveHistory);
@@ -206,13 +206,13 @@ public class Archiver {
                             foundDocuments.add(doc);
                             log.info("Document-Count: " + foundDocuments.size() + ". Found a document that should be archived - Case-ID: " + closedCase.getDnr() + " Document-ID: " + doc.getDokId() + " Document-name: " + doc.getNamn() + " Handling-ID: " + handling.getHandlingId() + " Handlingstyp: " + handling.getTyp());
 
-                            Attachment attachment = byggrMapper.getAttachment(doc);
+                            Attachment attachment = getAttachment(doc);
 
                             archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
 
                             if (newArchiveHistory.getStatus().equals(Status.COMPLETED)
                                     && newArchiveHistory.getArchiveId() != null
-                                    && byggrMapper.getAttachmentCategory(handling.getTyp()).equals(AttachmentCategory.GEO)) {
+                                    && getAttachmentCategory(handling.getTyp()).equals(AttachmentCategory.GEO)) {
                                 boolean success = sendEmailToLantmateriet(attachment, newArchiveHistory);
 
                                 if (!success) {
@@ -349,8 +349,8 @@ public class Archiver {
         arkivobjektHandling.setSkapad(formatToIsoDateOrReturnNull(document.getSkapadDatum()));
         arkivobjektHandling.getBilaga().add(getBilaga(document));
         if (Objects.nonNull(handling.getTyp())) {
-            arkivobjektHandling.setHandlingstyp(byggrMapper.getAttachmentCategory(handling.getTyp()).getArchiveClassification());
-            arkivobjektHandling.setRubrik(byggrMapper.getAttachmentCategory(handling.getTyp()).getDescription());
+            arkivobjektHandling.setHandlingstyp(getAttachmentCategory(handling.getTyp()).getArchiveClassification());
+            arkivobjektHandling.setRubrik(getAttachmentCategory(handling.getTyp()).getDescription());
         }
 
         // TODO - I don't know what to set this fields to right now
@@ -377,12 +377,21 @@ public class Archiver {
 
     private BilagaTyp getBilaga(Dokument document) {
         BilagaTyp bilaga = new BilagaTyp();
-        bilaga.setNamn(document.getNamn());
+        bilaga.setNamn(getNameWithExtension(document.getNamn(), document.getFil().getFilAndelse()));
         bilaga.setBeskrivning(document.getBeskrivning());
 //        bilaga.setChecksumma(document.getChecksum());
 
         bilaga.setLank("Bilagor\\" + bilaga.getNamn());
         return bilaga;
+    }
+
+    private String getNameWithExtension(String name, String extension) {
+        if (Pattern.compile(".*(\\.[a-zA-Z]{3,4})$").matcher(name).find()) {
+            return name;
+        } else {
+            String extensionWithDot = extension.contains(".") ? extension.toLowerCase() : "." + extension.toLowerCase();
+            return name + extensionWithDot;
+        }
     }
 
 
@@ -564,5 +573,45 @@ public class Archiver {
         filter.setUpperInclusiveBound(end);
 
         return filter;
+    }
+
+    private Attachment getAttachment(Dokument doc) {
+        Attachment attachment = new Attachment();
+        attachment.setExtension("." + doc.getFil().getFilAndelse().toLowerCase());
+        attachment.setName(doc.getNamn());
+        attachment.setFile(caseUtil.byteArrayToBase64(doc.getFil().getFilBuffer()));
+
+        return attachment;
+    }
+
+    private AttachmentCategory getAttachmentCategory(String handlingsTyp) {
+        try {
+            return AttachmentCategory.valueOf(handlingsTyp);
+        } catch (IllegalArgumentException e) {
+            // All the "handlingstyper" we don't recognize, we set to AttachmentCategory.BIL,
+            // which means they get the archiveClassification D,
+            // which means that they are not public in the archive.
+            return AttachmentCategory.BIL;
+        }
+    }
+
+    /**
+     * Sets setLowerExclusiveBound to the returned batchEnd if it is not equal or before the latest batch. If it is, we add 1 hour.
+     * After this, we run the batch again.
+     */
+    private void setLowerExclusiveBoundWithReturnedValue(BatchFilter filter, ArendeBatch arendeBatch) {
+        if (arendeBatch != null) {
+            log.info("Last ArendeBatch start: " + arendeBatch.getBatchStart() + " end: " + arendeBatch.getBatchEnd());
+            if (arendeBatch.getBatchEnd() == null
+                    || arendeBatch.getBatchEnd().isEqual(filter.getLowerExclusiveBound())
+                    || arendeBatch.getBatchEnd().isBefore(filter.getLowerExclusiveBound())) {
+
+                LocalDateTime plusOneHour = filter.getLowerExclusiveBound().plusHours(1);
+                filter.setLowerExclusiveBound(plusOneHour.isAfter(filter.getUpperInclusiveBound()) ? filter.getUpperInclusiveBound() : plusOneHour);
+
+            } else {
+                filter.setLowerExclusiveBound(arendeBatch.getBatchEnd().isAfter(filter.getUpperInclusiveBound()) ? filter.getUpperInclusiveBound() : arendeBatch.getBatchEnd());
+            }
+        }
     }
 }

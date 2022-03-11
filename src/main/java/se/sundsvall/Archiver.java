@@ -386,10 +386,12 @@ public class Archiver {
     }
 
     private String getNameWithExtension(String name, String extension) {
+        extension = extension.trim().toLowerCase();
+
         if (Pattern.compile(".*(\\.[a-zA-Z]{3,4})$").matcher(name).find()) {
             return name;
         } else {
-            String extensionWithDot = extension.contains(".") ? extension.toLowerCase() : "." + extension.toLowerCase();
+            String extensionWithDot = extension.contains(".") ? extension : "." + extension;
             return name + extensionWithDot;
         }
     }
@@ -578,7 +580,7 @@ public class Archiver {
     private Attachment getAttachment(Dokument doc) {
         Attachment attachment = new Attachment();
         attachment.setExtension("." + doc.getFil().getFilAndelse().toLowerCase());
-        attachment.setName(doc.getNamn());
+        attachment.setName(getNameWithExtension(doc.getNamn(), doc.getFil().getFilAndelse()));
         attachment.setFile(caseUtil.byteArrayToBase64(doc.getFil().getFilBuffer()));
 
         return attachment;

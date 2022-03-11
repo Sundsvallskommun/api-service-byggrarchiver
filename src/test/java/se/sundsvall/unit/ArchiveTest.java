@@ -604,7 +604,7 @@ class ArchiveTest {
 
         Attachment attachment = new Attachment();
         attachment.setExtension("." + handling.getDokument().getFil().getFilAndelse().toLowerCase());
-        attachment.setName(handling.getDokument().getNamn());
+        attachment.setName(handling.getDokument().getNamn() + "." + handling.getDokument().getFil().getFilAndelse());
         attachment.setFile(caseUtil.byteArrayToBase64(handling.getDokument().getFil().getFilBuffer()));
 
         ByggRArchiveRequest archiveMessage = new ByggRArchiveRequest();

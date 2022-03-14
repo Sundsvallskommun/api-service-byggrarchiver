@@ -12,14 +12,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import se.sundsvall.ArchiveDao;
 import se.sundsvall.Archiver;
 import se.sundsvall.TestDao;
 import se.sundsvall.exceptions.ApplicationException;
 import se.sundsvall.exceptions.ServiceException;
+import se.sundsvall.sokigo.CaseUtil;
 import se.sundsvall.sokigo.arendeexport.ArendeExportIntegrationService;
-import se.sundsvall.sokigo.arendeexport.ByggrMapper;
 import se.sundsvall.sundsvall.archive.ArchiveService;
 import se.sundsvall.sundsvall.messaging.MessagingService;
 import se.sundsvall.util.Constants;
@@ -71,7 +72,7 @@ class ArchiveTest {
     ArchiveDao archiveDao;
 
     @Inject
-    ByggrMapper byggrMapper;
+    CaseUtil caseUtil;
 
     @InjectMock
     @RestClient
@@ -600,7 +601,12 @@ class ArchiveTest {
 
         // Mock
         Handling handling = arende1.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0);
-        Attachment attachment = byggrMapper.getAttachment(handling.getDokument());
+
+        Attachment attachment = new Attachment();
+        attachment.setExtension("." + handling.getDokument().getFil().getFilAndelse().toLowerCase());
+        attachment.setName(handling.getDokument().getNamn() + "." + handling.getDokument().getFil().getFilAndelse());
+        attachment.setFile(caseUtil.byteArrayToBase64(handling.getDokument().getFil().getFilBuffer()));
+
         ByggRArchiveRequest archiveMessage = new ByggRArchiveRequest();
         archiveMessage.setAttachment(attachment);
         Mockito.doThrow(ServiceException.create(POST_ARCHIVE_EXCEPTION_MESSAGE, null, Response.Status.INTERNAL_SERVER_ERROR)).when(archiveServiceMock).postArchive(Mockito.argThat(new ArchiveMessageAttachmentMatcher(archiveMessage)));
@@ -773,6 +779,49 @@ class ArchiveTest {
         verifyCalls(4, 4, 3, 2);
 
         // TODO verify error message in the log
+    }
+
+    @Test
+    void testBilagaNamn() throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(LocalDateTime.now().minusDays(1).withHour(12).withMinute(0).withSecond(0));
+        arendeBatch.setBatchEnd(LocalDateTime.now().minusDays(1).withHour(23).withMinute(0).withSecond(0));
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        List<HandelseHandling> handelseHandlingList = arende1.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling();
+        handelseHandlingList.get(0).getDokument().setNamn("test.without.extension");
+        handelseHandlingList.get(0).getDokument().getFil().setFilAndelse(".docx");
+        handelseHandlingList.get(1).getDokument().setNamn("test.without extension 2");
+        handelseHandlingList.get(1).getDokument().getFil().setFilAndelse("pdf");
+        handelseHandlingList.get(2).getDokument().setNamn("test.with   .extension.DOCX");
+
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationService).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = archiver.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestArgumentCaptor = ArgumentCaptor.forClass(ByggRArchiveRequest.class);
+        verify(archiveServiceMock, times(3)).postArchive(byggRArchiveRequestArgumentCaptor.capture());
+
+        byggRArchiveRequestArgumentCaptor.getAllValues().forEach(byggRArchiveRequest -> {
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("Bilaga Namn=\"test.without.extension.docx\" Lank=\"Bilagor\\test.without.extension.docx\"") ||
+                    byggRArchiveRequest.getMetadata().contains("Bilaga Namn=\"test.without extension 2.pdf\" Lank=\"Bilagor\\test.without extension 2.pdf\"") ||
+                    byggRArchiveRequest.getMetadata().contains("Bilaga Namn=\"test.with   .extension.DOCX\" Lank=\"Bilagor\\test.with   .extension.DOCX\""));
+        });
+        verifyCalls(3, 3, 3, 0);
+
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 3);
     }
 
     private void verifyBatchHistory(BatchHistory returnedBatchHistory, Status status, int expectedNumberOfRelatedArchiveHistories) {

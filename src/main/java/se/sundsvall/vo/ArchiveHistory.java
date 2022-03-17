@@ -48,6 +48,7 @@ public class ArchiveHistory {
 
     @Getter
     @Setter
+    @Column( length = 1000 )
     private String archiveUrl;
 
     @Getter

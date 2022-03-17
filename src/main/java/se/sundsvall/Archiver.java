@@ -8,6 +8,7 @@ import generated.se.sundsvall.messaging.MessageStatusResponse;
 import generated.se.sundsvall.messaging.Sender1;
 import generated.sokigo.fb.FastighetDto;
 import org.apache.commons.text.StringSubstitutor;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import se.ra.xml.e_arkiv.fgs_erms.ObjectFactory;
@@ -63,6 +64,15 @@ public class Archiver {
 
     @Inject
     ArendeExportIntegrationService arendeExportIntegrationService;
+
+    @ConfigProperty(name = "geo.email.receiver")
+    String geoEmailReceiver;
+
+    @ConfigProperty(name = "geo.email.sender")
+    String geoEmailSender;
+
+    @ConfigProperty(name = "long-term.archive.url")
+    String longTermArchiveUrl;
 
     public BatchHistory runBatch(LocalDate start, LocalDate end, BatchTrigger batchTrigger) throws ApplicationException {
 
@@ -272,6 +282,7 @@ public class Archiver {
                 // Success! Set status to completed
                 newArchiveHistory.setStatus(Status.COMPLETED);
                 newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
+                newArchiveHistory.setArchiveUrl(createArchiveUrl(newArchiveHistory.getCaseId(), newArchiveHistory.getDocumentId()));
 
                 log.info("The archive-process of document with ID: " + newArchiveHistory.getDocumentId() + " succeeded!");
             } else {
@@ -285,6 +296,14 @@ public class Archiver {
         }
 
         archiveDao.updateArchiveHistory(newArchiveHistory);
+    }
+
+    private String createArchiveUrl(String byggrCaseId, String byggrDocumentId) {
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("byggrCaseId", getStringOrEmpty(byggrCaseId));
+        valuesMap.put("byggrDocumentId", getStringOrEmpty(byggrDocumentId));
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
+        return longTermArchiveUrl + stringSubstitutor.replace(Constants.ARCHIVE_URL_QUERY);
     }
 
     private LeveransobjektTyp getLeveransobjektTyp(Arende arende, Handling handling, Dokument document) throws ApplicationException {
@@ -513,18 +532,17 @@ public class Archiver {
 
         // Sender
         Sender1 sender1 = new Sender1();
-        sender1.setEmailAddress("dennis.nilsson@sundsvall.se");
-        sender1.setName("Archiver");
+        sender1.setEmailAddress(geoEmailSender);
+        sender1.setName("ByggrArchiver");
         emailRequest.setSender(sender1);
 
-        emailRequest.setEmailAddress("dennis.nilsson@b3.se");
+        emailRequest.setEmailAddress(geoEmailReceiver);
         emailRequest.setSubject("Arkiverad geoteknisk handling");
 
         Map<String, String> valuesMap = new HashMap<>();
-        valuesMap.put("archiveId", getStringOrEmpty(archiveHistory.getArchiveId()));
         valuesMap.put("archiveUrl", getStringOrEmpty(archiveHistory.getArchiveUrl()));
+        valuesMap.put("byggrCaseId", getStringOrEmpty(archiveHistory.getCaseId()));
         valuesMap.put("byggrDocumentName", getStringOrEmpty(attachment.getName()));
-        valuesMap.put("byggrDocumentId", getStringOrEmpty(archiveHistory.getDocumentId()));
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
         String htmlWithReplacedValues = stringSubstitutor.replace(Constants.LANTMATERIET_HTML_TEMPLATE);

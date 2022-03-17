@@ -9,14 +9,14 @@ public final class Constants {
     public static final String LANTMATERIET_HTML_TEMPLATE = "<p>Hej!</p>" +
             "<p>En geoteknisk handling har precis blivit arkiverad. Handlingen finns bifogad i mailet.<br />Denna ska l&auml;ggas till p&aring; <a href=\"https://karta.sundsvall.se/\">https://karta.sundsvall.se/</a></p>" +
             "<ul>" +
-            "<li><strong>Arkiverings-ID:</strong> ${archiveId}</li>" +
-            "<li><strong>URL till den arkiverade handlingen:</strong> <a href=\"${archiveUrl}\">${archiveUrl}/</a></li>" +
+            "<li><strong>URL till arkivet:</strong> <a href=\"${archiveUrl}\">Long-Term Archive(LTA)</a></li>" +
             "<li><strong>&Auml;rende-ID i Byggr:</strong> ${byggrCaseId}</li>" +
             "<li><strong>Namn p&aring; handlingen i Byggr:</strong> ${byggrDocumentName}</li>" +
-            "<li><strong>Dokument-ID i Byggr: </strong>${byggrDocumentId}</li>" +
             "</ul>" +
             "<p>Vid eventuella problem, svara p&aring; detta mail.</p>" +
             "<p>Mvh<br />ByggrArchiver</p>";
+    
+    public static final String ARCHIVE_URL_QUERY = "/Search?searchPath=Bygglovshandlingar%20AGS&aipFilterOption=0&%C3%84rendenummer=MatchesPhrase(${byggrCaseId})&Handlingsnummer=MatchesPhrase(${byggrDocumentId})";
 
     ////////////////// RFC-url
     public static final String RFC_LINK_BAD_REQUEST = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1";

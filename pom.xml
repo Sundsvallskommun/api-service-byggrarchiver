@@ -7,6 +7,13 @@
     <artifactId>byggrarchiver</artifactId>
     <version>0.1</version>
     <properties>
+        <!-- CI/CD properties -->
+        <docker.image.name>ms-byggrarchiver</docker.image.name>
+        <exposed.app.port>8080</exposed.app.port>
+        <published.container.port.sandbox>8717</published.container.port.sandbox>
+        <published.container.port.test>8718</published.container.port.test>
+        <published.container.port.production>9091</published.container.port.production>
+
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.source>11</maven.compiler.source>

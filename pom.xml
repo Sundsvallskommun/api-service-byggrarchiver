@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>se.sundsvall</groupId>
     <artifactId>ms-byggrarchiver</artifactId>
-    <version>0.1</version>
+    <version>1.0</version>
     <properties>
         <!-- CI/CD properties -->
         <docker.image.name>ms-byggrarchiver</docker.image.name>

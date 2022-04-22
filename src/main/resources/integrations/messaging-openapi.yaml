@@ -1,10 +1,10 @@
 openapi: 3.0.2
 info:
   title: Messaging API
-  description: API used to send messages, as e-mail or SMS
-  version: 1.0.0
+  description: 'API used to send messages, as e-mail or SMS'
+  version: '1.2'
 servers:
-  - url: https://api-i-test.sundsvall.se/messaging/1.1
+  - url: /
 security:
   - default: []
 tags:
@@ -42,8 +42,12 @@ paths:
                 $ref: '#/components/schemas/ServiceErrorResponse'
       security:
         - default: []
-      x-auth-type: null
-      x-throttling-tier: null
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
   /messages/email:
     post:
       tags:
@@ -76,8 +80,12 @@ paths:
                 $ref: '#/components/schemas/ServiceErrorResponse'
       security:
         - default: []
-      x-auth-type: null
-      x-throttling-tier: null
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
   /messages/sms:
     post:
       tags:
@@ -110,9 +118,13 @@ paths:
                 $ref: '#/components/schemas/ServiceErrorResponse'
       security:
         - default: []
-      x-auth-type: null
-      x-throttling-tier: null
-  /messages/status/{messageId}:
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  '/messages/status/{messageId}':
     get:
       tags:
         - Messaging API endpoints
@@ -154,17 +166,21 @@ paths:
                 $ref: '#/components/schemas/ServiceErrorResponse'
       security:
         - default: []
-      x-auth-type: null
-      x-throttling-tier: null
-  /messages/{recipientId}/conversationHistory:
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
+  '/messages/{partyId}/conversationHistory':
     get:
       tags:
         - Messaging API endpoints
-      summary: Get the conversation history for a given recipient ID
+      summary: Get the conversation history for a given party id
       parameters:
-        - name: recipientId
+        - name: partyId
           in: path
-          description: Recipient ID (UUID)
+          description: Party id (UUID)
           required: true
           style: simple
           explode: false
@@ -183,7 +199,7 @@ paths:
         '204':
           description: No content - no recipient statuses found
         '400':
-          description: Bad request - correct recipient ID (UUID) must be provided
+          description: Bad request - correct party ID (UUID) must be provided
           content:
             application/json:
               schema:
@@ -196,8 +212,12 @@ paths:
                 $ref: '#/components/schemas/ServiceErrorResponse'
       security:
         - default: []
-      x-auth-type: null
-      x-throttling-tier: null
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+          - oauth2
+        optional: false
 components:
   schemas:
     Attachment:
@@ -217,26 +237,26 @@ components:
           example: text/plain
     EmailRequest:
       required:
-        - message
+        - emailAddress
       type: object
       properties:
         sender:
           $ref: '#/components/schemas/Sender1'
         emailAddress:
+          pattern: \S
           type: string
           description: Recipient e-mail address
-        recipientId:
+          nullable: false
+        partyId:
           type: string
-          description: Recipient ID
+          description: Party id
           example: f7b379e6-3e0b-4f32-9812-e10279dd3d0a
         subject:
           type: string
           description: E-mail subject
         message:
-          pattern: \S
           type: string
           description: E-mail plain-text body
-          nullable: false
         htmlMessage:
           type: string
           description: E-mail HTML body (BASE64-encoded)
@@ -253,7 +273,7 @@ components:
           type: string
         recipient:
           type: string
-        personId:
+        partyId:
           type: string
         messageType:
           type: string
@@ -269,17 +289,17 @@ components:
     Message:
       required:
         - message
-        - recipientId
+        - partyId
       type: object
       properties:
         sender:
           allOf:
             - $ref: '#/components/schemas/Sender'
             - description: The message sender
-        recipientId:
+        partyId:
           minLength: 1
           type: string
-          description: The message recipient ID
+          description: The party id
           nullable: false
           example: f427952b-247c-4d3b-b081-675a467b3619
         subject:
@@ -364,9 +384,9 @@ components:
           type: string
           description: The sender of the SMS
           nullable: false
-        recipientId:
+        partyId:
           type: string
-          description: Recipient ID
+          description: Party id
         mobileNumber:
           pattern: \S
           type: string
@@ -401,5 +421,36 @@ components:
       type: oauth2
       flows:
         implicit:
-          authorizationUrl: https://api-i-test.sundsvall.se/authorize
+          authorizationUrl: ''
           scopes: {}
+x-wso2-auth-header: Authorization
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+    - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+    - authorization
+    - Access-Control-Allow-Origin
+    - Content-Type
+    - SOAPAction
+    - apikey
+    - testKey
+  accessControlAllowMethods:
+    - GET
+    - PUT
+    - POST
+    - DELETE
+    - PATCH
+    - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+    - 'https://microservices-test.sundsvall.se/messaging/'
+  type: http
+x-wso2-basePath: /messaging/1.2
+x-wso2-transports:
+  - http
+  - https
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

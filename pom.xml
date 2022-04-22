@@ -2,9 +2,10 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>ms-byggrarchiver</name>
     <modelVersion>4.0.0</modelVersion>
     <groupId>se.sundsvall</groupId>
-    <artifactId>byggrarchiver</artifactId>
+    <artifactId>ms-byggrarchiver</artifactId>
     <version>0.1</version>
     <properties>
         <!-- CI/CD properties -->
@@ -14,20 +15,20 @@
         <published.container.port.test>8718</published.container.port.test>
         <published.container.port.production>9091</published.container.port.production>
 
+        <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
+        <generated-sources-java-path>src/main/java</generated-sources-java-path>
+        <generated-sources-path>${project.build.directory}/generated-sources</generated-sources-path>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <openapi-generator-maven-plugin>5.4.0</openapi-generator-maven-plugin>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>2.7.3.Final</quarkus.platform.version>
+        <quarkus.platform.version>2.6.3.Final</quarkus.platform.version>
         <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
-        <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
-        <openapi-generator-maven-plugin>5.4.0</openapi-generator-maven-plugin>
-        <generated-sources-path>${project.build.directory}/generated-sources</generated-sources-path>
-        <generated-sources-java-path>src/main/java</generated-sources-java-path>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -79,10 +80,6 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-h2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-scheduler</artifactId>
         </dependency>
         <dependency>
@@ -93,7 +90,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>4.5.0</version>
+            <version>4.5.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -123,8 +120,45 @@
             <artifactId>quarkus-cxf</artifactId>
             <version>0.13.1</version>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-spring-cloud-config-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.jmimemagic</groupId>
+            <artifactId>jmimemagic</artifactId>
+            <version>0.1.5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mariadb</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
 
             <plugin>
@@ -159,15 +193,6 @@
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
-                    <!-- Environment variables for test -->
-                    <environmentVariables>
-                        <FB_USER>test</FB_USER>
-                        <FB_PASSWORD>test</FB_PASSWORD>
-                        <FB_DATABASE>test</FB_DATABASE>
-                        <SUNDSVALLS_KOMMUN_CONSUMER_KEY>test</SUNDSVALLS_KOMMUN_CONSUMER_KEY>
-                        <SUNDSVALLS_KOMMUN_CONSUMER_SECRET>test</SUNDSVALLS_KOMMUN_CONSUMER_SECRET>
-                        <SCHEDULED_JOB_CRON_EXPRESSION>0 0 7 ? * *</SCHEDULED_JOB_CRON_EXPRESSION>
-                    </environmentVariables>
                 </configuration>
             </plugin>
 
@@ -175,17 +200,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.7</version>
-                <configuration>
-                    <includes>
-                        <include>se/sundsvall/**</include>
-                    </includes>
-                    <excludes>
-                        <exclude>**/vo/**</exclude>
-                        <exclude>**/*LoggingFilter*</exclude>
-                        <exclude>**/exceptions/mappers/**</exclude>
-                        <exclude>**/Constants*</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
@@ -230,6 +244,17 @@
                         </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <includes>
+                        <include>se/sundsvall/**</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/*LoggingFilter*</exclude>
+                        <exclude>**/exceptions/mappers/**</exclude>
+                        <exclude>**/Constants*</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -243,7 +268,8 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging-openapi.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging-openapi.yaml
+                            </inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
@@ -268,7 +294,8 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/integrations/archive-openapi.json</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/archive-openapi.json
+                            </inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>

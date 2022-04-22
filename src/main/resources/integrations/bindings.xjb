@@ -4,7 +4,7 @@
                xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
     <jaxb:globalBindings>
-        <jaxb:javaType name="java.time.LocalDateTime" xmlType="xs:dateTime" parseMethod="se.sundsvall.util.DateAdapter.parseDateTime" printMethod="se.sundsvall.util.DateAdapter.printLocalDateTime"/>
-        <jaxb:javaType name="java.time.LocalDate" xmlType="xs:date" parseMethod="se.sundsvall.util.DateAdapter.parseDate" printMethod="se.sundsvall.util.DateAdapter.printLocalDate"/>
+        <jaxb:javaType name="java.time.LocalDateTime" xmlType="xs:dateTime" parseMethod="se.sundsvall.byggrarchiver.service.util.DateAdapter.parseDateTime" printMethod="se.sundsvall.byggrarchiver.service.util.DateAdapter.printLocalDateTime"/>
+        <jaxb:javaType name="java.time.LocalDate" xmlType="xs:date" parseMethod="se.sundsvall.byggrarchiver.service.util.DateAdapter.parseDate" printMethod="se.sundsvall.byggrarchiver.service.util.DateAdapter.printLocalDate"/>
     </jaxb:globalBindings>
 </jaxb:bindings>

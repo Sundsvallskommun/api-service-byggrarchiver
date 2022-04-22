@@ -10,20 +10,24 @@ import io.restassured.filter.log.LogDetail;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import se.sundsvall.ArchiveDao;
-import se.sundsvall.TestDao;
-import se.sundsvall.integration.support.WireMockLifecycleManager;
-import se.sundsvall.util.Constants;
-import se.sundsvall.vo.*;
+import se.sundsvall.byggrarchiver.api.model.BatchJob;
+import se.sundsvall.byggrarchiver.api.model.BatchTrigger;
+import se.sundsvall.byggrarchiver.api.model.Status;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
+import se.sundsvall.byggrarchiver.service.util.Constants;
+import se.sundsvall.util.TestDao;
+import se.sundsvall.util.TestUtil;
+import se.sundsvall.util.wiremock.WireMockLifecycleManager;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
@@ -41,7 +45,10 @@ class ArchiveIntegrationTest {
     TestDao testDao;
 
     @Inject
-    ArchiveDao archiveDao;
+    ArchiveHistoryRepository archiveHistoryRepository;
+
+    @Inject
+    BatchHistoryRepository batchHistoryRepository;
 
     @BeforeEach
     void beforeEach() {
@@ -97,7 +104,7 @@ class ArchiveIntegrationTest {
         Assertions.assertEquals(getArchiveHistoryList, getArchiveHistoryListCompleted);
         getArchiveHistoryList.forEach(ah -> Assertions.assertEquals(postBatchHistory, ah.getBatchHistory()));
         getArchiveHistoryList.forEach(ah -> Assertions.assertEquals(Status.COMPLETED, ah.getStatus()));
-        Assertions.assertEquals(archiveDao.getArchiveHistories(postBatchHistory.getId()), getArchiveHistoryList);
+        Assertions.assertEquals(archiveHistoryRepository.getArchiveHistories(postBatchHistory.getId()), getArchiveHistoryList);
     }
 
     // POST batch and then GET batchhistory and archivehistories - verify that the correct is returned
@@ -139,7 +146,7 @@ class ArchiveIntegrationTest {
 
     // Rerun an earlier batch
     @Test
-    void testRerun() throws JsonProcessingException {
+    void testRerun() {
 
         BatchHistory batchHistory = new BatchHistory();
         batchHistory.setStatus(Status.NOT_COMPLETED);
@@ -147,7 +154,7 @@ class ArchiveIntegrationTest {
         batchHistory.setEnd(LocalDate.now());
         batchHistory.setBatchTrigger(BatchTrigger.SCHEDULED);
 
-        archiveDao.postBatchHistory(batchHistory);
+        batchHistoryRepository.postBatchHistory(batchHistory);
 
         // PUT batchJob (reRun)
         given()
@@ -192,8 +199,8 @@ class ArchiveIntegrationTest {
 
     // Rerun a non existing batch
     @Test
-    void testRerunNonExistingBatch() throws JsonProcessingException {
-        int randomNumber = new Random().nextInt(999999);
+    void testRerunNonExistingBatch() {
+        int randomNumber = TestUtil.RANDOM.nextInt(999999);
 
         // PUT batchJob (reRun)
         given()
@@ -302,12 +309,4 @@ class ArchiveIntegrationTest {
                 .log().ifValidationFails(LogDetail.BODY)
                 .statusCode(Response.Status.NOT_FOUND.getStatusCode());
     }
-
-//    TODO - Test exception from GetDocument - Should return http 500
-//    @Test
-//    void testErrorFromGetDocument() throws JsonProcessingException {
-
-//    }
-
-
 }

@@ -8,7 +8,7 @@ RUN mvn dependency:go-offline --batch-mode
 
 COPY . .
 ARG PROFILE=""
-RUN mvn clean package $PROFILE
+RUN mvn clean package -DskipTests
 
 FROM openjdk:11.0.12
 ENV TZ="Europe/Stockholm"

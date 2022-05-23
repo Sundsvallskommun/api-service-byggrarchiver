@@ -740,15 +740,15 @@ class ArchiveTest {
     @ParameterizedTest
     @ValueSource(strings = {"{\"Message\":\"File format \\\".xlsx\\\" is not allowed for specified submission agreement.\"}",
             "{\n" +
-            "  \"type\" : \"https://zalando.github.io/problem/constraint-violation\",\n" +
-            "  \"status\" : 400,\n" +
-            "  \"violations\" : [ {\n" +
-            "    \"field\" : \"attachment.extension\",\n" +
-            "    \"message\" : \"extension must be valid. Must match rege\n" +
-            "x: ^\\\\.(bmp|gif|tif|tiff|jpeg|jpg|png|htm|html|pdf|rtf|doc|docx|txt|xls|xlsx|odt|ods|pptx|ppt|msg)$\"\n" +
-            "  } ],\n" +
-            "  \"title\" : \"Constraint Violation\"\n" +
-            "}"})
+                    "  \"type\" : \"https://zalando.github.io/problem/constraint-violation\",\n" +
+                    "  \"status\" : 400,\n" +
+                    "  \"violations\" : [ {\n" +
+                    "    \"field\" : \"attachment.extension\",\n" +
+                    "    \"message\" : \"extension must be valid. Must match rege\n" +
+                    "x: ^\\\\.(bmp|gif|tif|tiff|jpeg|jpg|png|htm|html|pdf|rtf|doc|docx|txt|xls|xlsx|odt|ods|pptx|ppt|msg)$\"\n" +
+                    "  } ],\n" +
+                    "  \"title\" : \"Constraint Violation\"\n" +
+                    "}"})
     void runBatchArchiveErrorExtension(String responseBody) throws ServiceException, ApplicationException {
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
@@ -950,6 +950,161 @@ class ArchiveTest {
             Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("Bilaga Namn=\"test.without.extension.docx\" Lank=\"Bilagor\\test.without.extension.docx\"") ||
                     byggRArchiveRequest.getMetadata().contains("Bilaga Namn=\"test.without extension 2.pdf\" Lank=\"Bilagor\\test.without extension 2.pdf\"") ||
                     byggRArchiveRequest.getMetadata().contains("Bilaga Namn=\"test.with   .extension.DOCX\" Lank=\"Bilagor\\test.with   .extension.DOCX\""));
+        });
+        verifyCalls(3, 3, 3, 0, 0);
+
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 3);
+    }
+
+    @Test
+    void testArkivbildareAnkomstNull() throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(LocalDateTime.now().minusDays(1).withHour(12).withMinute(0).withSecond(0));
+        arendeBatch.setBatchEnd(LocalDateTime.now().minusDays(1).withHour(23).withMinute(0).withSecond(0));
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        List<HandelseHandling> handelseHandlingList = arende1.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling();
+
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationClient).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestArgumentCaptor = ArgumentCaptor.forClass(ByggRArchiveRequest.class);
+        verify(archiveClientMock, times(3)).postArchive(byggRArchiveRequestArgumentCaptor.capture());
+
+        byggRArchiveRequestArgumentCaptor.getAllValues().forEach(byggRArchiveRequest -> {
+            System.out.println(byggRArchiveRequest.getMetadata());
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Arkivbildare><Namn>" + Constants.SUNDSVALLS_KOMMUN + "</Namn><VerksamhetstidFran>1974</VerksamhetstidFran>"));
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Arkivbildare><Namn>" + Constants.STADSBYGGNADSNAMNDEN + "</Namn><VerksamhetstidFran>2017</VerksamhetstidFran></Arkivbildare>"));
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Klass>" + Constants.HANTERA_BYGGLOV + "</Klass>"));
+        });
+        verifyCalls(3, 3, 3, 0, 0);
+
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 3);
+    }
+
+    @Test
+    void testArkivbildareAnkomstEfter2017() throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(LocalDateTime.now().minusDays(1).withHour(12).withMinute(0).withSecond(0));
+        arendeBatch.setBatchEnd(LocalDateTime.now().minusDays(1).withHour(23).withMinute(0).withSecond(0));
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        arende1.setAnkomstDatum(LocalDate.of(2017, 01, 01));
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationClient).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestArgumentCaptor = ArgumentCaptor.forClass(ByggRArchiveRequest.class);
+        verify(archiveClientMock, times(3)).postArchive(byggRArchiveRequestArgumentCaptor.capture());
+
+        byggRArchiveRequestArgumentCaptor.getAllValues().forEach(byggRArchiveRequest -> {
+            System.out.println(byggRArchiveRequest.getMetadata());
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Arkivbildare><Namn>" + Constants.SUNDSVALLS_KOMMUN + "</Namn><VerksamhetstidFran>1974</VerksamhetstidFran>"));
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Arkivbildare><Namn>" + Constants.STADSBYGGNADSNAMNDEN + "</Namn><VerksamhetstidFran>2017</VerksamhetstidFran></Arkivbildare>"));
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Klass>" + Constants.HANTERA_BYGGLOV + "</Klass>"));
+        });
+        verifyCalls(3, 3, 3, 0, 0);
+
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 3);
+    }
+
+    @Test
+    void testArkivbildareAnkomstInnan2017() throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(LocalDateTime.now().minusDays(1).withHour(12).withMinute(0).withSecond(0));
+        arendeBatch.setBatchEnd(LocalDateTime.now().minusDays(1).withHour(23).withMinute(0).withSecond(0));
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        arende1.setAnkomstDatum(LocalDate.of(2016, 12, 01));
+
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationClient).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestArgumentCaptor = ArgumentCaptor.forClass(ByggRArchiveRequest.class);
+        verify(archiveClientMock, times(3)).postArchive(byggRArchiveRequestArgumentCaptor.capture());
+
+        byggRArchiveRequestArgumentCaptor.getAllValues().forEach(byggRArchiveRequest -> {
+            System.out.println(byggRArchiveRequest.getMetadata());
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Arkivbildare><Namn>" + Constants.SUNDSVALLS_KOMMUN + "</Namn><VerksamhetstidFran>1974</VerksamhetstidFran>"));
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Arkivbildare><Namn>" + Constants.STADSBYGGNADSNAMNDEN + "</Namn><VerksamhetstidFran>1993</VerksamhetstidFran><VerksamhetstidTill>2017</VerksamhetstidTill></Arkivbildare></Arkivbildare>"));
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Klass>" + Constants.F_2_BYGGLOV + "</Klass>"));
+        });
+        verifyCalls(3, 3, 3, 0, 0);
+
+        verifyBatchHistory(returnedBatchHistory, Status.COMPLETED, 3);
+    }
+
+    @Test
+    void testArkivbildareAnkomstInnan1993() throws ApplicationException, ServiceException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        ArendeBatch arendeBatch = new ArendeBatch();
+        arendeBatch.setBatchStart(LocalDateTime.now().minusDays(1).withHour(12).withMinute(0).withSecond(0));
+        arendeBatch.setBatchEnd(LocalDateTime.now().minusDays(1).withHour(23).withMinute(0).withSecond(0));
+
+        ArrayOfArende arrayOfArende = new ArrayOfArende();
+        Arende arende1 = createArendeObject(Constants.BYGGR_STATUS_AVSLUTAT, Constants.BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.PLFASE, AttachmentCategory.FASSIT2, AttachmentCategory.TOMTPLBE));
+        arende1.setAnkomstDatum(LocalDate.of(1992, 12, 01));
+
+        arrayOfArende.getArende().addAll(List.of(arende1));
+        arendeBatch.setArenden(arrayOfArende);
+
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.atTime(23, 59, 59);
+        BatchFilter batchFilter = new BatchFilter();
+        batchFilter.setLowerExclusiveBound(start);
+        batchFilter.setUpperInclusiveBound(end);
+
+        Mockito.doReturn(arendeBatch).when(arendeExportIntegrationClient).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
+
+        BatchHistory returnedBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, BatchTrigger.SCHEDULED);
+
+        ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestArgumentCaptor = ArgumentCaptor.forClass(ByggRArchiveRequest.class);
+        verify(archiveClientMock, times(3)).postArchive(byggRArchiveRequestArgumentCaptor.capture());
+
+        byggRArchiveRequestArgumentCaptor.getAllValues().forEach(byggRArchiveRequest -> {
+            System.out.println(byggRArchiveRequest.getMetadata());
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Arkivbildare><Namn>" + Constants.SUNDSVALLS_KOMMUN + "</Namn><VerksamhetstidFran>1974</VerksamhetstidFran>"));
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Arkivbildare><Namn>" + Constants.BYGGNADSNAMNDEN + "</Namn><VerksamhetstidFran>1974</VerksamhetstidFran><VerksamhetstidTill>1992</VerksamhetstidTill></Arkivbildare></Arkivbildare>"));
+            Assertions.assertTrue(byggRArchiveRequest.getMetadata().contains("<Klass>" + Constants.F_2_BYGGLOV + "</Klass>"));
         });
         verifyCalls(3, 3, 3, 0, 0);
 

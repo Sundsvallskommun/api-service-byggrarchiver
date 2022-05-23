@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class ByggrArchiverService {
 
+    public static final String STANGT = "Stängt";
+
     @Inject
     Logger log;
 
@@ -315,7 +317,7 @@ public class ByggrArchiverService {
 
     private LeveransobjektTyp getLeveransobjektTyp(Arende arende, Handling handling, Dokument document) throws ApplicationException {
         LeveransobjektTyp leveransobjekt = new LeveransobjektTyp();
-        leveransobjekt.setArkivbildarStruktur(getArkivbildarStruktur());
+        leveransobjekt.setArkivbildarStruktur(getArkivbildarStruktur(arende.getAnkomstDatum()));
         leveransobjekt.setArkivobjektListaArenden(getArkivobjektListaArenden(arende, handling, document));
 
         leveransobjekt.setInformationsklass(null);
@@ -334,7 +336,7 @@ public class ByggrArchiverService {
         arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(arende.getSlutDatum()));
         arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(arende.getRegistreradDatum()));
         StatusArande statusArande = new StatusArande();
-        statusArande.setValue("Stängt");
+        statusArande.setValue(STANGT);
         arkivobjektArende.setStatusArande(statusArande);
         arkivobjektArende.setArendeTyp(arende.getArendetyp());
         arkivobjektArende.setArkivobjektListaHandlingar(getArkivobjektListaHandlingar(handling, document));
@@ -343,20 +345,26 @@ public class ByggrArchiverService {
             arkivobjektArende.getFastighet().add(getFastighet(arende.getObjektLista().getAbstractArendeObjekt()));
         }
 
-        arkivobjektArende.getKlass().add("F2 Bygglov");
+        if (arende.getAnkomstDatum() == null || arende.getAnkomstDatum().isAfter(LocalDate.of(2016, 12, 31))) {
+            arkivobjektArende.getKlass().add(Constants.HANTERA_BYGGLOV);
+        } else {
+            arkivobjektArende.getKlass().add(Constants.F_2_BYGGLOV);
+        }
+
+        if (arende.getAnkomstDatum() != null) {
+            arkivobjektArende.setNotering(String.valueOf(arende.getAnkomstDatum().getYear()));
+        }
 
         arkivobjektArende.setInkommen(null);
         arkivobjektArende.setInformationsklass(null);
         arkivobjektArende.setArkiverat(null);
         arkivobjektArende.setBeskrivning(null);
-        arkivobjektArende.setArkiverat(null);
         arkivobjektArende.setAtkomst(null);
         arkivobjektArende.setExpedierad(null);
         arkivobjektArende.setForvaringsenhetsReferens(null);
         arkivobjektArende.setGallring(null);
         arkivobjektArende.setMinaArendeoversikterKlassificering(null);
         arkivobjektArende.setMinaArendeoversikterStatus(null);
-        arkivobjektArende.setNotering(null);
         arkivobjektArende.setSistaAnvandandetidpunkt(null);
         arkivobjektArende.setSystemidentifierare(null);
         arkivobjektArende.setUpprattad(null);
@@ -450,16 +458,27 @@ public class ByggrArchiverService {
         return fastighet;
     }
 
-    private ArkivbildarStrukturTyp getArkivbildarStruktur() {
+    private ArkivbildarStrukturTyp getArkivbildarStruktur(LocalDate ankomstDatum) {
         ArkivbildarStrukturTyp arkivbildarStruktur = new ArkivbildarStrukturTyp();
 
         ArkivbildareTyp arkivbildareSundsvallsKommun = new ArkivbildareTyp();
-        arkivbildareSundsvallsKommun.setNamn("Sundsvalls kommun");
+        arkivbildareSundsvallsKommun.setNamn(Constants.SUNDSVALLS_KOMMUN);
         arkivbildareSundsvallsKommun.setVerksamhetstidFran("1974");
 
         ArkivbildareTyp arkivbildareByggOchMiljoNamnden = new ArkivbildareTyp();
-        arkivbildareByggOchMiljoNamnden.setNamn("Bygg- och miljönämnden");
-        arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("1974");
+        if (ankomstDatum == null || ankomstDatum.isAfter(LocalDate.of(2016, 12, 31))) {
+            arkivbildareByggOchMiljoNamnden.setNamn(Constants.STADSBYGGNADSNAMNDEN);
+            arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("2017");
+            arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill(null);
+        } else if (ankomstDatum.isAfter(LocalDate.of(1992, 12, 31))) {
+            arkivbildareByggOchMiljoNamnden.setNamn(Constants.STADSBYGGNADSNAMNDEN);
+            arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("1993");
+            arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill("2017");
+        } else if (ankomstDatum.isBefore(LocalDate.of(1993, 01, 01))) {
+            arkivbildareByggOchMiljoNamnden.setNamn(Constants.BYGGNADSNAMNDEN);
+            arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("1974");
+            arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill("1992");
+        }
         arkivbildareSundsvallsKommun.setArkivbildare(arkivbildareByggOchMiljoNamnden);
 
         arkivbildarStruktur.setArkivbildare(arkivbildareSundsvallsKommun);

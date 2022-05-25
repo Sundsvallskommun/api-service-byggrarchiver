@@ -26,11 +26,11 @@ public class ArchiverScheduleService {
     void archive(ScheduledExecution execution) throws ApplicationException {
         log.info("Running archiving on schedule. Timestamp: " + LocalDateTime.ofInstant(execution.getFireTime(), ZoneId.of("Europe/Stockholm")));
 
-        // Run batch from one week back in time to today
+        // Run batch from one week back in time to yesterday
         // TODO - change this when we run this job everyday
         LocalDate oneWeekBack = LocalDate.now().minusDays(7);
-        LocalDate today = LocalDate.now();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
 
-        byggrArchiverService.runBatch(oneWeekBack, today, BatchTrigger.SCHEDULED);
+        byggrArchiverService.runBatch(oneWeekBack, yesterday, BatchTrigger.SCHEDULED);
     }
 }

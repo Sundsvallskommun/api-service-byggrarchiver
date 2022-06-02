@@ -332,6 +332,9 @@ public class ByggrArchiverService {
         ArkivobjektArendeTyp arkivobjektArende = new ArkivobjektArendeTyp();
 
         arkivobjektArende.setArkivobjektID(arende.getDnr());
+        ExtraID extraID = new ExtraID();
+        extraID.setContent(arende.getDnr());
+        arkivobjektArende.getExtraID().add(extraID);
         arkivobjektArende.setArendemening(arende.getBeskrivning());
         arkivobjektArende.setAvslutat(formatToIsoDateOrReturnNull(arende.getSlutDatum()));
         arkivobjektArende.setSkapad(formatToIsoDateOrReturnNull(arende.getRegistreradDatum()));

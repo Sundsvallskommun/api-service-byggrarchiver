@@ -291,7 +291,7 @@ public class ByggrArchiverService {
                 // Success! Set status to completed
                 newArchiveHistory.setStatus(Status.COMPLETED);
                 newArchiveHistory.setArchiveId(archiveResponse.getArchiveId());
-                newArchiveHistory.setArchiveUrl(createArchiveUrl(newArchiveHistory.getCaseId(), newArchiveHistory.getDocumentId()));
+                newArchiveHistory.setArchiveUrl(createArchiveUrl(newArchiveHistory.getArchiveId()));
 
                 log.info("The archive-process of document with ID: " + newArchiveHistory.getDocumentId() + " succeeded!");
             } else {
@@ -307,10 +307,9 @@ public class ByggrArchiverService {
         archiveHistoryRepository.updateArchiveHistory(newArchiveHistory);
     }
 
-    private String createArchiveUrl(String byggrCaseId, String byggrDocumentId) {
+    private String createArchiveUrl(String archiveId) {
         Map<String, String> valuesMap = new HashMap<>();
-        valuesMap.put("byggrCaseId", util.getStringOrEmpty(byggrCaseId));
-        valuesMap.put("byggrDocumentId", util.getStringOrEmpty(byggrDocumentId));
+        valuesMap.put("archiveId", util.getStringOrEmpty(archiveId));
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
         return longTermArchiveUrl + stringSubstitutor.replace(Constants.ARCHIVE_URL_QUERY);
     }

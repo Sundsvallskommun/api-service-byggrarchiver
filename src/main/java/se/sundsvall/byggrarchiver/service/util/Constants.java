@@ -39,7 +39,7 @@ public final class Constants {
             "<p>Svara på detta mail när ni har konverterat dokumentet till rätt format så vi kan slutföra arkiveringen.</p>" +
             "<p>Mvh<br />ByggrArchiver</p>";
     
-    public static final String ARCHIVE_URL_QUERY = "/Search?searchPath=Bygglovshandlingar%20AGS&aipFilterOption=0&%C3%84rendenummer=MatchesPhrase(${byggrCaseId})&Handlingsnummer=MatchesPhrase(${byggrDocumentId})";
+    public static final String ARCHIVE_URL_QUERY = "/Search?searchPath=AGS%20Bygglov&aipFilterOption=0&Arkivpakets-ID=MatchesPhrase(${archiveId})";
 
     ////////////////// RFC-url
     public static final String RFC_LINK_BAD_REQUEST = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1";

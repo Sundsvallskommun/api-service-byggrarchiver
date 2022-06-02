@@ -36,7 +36,7 @@ public final class Constants {
             "<li><strong>Dokumentnamn:</strong> ${documentName}</li>" +
             "<li><strong>Handlingstyp:</strong> ${documentType}</li>" +
             "</ul>" +
-            "<p>Svara på detta mail när ni har konverterat dokumentet till rätt format så vi kan slutföra arkiveringen.</p>" +
+            "<p>Svara p&aring; detta mail n&auml;r ni har konverterat dokumentet till r&auml;tt format s&aring; vi kan slutf&ouml;ra arkiveringen.</p>" +
             "<p>Mvh<br />ByggrArchiver</p>";
     
     public static final String ARCHIVE_URL_QUERY = "/Search?searchPath=AGS%20Bygglov&aipFilterOption=0&Arkivpakets-ID=MatchesPhrase(${archiveId})";

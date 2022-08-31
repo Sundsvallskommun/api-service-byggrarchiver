@@ -1,129 +1,106 @@
-<?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <name>ms-byggrarchiver</name>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>se.sundsvall.dept44</groupId>
+        <artifactId>dept44-service-parent</artifactId>
+        <version>1.9</version>
+    </parent>
     <groupId>se.sundsvall</groupId>
     <artifactId>ms-byggrarchiver</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
+    <name>ms-byggrarchiver</name>
+    <description>Application that archives documents from Byggr</description>
     <properties>
-        <!-- CI/CD properties -->
+        <java.version>17</java.version>
+        <generated-sources-path>${project.build.directory}/generated-sources</generated-sources-path>
+        <generated-sources-java-path>src/main/java</generated-sources-java-path>
+
+        <!-- Dependency versions -->
+        <org.projectlombok.version>1.18.24</org.projectlombok.version>
+        <openapi-generator-maven-plugin.version>6.0.1</openapi-generator-maven-plugin.version>
+        <testcontainers.version>1.17.2</testcontainers.version>
+
+        <!-- Pipeline properties -->
         <docker.image.name>ms-byggrarchiver</docker.image.name>
-        <exposed.app.port>8080</exposed.app.port>
         <published.container.port.sandbox>8717</published.container.port.sandbox>
         <published.container.port.test>8718</published.container.port.test>
         <published.container.port.production>9091</published.container.port.production>
-
-        <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
-        <compiler-plugin.version>3.8.1</compiler-plugin.version>
-        <generated-sources-java-path>src/main/java</generated-sources-java-path>
-        <generated-sources-path>${project.build.directory}/generated-sources</generated-sources-path>
-        <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <openapi-generator-maven-plugin>5.4.0</openapi-generator-maven-plugin>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>2.6.3.Final</quarkus.platform.version>
-        <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     </properties>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>${quarkus.platform.group-id}</groupId>
-                <artifactId>${quarkus.platform.artifact-id}</artifactId>
-                <version>${quarkus.platform.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <dependencies>
+
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-arc</artifactId>
+            <groupId>se.sundsvall.dept44</groupId>
+            <artifactId>dept44-starter</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-validator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-client-jackson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-oidc-client-filter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-openapi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-mariadb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-scheduler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
+            <groupId>se.sundsvall.dept44</groupId>
+            <artifactId>dept44-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>4.5.1</version>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>3.1.6</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>se.sundsvall.dept44</groupId>
+            <artifactId>dept44-common-validators</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>se.sundsvall.dept44</groupId>
+            <artifactId>dept44-starter-feign</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-slf4j</artifactId>
+            <version>11.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>se.sundsvall.generated-clients</groupId>
+            <artifactId>arendeexport</artifactId>
+            <version>1.1</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
-            <scope>provided</scope>
+            <version>${org.projectlombok.version}</version>
+            <scope>compile</scope>
         </dependency>
+
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5-mockito</artifactId>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8</artifactId>
-            <version>2.32.0</version>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mariadb</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
-            <version>1.9</version>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.cxf</groupId>
-            <artifactId>quarkus-cxf</artifactId>
-            <version>0.13.1</version>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-spring-cloud-config-client</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>net.sf.jmimemagic</groupId>
             <artifactId>jmimemagic</artifactId>
@@ -135,132 +112,22 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.9</version>
         </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>mariadb</artifactId>
-            <scope>test</scope>
-        </dependency>
+
     </dependencies>
+
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-
         <plugins>
-
-            <plugin>
-                <groupId>${quarkus.platform.group-id}</groupId>
-                <artifactId>quarkus-maven-plugin</artifactId>
-                <version>${quarkus.platform.version}</version>
-                <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>generate-code</goal>
-                            <goal>generate-code-tests</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${compiler-plugin.version}</version>
-                <configuration>
-                    <parameters>${maven.compiler.parameters}</parameters>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire-plugin.version}</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                        <maven.home>${maven.home}</maven.home>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.7</version>
-                <executions>
-                    <execution>
-                        <id>default-prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/jacoco</outputDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>check-coverage-metrics</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <rule>
-                                    <element>BUNDLE</element>
-                                    <limits>
-                                        <limit>
-                                            <counter>LINE</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <minimum>0.80</minimum>
-                                        </limit>
-                                        <limit>
-                                            <counter>BRANCH</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <minimum>0.80</minimum>
-                                        </limit>
-                                    </limits>
-                                </rule>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-                <configuration>
-                    <includes>
-                        <include>se/sundsvall/**</include>
-                    </includes>
-                    <excludes>
-                        <exclude>**/model/**</exclude>
-                        <exclude>**/*LoggingFilter*</exclude>
-                        <exclude>**/exceptions/mappers/**</exclude>
-                        <exclude>**/Constants*</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
 
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>${openapi-generator-maven-plugin}</version>
+                <version>${openapi-generator-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>messaging-api</id>
@@ -268,12 +135,10 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging-openapi.yaml
-                            </inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging-openapi.yaml</inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
-                            <additionalProperties>useSwaggerAnnotations=false</additionalProperties>
                             <configOptions>
                                 <sourceFolder>${generated-sources-java-path}</sourceFolder>
                                 <generateSupportingFiles>false</generateSupportingFiles>
@@ -288,18 +153,17 @@
                             </configOptions>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>archive-api</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/integrations/archive-openapi.json
-                            </inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/archive-openapi.json</inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
-                            <additionalProperties>useSwaggerAnnotations=false</additionalProperties>
                             <configOptions>
                                 <sourceFolder>${generated-sources-java-path}</sourceFolder>
                                 <generateSupportingFiles>false</generateSupportingFiles>
@@ -314,6 +178,7 @@
                             </configOptions>
                         </configuration>
                     </execution>
+
                     <execution>
                         <id>fb-api</id>
                         <goals>
@@ -324,7 +189,6 @@
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
-                            <additionalProperties>useSwaggerAnnotations=false</additionalProperties>
                             <configOptions>
                                 <sourceFolder>${generated-sources-java-path}</sourceFolder>
                                 <generateSupportingFiles>false</generateSupportingFiles>
@@ -344,6 +208,26 @@
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${build-helper-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>add-generated-source</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${generated-sources-path}/${generated-sources-java-path}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
                 <version>2.5.0</version>
                 <executions>
@@ -355,93 +239,33 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <outputDirectory>${generated-sources-path}/src/main/soap</outputDirectory>
+                    <outputDirectory>${generated-sources-path}/${generated-sources-java-path}</outputDirectory>
+                    <clearOutputDir>false</clearOutputDir>
+                    <packageName>generated.se.sundsvall.archive.metadata</packageName>
                     <encoding>UTF-8</encoding>
                     <addGeneratedAnnotation>true</addGeneratedAnnotation>
                     <sources>
                         <source>${project.basedir}/src/main/resources/integrations/Bygglov_v2.xsd</source>
                     </sources>
                     <xjbSources>
-                        <xjbSource>${project.basedir}/src/main/resources/integrations/bindings.xjb</xjbSource>
+                        <xjbSource>${project.basedir}/src/main/resources/integrations/bindings.xml</xjbSource>
                     </xjbSources>
                 </configuration>
             </plugin>
 
             <plugin>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-codegen-plugin</artifactId>
-                <version>3.4.2</version>
-                <executions>
-                    <execution>
-                        <id>generate-sources</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>wsdl2java</goal>
-                        </goals>
-                        <configuration>
-                            <sourceRoot>${generated-sources-path}/src/main/soap</sourceRoot>
-                            <defaultOptions>
-                                <bindingFiles>
-                                    <bindingFile>${project.basedir}/src/main/resources/integrations/bindings.xjb
-                                    </bindingFile>
-                                </bindingFiles>
-                            </defaultOptions>
-                            <wsdlOptions>
-                                <wsdlOption>
-                                    <wsdl>
-                                        ${project.basedir}/src/main/resources/integrations/saas151_ArendeExportWS.xml
-                                    </wsdl>
-                                    <wsdlLocation>classpath:saas151_ArendeExportWS.xml</wsdlLocation>
-                                    <extraargs>
-                                        <extraarg>-autoNameResolution</extraarg>
-                                        <extraarg>-client</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                            </wsdlOptions>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/byggrarchiver/Application*</exclude>
+                        <exclude>**/util/Constants*</exclude>
+                        <exclude>**/generated/**</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
 
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>native</id>
-            <activation>
-                <property>
-                    <name>native</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${surefire-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                                <configuration>
-                                    <systemPropertyVariables>
-                                        <native.image.path>
-                                            ${project.build.directory}/${project.build.finalName}-runner
-                                        </native.image.path>
-                                        <java.util.logging.manager>org.jboss.logmanager.LogManager
-                                        </java.util.logging.manager>
-                                        <maven.home>${maven.home}</maven.home>
-                                    </systemPropertyVariables>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-            <properties>
-                <quarkus.package.type>native</quarkus.package.type>
-            </properties>
-        </profile>
-    </profiles>
+
 </project>

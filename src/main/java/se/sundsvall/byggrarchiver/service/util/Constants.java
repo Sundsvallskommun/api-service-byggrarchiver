@@ -6,6 +6,11 @@ public final class Constants {
         throw new IllegalStateException("Utility class");
     }
 
+    public static final String BATCH_HISTORY_NOT_FOUND = "BatchHistory not found";
+    public static final String ARCHIVE_HISTORY_NOT_FOUND = "ArchiveHistory not found";
+
+    public static final String ARENDEEXPORT_ERROR_MESSAGE = "Request to arendeExportIntegrationService failed.";
+
     public static final String LANTMATERIET_HTML_TEMPLATE = "<p>Hej!</p>" +
             "<p>En geoteknisk handling har precis blivit arkiverad. Handlingen finns bifogad i mailet.<br />" +
             "Denna ska l&auml;ggas till p&aring; <a href=\"https://karta.sundsvall.se/\">https://karta.sundsvall.se/</a></p>" +

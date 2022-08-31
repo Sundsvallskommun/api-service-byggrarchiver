@@ -1,112 +1,101 @@
 package se.sundsvall.byggrarchiver.api;
 
-import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
-import org.eclipse.microprofile.openapi.annotations.media.Content;
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
+import org.zalando.problem.violations.ConstraintViolationProblem;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
-import se.sundsvall.byggrarchiver.api.model.BatchTrigger;
-import se.sundsvall.byggrarchiver.api.model.Information;
-import se.sundsvall.byggrarchiver.api.model.Status;
-import se.sundsvall.byggrarchiver.api.validators.StartBeforeEnd;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
+import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.api.validation.StartBeforeEnd;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+import se.sundsvall.byggrarchiver.service.util.Constants;
 
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Path("/")
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+
+@RestController
+@Validated
+@RequestMapping("/")
 public class ByggrArchiverResource {
 
-    @Inject
-    ByggrArchiverService byggrArchiverService;
+    private final ByggrArchiverService byggrArchiverService;
 
-    @Inject
-    ArchiveHistoryRepository archiveHistoryRepository;
+    private final ArchiveHistoryRepository archiveHistoryRepository;
 
-    @Inject
-    BatchHistoryRepository batchHistoryRepository;
+    private final BatchHistoryRepository batchHistoryRepository;
 
-    @GET
-    @Path("archived/attachments")
-    @Produces(MediaType.APPLICATION_JSON)
-    @APIResponses(value = {
-            @APIResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = ArchiveHistory.class))),
-            @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
-            @APIResponse(responseCode = "404", description = "Not found", content = @Content(schema = @Schema(implementation = Information.class))),
-            @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
-    })
-    public Response getArchiveHistory(@QueryParam("status") Status status, @QueryParam("batchHistoryId") Long batchHistoryId) {
-        List<ArchiveHistory> archiveHistoryList = archiveHistoryRepository.getArchiveHistories();
+    public ByggrArchiverResource(ByggrArchiverService byggrArchiverService, ArchiveHistoryRepository archiveHistoryRepository, BatchHistoryRepository batchHistoryRepository) {
+        this.byggrArchiverService = byggrArchiverService;
+        this.archiveHistoryRepository = archiveHistoryRepository;
+        this.batchHistoryRepository = batchHistoryRepository;
+    }
 
-        if (batchHistoryId != null) {
-            archiveHistoryList = archiveHistoryList.stream().filter(ah -> batchHistoryId.equals(ah.getBatchHistory().getId())).collect(Collectors.toList());
-        }
-        if (status != null) {
-            archiveHistoryList = archiveHistoryList.stream().filter(ah -> status.equals(ah.getStatus())).collect(Collectors.toList());
-        }
+    @GetMapping(path = "archived/attachments", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
+    @ApiResponse(responseCode = "200", description = "OK - Successful operation")
+    @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
+    @ApiResponse(responseCode = "404", description = "Not found", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    public ResponseEntity<List<ArchiveHistory>> getArchiveHistory(@RequestParam(value = "archiveStatus", required = false) ArchiveStatus archiveStatus, @RequestParam(value = "batchHistoryId", required = false) Long batchHistoryId) {
+        List<ArchiveHistory> archiveHistoryList = archiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(archiveStatus, batchHistoryId);
 
         if (archiveHistoryList.isEmpty()) {
-            throw new NotFoundException("ArchiveHistory not found");
+            throw Problem.valueOf(Status.NOT_FOUND, Constants.ARCHIVE_HISTORY_NOT_FOUND);
         } else {
-            return Response.ok(archiveHistoryList).build();
+            return ResponseEntity.ok(archiveHistoryList);
         }
 
     }
 
-    @GET
-    @Path("batch-jobs")
-    @Produces(MediaType.APPLICATION_JSON)
-    @APIResponses(value = {
-            @APIResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(type = SchemaType.ARRAY, implementation = BatchHistory.class))),
-            @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
-            @APIResponse(responseCode = "404", description = "Not found", content = @Content(schema = @Schema(implementation = Information.class))),
-            @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
-    })
-    public Response getBatchHistory() {
-        List<BatchHistory> batchHistoryList = batchHistoryRepository.getBatchHistories();
+    @GetMapping(path = "batch-jobs", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
+    @ApiResponse(responseCode = "200", description = "OK - Successful operation")
+    @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
+    @ApiResponse(responseCode = "404", description = "Not found", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    public ResponseEntity<List<BatchHistory>> getBatchHistory() {
+        List<BatchHistory> batchHistoryList = batchHistoryRepository.findAll();
 
         if (batchHistoryList.isEmpty()) {
-            throw new NotFoundException("BatchHistory not found");
+            throw Problem.valueOf(Status.NOT_FOUND, Constants.BATCH_HISTORY_NOT_FOUND);
         } else {
-            return Response.ok(batchHistoryList).build();
+            return ResponseEntity.ok(batchHistoryList);
         }
     }
 
-    @POST
-    @Path("batch-jobs")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @APIResponses(value = {
-            @APIResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = BatchHistory.class))),
-            @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
-            @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
-    })
-    public Response postBatchJob(@StartBeforeEnd @NotNull(message = "Request body must not be null") @Valid BatchJob batchJob) throws ApplicationException {
-        return Response.ok(byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL)).build();
+    @PostMapping(path = "batch-jobs", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
+    @ApiResponse(responseCode = "200", description = "OK - Successful operation")
+    @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
+    @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    public ResponseEntity<BatchHistory> postBatchJob(@StartBeforeEnd @NotNull(message = "Request body must not be null") @Valid @RequestBody BatchJob batchJob) throws ApplicationException {
+        return ResponseEntity.ok(byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL));
     }
 
-    @POST
-    @Path("batch-jobs/{batchHistoryId}/rerun")
-    @Produces(MediaType.APPLICATION_JSON)
-    @APIResponses(value = {
-            @APIResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = BatchHistory.class))),
-            @APIResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = Information.class))),
-            @APIResponse(responseCode = "404", description = "Not found", content = @Content(schema = @Schema(implementation = Information.class))),
-            @APIResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = Information.class)))
-            })
-    public Response reRunBatchJob(@PathParam("batchHistoryId") Long batchHistoryId) throws ApplicationException {
-        return Response.ok(byggrArchiverService.reRunBatch(batchHistoryId)).build();
+    @PostMapping(path = "batch-jobs/{batchHistoryId}/rerun", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
+    @ApiResponse(responseCode = "200", description = "OK - Successful operation")
+    @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
+    @ApiResponse(responseCode = "404", description = "Not found", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    public ResponseEntity<BatchHistory> reRunBatchJob(@PathVariable("batchHistoryId") Long batchHistoryId) throws ApplicationException {
+        return ResponseEntity.ok(byggrArchiverService.reRunBatch(batchHistoryId));
     }
 }

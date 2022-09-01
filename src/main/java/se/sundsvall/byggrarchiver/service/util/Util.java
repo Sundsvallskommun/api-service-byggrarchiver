@@ -11,12 +11,13 @@ import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import java.util.Base64;
-import java.util.Objects;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Service
 public class Util {
 
-    private final Logger log = LoggerFactory.getLogger(Util.class);
+    private static final Logger log = LoggerFactory.getLogger(Util.class);
 
     public String byteArrayToBase64(byte[] byteArray) {
         if (byteArray == null) {
@@ -31,7 +32,7 @@ public class Util {
             log.info("getExtensionFromByteArray returns: {}", magicMatch.getExtension());
             String result = magicMatch.getExtension();
 
-            if (Objects.isNull(result) || result.isBlank()) {
+            if (isBlank(result)) {
                 throw new MagicMatchNotFoundException();
             } else {
                 return result;

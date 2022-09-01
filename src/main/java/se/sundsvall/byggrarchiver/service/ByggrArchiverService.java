@@ -32,6 +32,8 @@ import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.zalando.problem.AbstractThrowableProblem;
 import org.zalando.problem.Problem;
@@ -65,12 +67,17 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static se.sundsvall.dept44.util.ResourceUtils.asString;
+
 @Service
 public class ByggrArchiverService {
 
-    public static final String STANGT = "Stängt";
+    private static final String STANGT = "Stängt";
 
-    private final Logger log = LoggerFactory.getLogger(ByggrArchiverService.class);
+    private Resource geoTekniskHandlingHtmlTemplate = new ClassPathResource("html-templates/geoteknisk_handling_template.html");
+    private Resource missingExtensionHtmlTemplate = new ClassPathResource("html-templates/missing_extension_template.html");
+
+    private static final Logger log = LoggerFactory.getLogger(ByggrArchiverService.class);
     private final ArchiveClient archiveClient;
     private final MessagingClient messagingClient;
     private final ArchiveHistoryRepository archiveHistoryRepository;
@@ -259,10 +266,10 @@ public class ByggrArchiverService {
         } while (batchFilter.getLowerExclusiveBound().isBefore(end));
 
         log.info("""
-                Total number of cases: {}
-                Total number of closed cases: {}
-                Total number of processed documents: {}
-                """,
+                        Total number of cases: {}
+                        Total number of closed cases: {}
+                        Total number of processed documents: {}
+                        """,
                 foundCases.size(),
                 foundClosedCases.size(),
                 foundDocuments.size());
@@ -565,12 +572,12 @@ public class ByggrArchiverService {
         emailRequest.setSubject("Manuell hantering krävs");
 
         Map<String, String> valuesMap = new HashMap<>();
-        valuesMap.put("byggrCaseId", StringEscapeUtils.escapeHtml4(util.getStringOrEmpty(archiveHistory.getCaseId())));
-        valuesMap.put("documentName", StringEscapeUtils.escapeHtml4(util.getStringOrEmpty(archiveHistory.getDocumentName())));
-        valuesMap.put("documentType", StringEscapeUtils.escapeHtml4(util.getStringOrEmpty(archiveHistory.getDocumentType())));
+        valuesMap.put("byggrCaseId", util.getStringOrEmpty(archiveHistory.getCaseId()));
+        valuesMap.put("documentName", util.getStringOrEmpty(archiveHistory.getDocumentName()));
+        valuesMap.put("documentType", util.getStringOrEmpty(archiveHistory.getDocumentType()));
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
-        String htmlWithReplacedValues = stringSubstitutor.replace(Constants.EXTENSION_ERROR_HTML_TEMPLATE);
+        String htmlWithReplacedValues = StringEscapeUtils.escapeHtml4(stringSubstitutor.replace(asString(missingExtensionHtmlTemplate)));
         emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 
         sendEmail(archiveHistory, emailRequest);
@@ -596,12 +603,12 @@ public class ByggrArchiverService {
         emailRequest.setSubject("Arkiverad geoteknisk handling");
 
         Map<String, String> valuesMap = new HashMap<>();
-        valuesMap.put("archiveUrl", StringEscapeUtils.escapeHtml4(util.getStringOrEmpty(archiveHistory.getArchiveUrl())));
-        valuesMap.put("byggrCaseId", StringEscapeUtils.escapeHtml4(util.getStringOrEmpty(archiveHistory.getCaseId())));
-        valuesMap.put("byggrDocumentName", StringEscapeUtils.escapeHtml4(util.getStringOrEmpty(attachment.getName())));
+        valuesMap.put("archiveUrl", util.getStringOrEmpty(archiveHistory.getArchiveUrl()));
+        valuesMap.put("byggrCaseId", util.getStringOrEmpty(archiveHistory.getCaseId()));
+        valuesMap.put("byggrDocumentName", util.getStringOrEmpty(attachment.getName()));
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
-        String htmlWithReplacedValues = stringSubstitutor.replace(Constants.LANTMATERIET_HTML_TEMPLATE);
+        String htmlWithReplacedValues = StringEscapeUtils.escapeHtml4(stringSubstitutor.replace(asString(geoTekniskHandlingHtmlTemplate)));
 
         emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 

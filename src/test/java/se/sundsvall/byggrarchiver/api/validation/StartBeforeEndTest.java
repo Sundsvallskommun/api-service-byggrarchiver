@@ -34,6 +34,17 @@ class StartBeforeEndTest {
     }
 
     @Test
+    void validSameDate() {
+        final BatchJob batchJob = BatchJob.builder()
+                .start(LocalDate.now())
+                .end(LocalDate.now())
+                .build();
+
+        assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isTrue();
+
+    }
+
+    @Test
     void invalid() {
         final BatchJob batchJob = BatchJob.builder()
                 .start(LocalDate.now())

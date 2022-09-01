@@ -17,8 +17,6 @@ import se.sundsvall.dept44.configuration.feign.FeignHelper;
 import javax.xml.soap.SOAPConstants;
 import java.nio.charset.StandardCharsets;
 
-import static java.time.Duration.ofSeconds;
-
 @Import(FeignClientsConfiguration.class)
 public class ArendeExportConfiguration {
     private static final JAXBContextFactory JAXB_FACTORY = new JAXBContextFactory.Builder()
@@ -50,8 +48,8 @@ public class ArendeExportConfiguration {
     @Bean
     FeignBuilderCustomizer feignBuilderCustomizer(ArendeExportProperties properties) {
         return FeignHelper.customizeRequestOptions()
-                .withConnectTimeout(ofSeconds(properties.getConnectTimeout()))
-                .withReadTimeout(ofSeconds(properties.getReadTimeout()))
+                .withConnectTimeout(properties.getConnectTimeout())
+                .withReadTimeout(properties.getReadTimeout())
                 .build();
     }
 }

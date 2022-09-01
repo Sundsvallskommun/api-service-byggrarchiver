@@ -62,6 +62,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
@@ -131,6 +132,9 @@ class ByggrArchiverServiceTest {
         fastighetDto.setTrakt("Test trakt");
         fastighetDto.setUuid(UUID.randomUUID());
         lenient().doReturn(fastighetDto).when(fbServiceMock).getPropertyInfoByFnr(any());
+
+        // Util
+        lenient().when(utilMock.getStringOrEmpty(anyString())).thenAnswer(i -> i.getArguments()[0]);
     }
 
     // Standard scenario - Run batch for yesterday - 0 cases and documents found

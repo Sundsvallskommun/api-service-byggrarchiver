@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Service
 public class ArchiverScheduleService {
 
-    private final Logger log = LoggerFactory.getLogger(ArchiverScheduleService.class);
+    private static final Logger log = LoggerFactory.getLogger(ArchiverScheduleService.class);
 
     private ByggrArchiverService byggrArchiverService;
 

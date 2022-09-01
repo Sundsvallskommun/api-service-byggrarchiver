@@ -13,6 +13,6 @@ public class StartBeforeEndValidator implements ConstraintValidator<StartBeforeE
             return true;
         }
 
-        return !batchJob.getStart().isAfter(batchJob.getEnd());
+        return batchJob.getStart().isEqual(batchJob.getEnd()) || batchJob.getStart().isBefore(batchJob.getEnd());
     }
 }

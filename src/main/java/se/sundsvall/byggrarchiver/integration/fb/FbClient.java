@@ -1,28 +1,24 @@
 package se.sundsvall.byggrarchiver.integration.fb;
 
 import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
-import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
-import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
-import org.jboss.resteasy.annotations.jaxrs.QueryParam;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import se.sundsvall.byggrarchiver.integration.fb.configuration.FbConfiguration;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
-@Path("/")
-@RegisterRestClient(configKey = "FB")
-@ApplicationScoped
+@FeignClient(name = "fb", url = "${integration.fb.url}", configuration = FbConfiguration.class)
+@CircuitBreaker(name = "fb")
 public interface FbClient {
 
-    @POST
-    @Path("Fastighet/info/fnr")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    ResponseDtoIEnumerableFastighetDto getPropertyInfoByFnr(@RequestBody List<Integer> fnrList, @QueryParam("Database") String database,
-                                                            @QueryParam("User") String user, @QueryParam("Password") String password);
+    @Retry(name = "FbClient")
+    @PostMapping(path = "Fastighet/info/fnr", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseDtoIEnumerableFastighetDto getPropertyInfoByFnr(@RequestBody List<Integer> fnrList, @RequestParam("Database") String database,
+                                                            @RequestParam("User") String user, @RequestParam("Password") String password);
 
 }

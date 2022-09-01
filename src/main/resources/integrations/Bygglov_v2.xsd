@@ -947,7 +947,7 @@
 	</xs:element>
 	<xs:element name="MinaArendeoversikterStatus" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Element för ärendets status i förhållande till E-tjänsten ”mina ärendeöversikter”.</xs:documentation>
+			<xs:documentation xml:lang="se">Element för ärendets archiveStatus i förhållande till E-tjänsten ”mina ärendeöversikter”.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Motpart" type="PersonOrganisationTyp">

@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/token"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "common/response/Sundsvall_Post_Token_200.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

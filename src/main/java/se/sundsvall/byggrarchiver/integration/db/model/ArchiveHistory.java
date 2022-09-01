@@ -1,13 +1,25 @@
 package se.sundsvall.byggrarchiver.integration.db.model;
 
-import lombok.EqualsAndHashCode;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import se.sundsvall.byggrarchiver.api.model.Status;
+import lombok.ToString;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.ManyToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -16,48 +28,35 @@ import java.util.Objects;
 
 @Entity
 @IdClass(IdPk.class)
+@Builder
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class ArchiveHistory {
-    @Getter
-    @Setter
     @Id
     private String documentId;
 
-    @Getter
-    @Setter
     @Id
     private String caseId;
 
-    @Getter
-    @Setter
     private String documentName;
 
-    @Getter
-    @Setter
     private String documentType;
 
-    @Getter
-    @Setter
     private String archiveId;
 
-    @Getter
-    @Setter
-    @Column( length = 1000 )
     private String archiveUrl;
 
-    @Getter
-    @Setter
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private ArchiveStatus archiveStatus;
 
-    @Getter
-    @Schema(readOnly = true)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    @Getter
-    @Setter
     @NotNull
     @ManyToOne
     private BatchHistory batchHistory;
@@ -69,39 +68,20 @@ public class ArchiveHistory {
     }
 
     @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ArchiveHistory{");
-        sb.append("documentId='").append(documentId).append('\'');
-        sb.append(", caseId='").append(caseId).append('\'');
-        sb.append(", documentName='").append(documentName).append('\'');
-        sb.append(", documentType='").append(documentType).append('\'');
-        sb.append(", archiveId='").append(archiveId).append('\'');
-        sb.append(", archiveUrl='").append(archiveUrl).append('\'');
-        sb.append(", status=").append(status);
-        sb.append(", timestamp=").append(timestamp);
-        sb.append(", batchHistory=").append(batchHistory);
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ArchiveHistory that = (ArchiveHistory) o;
-        return Objects.equals(documentId, that.documentId) && Objects.equals(caseId, that.caseId) && Objects.equals(documentName, that.documentName) && Objects.equals(documentType, that.documentType) && Objects.equals(archiveId, that.archiveId) && Objects.equals(archiveUrl, that.archiveUrl) && status == that.status && Objects.equals(timestamp, that.timestamp) && Objects.equals(batchHistory, that.batchHistory);
+        return Objects.equals(documentId, that.documentId) && Objects.equals(caseId, that.caseId) && Objects.equals(documentName, that.documentName) && Objects.equals(documentType, that.documentType) && Objects.equals(archiveId, that.archiveId) && Objects.equals(archiveUrl, that.archiveUrl) && archiveStatus == that.archiveStatus && Objects.equals(timestamp, that.timestamp) && Objects.equals(batchHistory, that.batchHistory);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(documentId, caseId, documentName, documentType, archiveId, archiveUrl, status, timestamp, batchHistory);
+        return Objects.hash(documentId, caseId, documentName, documentType, archiveId, archiveUrl, archiveStatus, timestamp, batchHistory);
     }
 }
 
 @Embeddable
-@Getter
-@Setter
-@EqualsAndHashCode
 class IdPk implements Serializable {
 
     private String documentId;

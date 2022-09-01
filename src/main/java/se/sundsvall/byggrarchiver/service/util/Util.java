@@ -1,19 +1,23 @@
 package se.sundsvall.byggrarchiver.service.util;
 
 import net.sf.jmimemagic.Magic;
+import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatch;
-import org.jboss.logging.Logger;
+import net.sf.jmimemagic.MagicMatchNotFoundException;
+import net.sf.jmimemagic.MagicParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.util.Base64;
 
-@ApplicationScoped
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+@Service
 public class Util {
 
-    @Inject
-    Logger log;
+    private static final Logger log = LoggerFactory.getLogger(Util.class);
 
     public String byteArrayToBase64(byte[] byteArray) {
         if (byteArray == null) {
@@ -25,9 +29,15 @@ public class Util {
     public String getExtensionFromByteArray(byte[] byteArray) throws ApplicationException {
         try {
             MagicMatch magicMatch = Magic.getMagicMatch(byteArray);
-            log.info("getExtensionFromByteArray returns: " + magicMatch.getExtension());
-            return magicMatch.getExtension();
-        } catch (Exception e) {
+            log.info("getExtensionFromByteArray returns: {}", magicMatch.getExtension());
+            String result = magicMatch.getExtension();
+
+            if (isBlank(result)) {
+                throw new MagicMatchNotFoundException();
+            } else {
+                return result;
+            }
+        } catch (MagicMatchNotFoundException | MagicException | MagicParseException e) {
             throw new ApplicationException("Could not guess extension from bytearray", e);
         }
     }

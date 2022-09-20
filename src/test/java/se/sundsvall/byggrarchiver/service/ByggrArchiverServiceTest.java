@@ -117,7 +117,7 @@ class ByggrArchiverServiceTest {
         // Messaging
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
         messageStatusResponse.setMessageId("b9535bce-fed9-4a42-a8b7-6fb6540aa3f3");
-        messageStatusResponse.setSent(true);
+        messageStatusResponse.setStatus(MessageStatusResponse.StatusEnum.SENT);
         lenient().doReturn(messageStatusResponse).when(messagingClientMock).postEmail(any());
 
         // Archiver
@@ -631,7 +631,7 @@ class ByggrArchiverServiceTest {
         // mocks messaging
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
         messageStatusResponse.setMessageId("12312-3123-123-123-123");
-        messageStatusResponse.setSent(true);
+        messageStatusResponse.setStatus(MessageStatusResponse.StatusEnum.SENT);
         Mockito.doReturn(messageStatusResponse).when(messagingClientMock).postEmail(any());
 
         // Test
@@ -666,7 +666,7 @@ class ByggrArchiverServiceTest {
         // mocks messaging
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
         messageStatusResponse.setMessageId("12312-3123-123-123-123");
-        messageStatusResponse.setSent(true);
+        messageStatusResponse.setStatus(MessageStatusResponse.StatusEnum.SENT);
         Mockito.doReturn(messageStatusResponse).when(messagingClientMock).postEmail(any());
 
         // Test
@@ -701,7 +701,7 @@ class ByggrArchiverServiceTest {
         // mocks messaging
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
         messageStatusResponse.setMessageId("12312-3123-123-123-123");
-        messageStatusResponse.setSent(false);
+        messageStatusResponse.setStatus(MessageStatusResponse.StatusEnum.FAILED);
         Mockito.doReturn(messageStatusResponse).when(messagingClientMock).postEmail(any());
 
         // Test
@@ -746,7 +746,7 @@ class ByggrArchiverServiceTest {
         // Rerun
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();
         messageStatusResponse.setMessageId("b9535bce-fed9-4a42-a8b7-6fb6540aa3f3");
-        messageStatusResponse.setSent(true);
+        messageStatusResponse.setStatus(MessageStatusResponse.StatusEnum.SENT);
         lenient().doReturn(messageStatusResponse).when(messagingClientMock).postEmail(any());
         doReturn(Optional.of(firstBatchHistory)).when(batchHistoryRepositoryMock).findById(firstBatchHistory.getId());
 

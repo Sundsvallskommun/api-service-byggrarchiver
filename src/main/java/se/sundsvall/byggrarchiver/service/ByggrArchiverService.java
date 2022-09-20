@@ -23,9 +23,9 @@ import generated.se.sundsvall.archive.metadata.FastighetTyp;
 import generated.se.sundsvall.archive.metadata.LeveransobjektTyp;
 import generated.se.sundsvall.archive.metadata.ObjectFactory;
 import generated.se.sundsvall.archive.metadata.StatusArande;
+import generated.se.sundsvall.messaging.Email;
 import generated.se.sundsvall.messaging.EmailRequest;
 import generated.se.sundsvall.messaging.MessageStatusResponse;
-import generated.se.sundsvall.messaging.Sender1;
 import generated.sokigo.fb.FastighetDto;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -563,9 +563,9 @@ public class ByggrArchiverService {
         EmailRequest emailRequest = new EmailRequest();
 
         // Sender
-        Sender1 sender = new Sender1();
+        Email sender = new Email();
         sender.setName("ByggrArchiver");
-        sender.setEmailAddress(extensionErrorEmailSender);
+        sender.setAddress(extensionErrorEmailSender);
         emailRequest.setSender(sender);
 
         emailRequest.setEmailAddress(extensionErrorEmailReceiver);
@@ -594,9 +594,10 @@ public class ByggrArchiverService {
         emailRequest.setAttachments(List.of(emailAttachment));
 
         // Sender
-        Sender1 sender = new Sender1();
+        Email sender = new Email();
+
         sender.setName("ByggrArchiver");
-        sender.setEmailAddress(geoEmailSender);
+        sender.setAddress(geoEmailSender);
         emailRequest.setSender(sender);
 
         emailRequest.setEmailAddress(geoEmailReceiver);
@@ -617,11 +618,11 @@ public class ByggrArchiverService {
 
     private void sendEmail(ArchiveHistory archiveHistory, EmailRequest emailRequest) {
         try {
-            log.info("Sending email to: {} from: {}", emailRequest.getEmailAddress(), emailRequest.getSender().getEmailAddress());
+            log.info("Sending email to: {} from: {}", emailRequest.getEmailAddress(), emailRequest.getSender().getAddress());
 
             MessageStatusResponse response = messagingClient.postEmail(emailRequest);
 
-            if (response == null || response.getMessageId() == null || Boolean.FALSE.equals(response.getSent())) {
+            if (response == null || response.getMessageId() == null || MessageStatusResponse.StatusEnum.SENT.equals(response.getStatus())) {
                 throw new ApplicationException("Unexpected response from messagingClient.postEmail(): " + response);
             }
 

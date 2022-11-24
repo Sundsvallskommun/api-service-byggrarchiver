@@ -7,9 +7,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -28,25 +29,19 @@ class UtilTest {
 
     @Test
     void testGetExtensionFromByteArray() throws IOException, ApplicationException {
-        URL url = Thread.currentThread().getContextClassLoader().getResource("File_Without_Extension");
-        File file = new File(url.getPath());
-        FileInputStream inputStream = new FileInputStream(file);
-        byte[] bytes = new byte[(int) file.length()];
-        inputStream.read(bytes);
-        inputStream.close();
+        File file = new File(getClass().getClassLoader().getResource("File_Without_Extension").getFile());
+        Path path = Paths.get(file.getAbsolutePath());
+        byte[] bytes = Files.readAllBytes(path);
 
         var result = util.getExtensionFromByteArray(bytes);
         assertEquals("docx", result);
     }
 
     @Test
-    void testGetExtensionFromByteArrayError() throws IOException, ApplicationException {
-        URL url = Thread.currentThread().getContextClassLoader().getResource("Error_File_Without_Extension");
-        File file = new File(url.getPath());
-        FileInputStream inputStream = new FileInputStream(file);
-        byte[] bytes = new byte[(int) file.length()];
-        inputStream.read(bytes);
-        inputStream.close();
+    void testGetExtensionFromByteArrayError() throws IOException {
+        File file = new File(getClass().getClassLoader().getResource("Error_File_Without_Extension").getFile());
+        Path path = Paths.get(file.getAbsolutePath());
+        byte[] bytes = Files.readAllBytes(path);
 
         var exception = assertThrows(ApplicationException.class, () -> util.getExtensionFromByteArray(bytes));
         assertEquals("Could not guess extension from bytearray", exception.getMessage());

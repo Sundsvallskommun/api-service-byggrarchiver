@@ -296,7 +296,7 @@ class IntegrationTest extends AbstractAppTest {
                 .build());
 
         // GetUpdatedArenden returns 2 documents
-        verify(2, postRequestedFor(urlEqualTo("/archive/1.0/archive/byggr")).withRequestBody(containing("\"extension\":\".docx\"")));
+        verify(2, postRequestedFor(urlEqualTo("/archive/1.0/archive/byggr")).withRequestBody(containing("\"extension\" : \".docx\"")));
     }
 
     private BatchHistory postBatchJob(BatchJob batchJob) throws JsonProcessingException, ClassNotFoundException {

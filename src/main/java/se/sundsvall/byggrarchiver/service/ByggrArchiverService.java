@@ -24,6 +24,7 @@ import generated.se.sundsvall.archive.metadata.LeveransobjektTyp;
 import generated.se.sundsvall.archive.metadata.ObjectFactory;
 import generated.se.sundsvall.archive.metadata.StatusArande;
 import generated.se.sundsvall.messaging.Email;
+import generated.se.sundsvall.messaging.EmailAttachment;
 import generated.se.sundsvall.messaging.EmailRequest;
 import generated.se.sundsvall.messaging.MessageStatusResponse;
 import generated.sokigo.fb.FastighetDto;
@@ -588,7 +589,7 @@ public class ByggrArchiverService {
         EmailRequest emailRequest = new EmailRequest();
 
         // Email-attachment
-        generated.se.sundsvall.messaging.Attachment emailAttachment = new generated.se.sundsvall.messaging.Attachment();
+        EmailAttachment emailAttachment = new EmailAttachment();
         emailAttachment.setName(attachment.getName());
         emailAttachment.setContent(attachment.getFile());
         emailRequest.setAttachments(List.of(emailAttachment));

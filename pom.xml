@@ -5,7 +5,7 @@
     <parent>
         <groupId>se.sundsvall.dept44</groupId>
         <artifactId>dept44-service-parent</artifactId>
-        <version>1.23</version>
+        <version>1.24</version>
     </parent>
     <groupId>se.sundsvall</groupId>
     <artifactId>ms-byggrarchiver</artifactId>
@@ -135,7 +135,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging-openapi.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging.json</inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
@@ -265,7 +265,22 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <testResources>
+                        <testResource>
+                            <directory>src/test/resources</directory>
+                            <filtering>true</filtering>
+                        </testResource>
+                    </testResources>
+                </configuration>
+            </plugin>
+
         </plugins>
+
+
     </build>
 
 </project>

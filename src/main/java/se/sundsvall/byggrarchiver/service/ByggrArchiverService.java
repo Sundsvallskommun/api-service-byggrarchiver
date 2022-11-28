@@ -28,7 +28,6 @@ import generated.se.sundsvall.messaging.EmailAttachment;
 import generated.se.sundsvall.messaging.EmailRequest;
 import generated.se.sundsvall.messaging.MessageStatusResponse;
 import generated.sokigo.fb.FastighetDto;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,8 +74,8 @@ public class ByggrArchiverService {
 
     private static final String STANGT = "Stängt";
 
-    private Resource geoTekniskHandlingHtmlTemplate = new ClassPathResource("html-templates/geoteknisk_handling_template.html");
-    private Resource missingExtensionHtmlTemplate = new ClassPathResource("html-templates/missing_extension_template.html");
+    private final Resource geoTekniskHandlingHtmlTemplate = new ClassPathResource("html-templates/geoteknisk_handling_template.html");
+    private final Resource missingExtensionHtmlTemplate = new ClassPathResource("html-templates/missing_extension_template.html");
 
     private static final Logger log = LoggerFactory.getLogger(ByggrArchiverService.class);
     private final ArchiveClient archiveClient;
@@ -511,7 +510,7 @@ public class ByggrArchiverService {
             arkivbildareByggOchMiljoNamnden.setNamn(Constants.STADSBYGGNADSNAMNDEN);
             arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("1993");
             arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill("2017");
-        } else if (ankomstDatum.isBefore(LocalDate.of(1993, 01, 01))) {
+        } else if (ankomstDatum.isBefore(LocalDate.of(1993, 1, 1))) {
             arkivbildareByggOchMiljoNamnden.setNamn(Constants.BYGGNADSNAMNDEN);
             arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("1974");
             arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill("1992");
@@ -578,7 +577,7 @@ public class ByggrArchiverService {
         valuesMap.put("documentType", util.getStringOrEmpty(archiveHistory.getDocumentType()));
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
-        String htmlWithReplacedValues = StringEscapeUtils.escapeHtml4(stringSubstitutor.replace(asString(missingExtensionHtmlTemplate)));
+        String htmlWithReplacedValues = stringSubstitutor.replace(asString(missingExtensionHtmlTemplate));
         emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 
         sendEmail(archiveHistory, emailRequest);
@@ -610,7 +609,7 @@ public class ByggrArchiverService {
         valuesMap.put("byggrDocumentName", util.getStringOrEmpty(attachment.getName()));
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
-        String htmlWithReplacedValues = StringEscapeUtils.escapeHtml4(stringSubstitutor.replace(asString(geoTekniskHandlingHtmlTemplate)));
+        String htmlWithReplacedValues = stringSubstitutor.replace(asString(geoTekniskHandlingHtmlTemplate));
 
         emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
 

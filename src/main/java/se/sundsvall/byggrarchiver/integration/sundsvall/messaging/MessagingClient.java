@@ -20,7 +20,7 @@ public interface MessagingClient {
      * @param emailRequest (required)
      * @return MessageStatusResponse
      */
-    @PostMapping(path = "messages/email", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/email", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     MessageStatusResponse postEmail(@RequestBody EmailRequest emailRequest) throws ServiceException;
 
 }

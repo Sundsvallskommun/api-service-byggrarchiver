@@ -14,12 +14,12 @@ class DateAdapterTest {
 
     @Test
     void testParseDate() {
-        assertEquals(LocalDate.of(2022, 03, 27), DateAdapter.parseDate("2022-03-27"));
+        assertEquals(LocalDate.of(2022, 3, 27), DateAdapter.parseDate("2022-03-27"));
     }
 
     @Test
     void testPrintLocalDate() {
-        assertEquals("2022-03-27", DateAdapter.printLocalDate(LocalDate.of(2022, 03, 27)));
+        assertEquals("2022-03-27", DateAdapter.printLocalDate(LocalDate.of(2022, 3, 27)));
     }
 
     @Test

@@ -61,7 +61,7 @@ class ByggrArchiverResourceTest {
     void getArchiveHistory404() {
         ArchiveStatus archiveStatus = (ArchiveStatus) getRandomOfEnum(ArchiveStatus.class);
         Long batchHistoryId = new Random().nextLong();
-        doReturn(new ArrayList()).when(archiveHistoryRepositoryMock).getArchiveHistoriesByArchiveStatusAndBatchHistoryId(archiveStatus, batchHistoryId);
+        doReturn(new ArrayList<>()).when(archiveHistoryRepositoryMock).getArchiveHistoriesByArchiveStatusAndBatchHistoryId(archiveStatus, batchHistoryId);
 
         webTestClient.get().uri("archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}", archiveStatus, batchHistoryId)
                 .exchange()
@@ -81,7 +81,7 @@ class ByggrArchiverResourceTest {
 
     @Test
     void getBatchHistory404() {
-        doReturn(new ArrayList()).when(batchHistoryRepositoryMock).findAll();
+        doReturn(new ArrayList<>()).when(batchHistoryRepositoryMock).findAll();
 
         webTestClient.get().uri("batch-jobs")
                 .exchange()

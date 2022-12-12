@@ -23,7 +23,7 @@ public class ArendeExportIntegrationService {
     private static final Logger log = LoggerFactory.getLogger(ArendeExportIntegrationService.class);
     private static final ThrowableProblem PROBLEM = org.zalando.problem.Problem.valueOf(Status.SERVICE_UNAVAILABLE, ARENDEEXPORT_ERROR_MESSAGE);
 
-    private ArendeExportClient arendeExportClient;
+    private final ArendeExportClient arendeExportClient;
 
     public ArendeExportIntegrationService(ArendeExportClient arendeExportClient) {
         this.arendeExportClient = arendeExportClient;

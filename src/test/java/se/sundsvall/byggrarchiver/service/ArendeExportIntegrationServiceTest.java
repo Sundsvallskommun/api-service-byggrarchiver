@@ -57,9 +57,7 @@ class ArendeExportIntegrationServiceTest {
         doThrow(SOAPFaultException.class).when(arendeExportClientMock).getUpdatedArenden(any());
 
         var batchFilter = new BatchFilter();
-        ThrowableProblem throwableProblem = assertThrows(ThrowableProblem.class, () -> {
-            arendeExportIntegrationService.getUpdatedArenden(batchFilter);
-        });
+        ThrowableProblem throwableProblem = assertThrows(ThrowableProblem.class, () -> arendeExportIntegrationService.getUpdatedArenden(batchFilter));
         assertEquals(Status.SERVICE_UNAVAILABLE, throwableProblem.getStatus());
         assertEquals(Status.SERVICE_UNAVAILABLE.getReasonPhrase(), throwableProblem.getTitle());
         assertEquals(ARENDEEXPORT_ERROR_MESSAGE, throwableProblem.getDetail());
@@ -84,9 +82,7 @@ class ArendeExportIntegrationServiceTest {
         doThrow(SOAPFaultException.class).when(arendeExportClientMock).getDocument(any());
 
         var randomUuid = UUID.randomUUID().toString();
-        ThrowableProblem throwableProblem = assertThrows(ThrowableProblem.class, () -> {
-            arendeExportIntegrationService.getDocument(randomUuid);
-        });
+        ThrowableProblem throwableProblem = assertThrows(ThrowableProblem.class, () -> arendeExportIntegrationService.getDocument(randomUuid));
         assertEquals(Status.SERVICE_UNAVAILABLE, throwableProblem.getStatus());
         assertEquals(Status.SERVICE_UNAVAILABLE.getReasonPhrase(), throwableProblem.getTitle());
         assertEquals(ARENDEEXPORT_ERROR_MESSAGE, throwableProblem.getDetail());

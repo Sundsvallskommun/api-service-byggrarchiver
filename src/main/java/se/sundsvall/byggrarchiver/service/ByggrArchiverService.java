@@ -24,7 +24,6 @@ import generated.se.sundsvall.archive.metadata.LeveransobjektTyp;
 import generated.se.sundsvall.archive.metadata.ObjectFactory;
 import generated.se.sundsvall.archive.metadata.StatusArande;
 import generated.se.sundsvall.messaging.Email;
-import generated.se.sundsvall.messaging.EmailAttachment;
 import generated.se.sundsvall.messaging.EmailRequest;
 import generated.se.sundsvall.messaging.MessageStatusResponse;
 import generated.sokigo.fb.FastighetDto;
@@ -63,8 +62,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static se.sundsvall.dept44.util.ResourceUtils.asString;
@@ -151,12 +150,7 @@ public class ByggrArchiverService {
     public BatchHistory reRunBatch(Long batchHistoryId) throws ApplicationException {
         log.info("Rerun was started with batchHistoryId: {}", batchHistoryId);
 
-        BatchHistory batchHistory;
-        try {
-            batchHistory = batchHistoryRepository.findById(batchHistoryId).orElseThrow();
-        } catch (NoSuchElementException e) {
-            throw Problem.valueOf(Status.NOT_FOUND, Constants.BATCH_HISTORY_NOT_FOUND);
-        }
+        BatchHistory batchHistory = batchHistoryRepository.findById(batchHistoryId).orElseThrow(() -> Problem.valueOf(Status.NOT_FOUND, Constants.BATCH_HISTORY_NOT_FOUND));
 
         if (batchHistory.getArchiveStatus().equals(ArchiveStatus.COMPLETED)) {
             throw Problem.valueOf(Status.BAD_REQUEST, Constants.IT_IS_NOT_POSSIBLE_TO_RERUN_A_COMPLETED_BATCH);
@@ -200,24 +194,24 @@ public class ByggrArchiverService {
             for (Arende2 closedCase : closedCaseList) {
                 foundClosedCases.add(closedCase);
 
+                // Delete all not completed archive histories connected to this case
+                archiveHistoryRepository.deleteArchiveHistoriesByCaseIdAndArchiveStatus(closedCase.getDnr(), ArchiveStatus.NOT_COMPLETED);
+
                 List<HandelseHandling> handelseHandlingList = closedCase.getHandelseLista().getHandelse().stream()
                         .filter(handelse -> Constants.BYGGR_HANDELSETYP_ARKIV.equals(handelse.getHandelsetyp()))
                         .flatMap(handelse -> handelse.getHandlingLista().getHandling().stream())
                         .filter(handelseHandling -> handelseHandling.getDokument() != null).toList();
 
                 for (Handling handling : handelseHandlingList) {
-
-                    String docId = handling.getDokument().getDokId();
-
-                    ArchiveHistory oldArchiveHistory = archiveHistoryRepository.getArchiveHistoryByDocumentIdAndCaseId(docId, closedCase.getDnr());
-
-
-                    // The new archiveHistory
                     ArchiveHistory newArchiveHistory = new ArchiveHistory();
+                    String docId = handling.getDokument().getDokId();
+                    Optional<ArchiveHistory> oldArchiveHistory = archiveHistoryRepository.getArchiveHistoryByDocumentIdAndCaseId(docId, closedCase.getDnr());
 
-                    if (oldArchiveHistory == null) {
+                    if (oldArchiveHistory.isPresent()) {
+                        log.info("Document-ID: {} in combination with Case-ID: {} is already archived.", docId, closedCase.getDnr());
+                        continue;
+                    } else {
                         log.info("Document-ID: {} in combination with Case-ID: {} does not exist in the db. Archive it..", docId, closedCase.getDnr());
-
                         newArchiveHistory.setDocumentId(docId);
                         newArchiveHistory.setDocumentName(handling.getDokument().getNamn());
                         newArchiveHistory.setDocumentType(getAttachmentCategory(handling.getTyp()).getDescription());
@@ -225,16 +219,6 @@ public class ByggrArchiverService {
                         newArchiveHistory.setBatchHistory(batchHistory);
                         newArchiveHistory.setArchiveStatus(ArchiveStatus.NOT_COMPLETED);
                         archiveHistoryRepository.save(newArchiveHistory);
-
-                    } else if (oldArchiveHistory.getArchiveStatus().equals(ArchiveStatus.NOT_COMPLETED)) {
-                        log.info("Document-ID: {} in combination with Case-ID: {} existed but has the status NOT_COMPLETED. Trying again...", docId, closedCase.getDnr());
-
-                        newArchiveHistory = oldArchiveHistory;
-                        newArchiveHistory.setBatchHistory(batchHistory);
-
-                    } else {
-                        log.info("Document-ID: {} in combination with Case-ID: {} is already archived.", docId, closedCase.getDnr());
-                        continue;
                     }
 
                     // Get documents from Byggr
@@ -250,15 +234,13 @@ public class ByggrArchiverService {
                                 handling.getHandlingId(),
                                 doc.getDokId());
 
-                        Attachment attachment = getAttachment(doc);
-
-                        archiveAttachment(attachment, closedCase, handling, doc, newArchiveHistory);
+                        archiveAttachment(getAttachment(doc), closedCase, handling, doc, newArchiveHistory);
 
                         if (newArchiveHistory.getArchiveStatus().equals(ArchiveStatus.COMPLETED)
                                 && newArchiveHistory.getArchiveId() != null
                                 && getAttachmentCategory(handling.getTyp()).equals(AttachmentCategory.GEO)) {
                             // Send email to Lantmateriet with info about the archived attachment
-                            sendEmailToLantmateriet(attachment, newArchiveHistory);
+                            sendEmailToLantmateriet(newArchiveHistory);
                         }
                     }
                 }
@@ -274,7 +256,6 @@ public class ByggrArchiverService {
                 foundClosedCases.size(),
                 foundDocuments.size());
 
-
         if (archiveHistoryRepository.getArchiveHistoriesByBatchHistoryId(batchHistory.getId()).stream().allMatch(archiveHistory -> archiveHistory.getArchiveStatus().equals(ArchiveStatus.COMPLETED))) {
             // Persist that this batch is completed
             batchHistory.setArchiveStatus(ArchiveStatus.COMPLETED);
@@ -283,7 +264,28 @@ public class ByggrArchiverService {
 
         log.info("Batch with ID: {} is {}", batchHistory.getId(), batchHistory.getArchiveStatus());
 
+        updateStatusOfOldBatchHistories();
+
         return batchHistory;
+    }
+
+    /**
+     * Update the status of NOT_COMPLETED old batch histories to COMPLETED if all archive histories are COMPLETED
+     */
+    private void updateStatusOfOldBatchHistories() {
+        List<BatchHistory> notCompletedBatchHistories = batchHistoryRepository.findBatchHistoriesByArchiveStatus(ArchiveStatus.NOT_COMPLETED);
+
+        notCompletedBatchHistories.forEach(batchHistory -> {
+            boolean allCompleted = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryId(batchHistory.getId())
+                    .stream()
+                    .allMatch(archiveHistory -> archiveHistory.getArchiveStatus().equals(ArchiveStatus.COMPLETED));
+
+            if (allCompleted) {
+                batchHistory.setArchiveStatus(ArchiveStatus.COMPLETED);
+                batchHistoryRepository.save(batchHistory);
+                log.info("Old batch with ID: {} was NOT_COMPLETED but is now COMPLETED", batchHistory.getId());
+            }
+        });
     }
 
     private void archiveAttachment(Attachment attachment, Arende2 arende, Handling handling, Dokument document, ArchiveHistory newArchiveHistory) throws ApplicationException {
@@ -583,19 +585,12 @@ public class ByggrArchiverService {
         sendEmail(archiveHistory, emailRequest);
     }
 
-    private void sendEmailToLantmateriet(Attachment attachment, ArchiveHistory archiveHistory) {
+    private void sendEmailToLantmateriet(ArchiveHistory archiveHistory) {
 
         EmailRequest emailRequest = new EmailRequest();
 
-        // Email-attachment
-        EmailAttachment emailAttachment = new EmailAttachment();
-        emailAttachment.setName(attachment.getName());
-        emailAttachment.setContent(attachment.getFile());
-        emailRequest.setAttachments(List.of(emailAttachment));
-
         // Sender
         Email sender = new Email();
-
         sender.setName("ByggrArchiver");
         sender.setAddress(geoEmailSender);
         emailRequest.setSender(sender);
@@ -606,7 +601,7 @@ public class ByggrArchiverService {
         Map<String, String> valuesMap = new HashMap<>();
         valuesMap.put("archiveUrl", util.getStringOrEmpty(archiveHistory.getArchiveUrl()));
         valuesMap.put("byggrCaseId", util.getStringOrEmpty(archiveHistory.getCaseId()));
-        valuesMap.put("byggrDocumentName", util.getStringOrEmpty(attachment.getName()));
+        valuesMap.put("byggrDocumentName", util.getStringOrEmpty(archiveHistory.getDocumentName()));
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
         String htmlWithReplacedValues = stringSubstitutor.replace(asString(geoTekniskHandlingHtmlTemplate));

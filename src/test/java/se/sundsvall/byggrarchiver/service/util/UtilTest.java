@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -29,7 +30,7 @@ class UtilTest {
 
     @Test
     void testGetExtensionFromByteArray() throws IOException, ApplicationException {
-        File file = new File(getClass().getClassLoader().getResource("File_Without_Extension").getFile());
+        File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("File_Without_Extension")).getFile());
         Path path = Paths.get(file.getAbsolutePath());
         byte[] bytes = Files.readAllBytes(path);
 
@@ -39,7 +40,7 @@ class UtilTest {
 
     @Test
     void testGetExtensionFromByteArrayError() throws IOException {
-        File file = new File(getClass().getClassLoader().getResource("Error_File_Without_Extension").getFile());
+        File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("Error_File_Without_Extension")).getFile());
         Path path = Paths.get(file.getAbsolutePath());
         byte[] bytes = Files.readAllBytes(path);
 

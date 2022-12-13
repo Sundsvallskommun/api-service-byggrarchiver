@@ -7,36 +7,35 @@ https://sundsvall.atlassian.net/wiki/spaces/SK/pages/718274575/ByggrArchiver
 ### Production-config
 
 - **API Gateway:**                  api-i.sundsvall.se
-    - **Endpoint:**                 Production
+- **Endpoint:**                     Production
 - **Server:**                       microservices.sundsvall.se
 - **DB:**                           Maria DB
-- **Version av integrationer:**     Production
+- **Integrations:**                 Production
 
 ### Test-config
 
 - **API Gateway:**                  api-i-test.sundsvall.se
-    - **Endpoint:**                 Production
+- **Endpoint:**                     Production
 - **Server:**                       microservices-test.sundsvall.se
 - **DB:**                           Maria DB
-- **Version av integrationer:**     Test
+- **Integrations:**                 Test
 
 ### Sandbox-config
 
 - **API Gateway:**                  api-i-test.sundsvall.se
-    - **Endpoint:**                 Sandbox
+- **Endpoint:**                     Sandbox
 - **Server:**                       microservices-test.sundsvall.se
-- **DB:**                           H2 (in-memory)
-- **Version av integrationer:**     Mocked (Wiremock)
+- **DB:**                           Maria DB
+- **Integrations:**                 Mocked (Wiremock)
 
-## Integrationer
-Denna applikation har direkta integrationer mot:
+## Integrations
+This application has integrations against these API's:
 * Archive
 * Messaging
 * FB (Sokigo)
 * ByggR (Sokigo)
 
-## Kör applikationen lokalt
-Använd detta kommandon för att köra applikationen lokalt: <br/>
+## Run app locally
 `mvn clean spring-boot:run -Dspring.profiles.active=local`
 
 

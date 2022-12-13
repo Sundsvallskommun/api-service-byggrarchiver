@@ -5,7 +5,7 @@
     <parent>
         <groupId>se.sundsvall.dept44</groupId>
         <artifactId>dept44-service-parent</artifactId>
-        <version>1.24</version>
+        <version>1.25</version>
     </parent>
     <groupId>se.sundsvall</groupId>
     <artifactId>ms-byggrarchiver</artifactId>
@@ -20,13 +20,14 @@
         <!-- Dependency versions -->
         <org.projectlombok.version>1.18.24</org.projectlombok.version>
         <openapi-generator-maven-plugin.version>6.0.1</openapi-generator-maven-plugin.version>
-        <testcontainers.version>1.17.2</testcontainers.version>
+        <testcontainers.version>1.17.6</testcontainers.version>
 
         <!-- Pipeline properties -->
         <docker.image.name>ms-byggrarchiver</docker.image.name>
         <published.container.port.sandbox>8717</published.container.port.sandbox>
         <published.container.port.test>8718</published.container.port.test>
         <published.container.port.production>9091</published.container.port.production>
+        <app.jvm.xmx.mb>1024</app.jvm.xmx.mb>
     </properties>
     <dependencies>
 
@@ -44,7 +45,7 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>3.1.6</version>
+            <version>4.2.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -56,12 +57,6 @@
         <dependency>
             <groupId>se.sundsvall.dept44</groupId>
             <artifactId>dept44-starter-feign</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.openfeign</groupId>
-            <artifactId>feign-slf4j</artifactId>
-            <version>11.8</version>
         </dependency>
 
         <dependency>

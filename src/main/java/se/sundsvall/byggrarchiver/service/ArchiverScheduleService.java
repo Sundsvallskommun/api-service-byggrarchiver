@@ -15,7 +15,7 @@ public class ArchiverScheduleService {
 
     private static final Logger log = LoggerFactory.getLogger(ArchiverScheduleService.class);
 
-    private ByggrArchiverService byggrArchiverService;
+    private final ByggrArchiverService byggrArchiverService;
 
     public ArchiverScheduleService (ByggrArchiverService byggrArchiverService) {
         this.byggrArchiverService = byggrArchiverService;

@@ -56,7 +56,6 @@ import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -167,11 +166,6 @@ public class ByggrArchiverService {
 
         log.info("Batch: {} was started with start-date: {} and end-date: {}", batchHistory.getId(), searchStart, searchEnd);
 
-        // Used for logging only
-        List<Arende2> foundCases = new ArrayList<>();
-        List<Arende2> foundClosedCases = new ArrayList<>();
-        List<Dokument> foundDocuments = new ArrayList<>();
-
         LocalDateTime start = searchStart.atStartOfDay();
         LocalDateTime end = getEnd(searchEnd);
         BatchFilter batchFilter = getBatchFilter(start, end);
@@ -186,14 +180,10 @@ public class ByggrArchiverService {
             // Get arenden from Byggr
             arendeBatch = arendeExportIntegrationService.getUpdatedArenden(batchFilter);
 
-            foundCases.addAll(arendeBatch.getArenden().getArende());
-
             List<Arende2> closedCaseList = arendeBatch.getArenden().getArende().stream()
                     .filter(arende -> arende.getStatus().equals(Constants.BYGGR_STATUS_AVSLUTAT)).toList();
 
             for (Arende2 closedCase : closedCaseList) {
-                foundClosedCases.add(closedCase);
-
                 // Delete all not completed archive histories connected to this case
                 archiveHistoryRepository.deleteArchiveHistoriesByCaseIdAndArchiveStatus(closedCase.getDnr(), ArchiveStatus.NOT_COMPLETED);
 
@@ -225,9 +215,7 @@ public class ByggrArchiverService {
                     List<Dokument> dokumentList = arendeExportIntegrationService.getDocument(docId);
 
                     for (Dokument doc : dokumentList) {
-                        foundDocuments.add(doc);
-                        log.info("Document-Count: {} Case-ID: {} Document name: {} Handlingstyp: {} Handling-ID: {} Document-ID: {}",
-                                foundDocuments.size(),
+                        log.info("Case-ID: {} Document name: {} Handlingstyp: {} Handling-ID: {} Document-ID: {}",
                                 closedCase.getDnr(),
                                 doc.getNamn(),
                                 handling.getTyp(),
@@ -247,22 +235,15 @@ public class ByggrArchiverService {
             }
         } while (batchFilter.getLowerExclusiveBound().isBefore(end));
 
-        log.info("""
-                        Total number of cases: {}
-                        Total number of closed cases: {}
-                        Total number of processed documents: {}
-                        """,
-                foundCases.size(),
-                foundClosedCases.size(),
-                foundDocuments.size());
-
-        if (archiveHistoryRepository.getArchiveHistoriesByBatchHistoryId(batchHistory.getId()).stream().allMatch(archiveHistory -> archiveHistory.getArchiveStatus().equals(ArchiveStatus.COMPLETED))) {
+        List<ArchiveHistory> archiveHistoriesRelatedToBatch = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryId(batchHistory.getId());
+        if (archiveHistoriesRelatedToBatch.stream().allMatch(archiveHistory -> archiveHistory.getArchiveStatus().equals(ArchiveStatus.COMPLETED))) {
             // Persist that this batch is completed
             batchHistory.setArchiveStatus(ArchiveStatus.COMPLETED);
             batchHistoryRepository.save(batchHistory);
         }
 
         log.info("Batch with ID: {} is {}", batchHistory.getId(), batchHistory.getArchiveStatus());
+        log.info("Batch with ID: {} has {} archive histories", batchHistory.getId(), archiveHistoriesRelatedToBatch.size());
 
         updateStatusOfOldBatchHistories();
 

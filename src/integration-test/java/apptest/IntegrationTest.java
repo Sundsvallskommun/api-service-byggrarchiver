@@ -299,6 +299,17 @@ class IntegrationTest extends AbstractAppTest {
         verify(2, postRequestedFor(urlEqualTo("/archive/1.0/archive/byggr")).withRequestBody(containing("\"extension\" : \".docx\"")));
     }
 
+    @Test
+    void testExtensionError() throws JsonProcessingException, ClassNotFoundException {
+        postBatchJob(BatchJob.builder()
+                .start(LocalDate.now())
+                .end(LocalDate.now())
+                .build());
+
+        // Verify that email is sent
+        verify(postRequestedFor(urlEqualTo("/messaging/1.2/email")).withRequestBody(containing("Manuell hantering krävs")));
+    }
+
     private BatchHistory postBatchJob(BatchJob batchJob) throws JsonProcessingException, ClassNotFoundException {
         return setupCall()
                 .withHttpMethod(HttpMethod.POST)

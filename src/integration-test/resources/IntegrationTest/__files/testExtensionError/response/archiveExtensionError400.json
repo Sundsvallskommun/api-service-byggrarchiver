@@ -1,0 +1,9 @@
+{
+  "type" : "https://zalando.github.io/problem/constraint-violation",
+  "status" : 400,
+  "violations" : [ {
+    "field" : "attachment.extension",
+    "message" : "extension must be valid. Must match regex: ^\\.(bmp|gif|tif|tiff|jpeg|jpg|png|htm|html|pdf|rtf|doc|docx|txt|xls|xlsx|odt|ods|pptx|ppt|msg)$"
+  } ],
+  "title" : "Constraint Violation"
+}

@@ -8,7 +8,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import se.sundsvall.dept44.configuration.feign.FeignConfiguration;
 import se.sundsvall.dept44.configuration.feign.FeignMultiCustomizer;
-import se.sundsvall.dept44.configuration.feign.decoder.ProblemErrorDecoder;
 
 @Import(FeignConfiguration.class)
 public class ArchiveConfiguration {
@@ -23,7 +22,6 @@ public class ArchiveConfiguration {
     @Bean
     FeignBuilderCustomizer feignBuilderCustomizer() {
         return FeignMultiCustomizer.create()
-                .withErrorDecoder(new ProblemErrorDecoder(REGISTRATION_ID))
                 .withRetryableOAuth2InterceptorForClientRegistration(ClientRegistration.withRegistrationId(REGISTRATION_ID)
                         .tokenUri(archiveProperties.getOauth2TokenUrl())
                         .clientId(archiveProperties.getOauth2ClientId())

@@ -8,6 +8,7 @@ import arendeexport.BatchFilter;
 import arendeexport.Dokument;
 import arendeexport.HandelseHandling;
 import arendeexport.Handling;
+import feign.FeignException;
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.archive.Attachment;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
@@ -34,7 +35,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.zalando.problem.AbstractThrowableProblem;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
@@ -293,7 +293,7 @@ public class ByggrArchiverService {
             ArchiveResponse archiveResponse = null;
             try {
                 archiveResponse = archiveClient.postArchive(archiveMessage);
-            } catch (AbstractThrowableProblem e) {
+            } catch (FeignException e ) {
                 log.error("Request to Archive failed. Continue with the rest.", e);
 
                 if (e.getMessage().contains("extension must be valid") || e.getMessage().contains("File format")) {

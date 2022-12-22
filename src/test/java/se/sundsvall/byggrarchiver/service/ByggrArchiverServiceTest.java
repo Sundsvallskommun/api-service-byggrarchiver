@@ -14,6 +14,8 @@ import arendeexport.Fastighet;
 import arendeexport.Handelse;
 import arendeexport.HandelseHandling;
 import arendeexport.Handling;
+import feign.FeignException;
+import feign.Request;
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.archive.Attachment;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
@@ -50,12 +52,12 @@ import se.sundsvall.byggrarchiver.service.util.Constants;
 import se.sundsvall.byggrarchiver.service.util.Util;
 import se.sundsvall.byggrarchiver.testutils.ArchiveMessageAttachmentMatcher;
 import se.sundsvall.byggrarchiver.testutils.BatchFilterMatcher;
-import se.sundsvall.dept44.exception.ServerProblem;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -481,7 +483,7 @@ class ByggrArchiverServiceTest {
         arendeBatch.setArenden(arrayOfArende);
 
         Mockito.doReturn(arendeBatch).when(arendeExportIntegrationServiceMock).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
-        Mockito.doThrow(Problem.valueOf(Status.INTERNAL_SERVER_ERROR, POST_ARCHIVE_EXCEPTION_MESSAGE)).when(archiveClientMock).postArchive(any());
+        Mockito.doThrow(new FeignException.InternalServerError("Some test error", Request.create(Request.HttpMethod.POST, "url", Map.of(), null, null, null), null, null)).when(archiveClientMock).postArchive(any());
         doReturn(List.of(ArchiveHistory.builder().archiveStatus(ArchiveStatus.NOT_COMPLETED).build())).when(archiveHistoryRepositoryMock).getArchiveHistoriesByBatchHistoryId(any());
 
         // Test
@@ -559,7 +561,9 @@ class ByggrArchiverServiceTest {
 
         ByggRArchiveRequest archiveMessage = new ByggRArchiveRequest();
         archiveMessage.setAttachment(attachment);
-        Mockito.doThrow(ServerProblem.class).when(archiveClientMock).postArchive(Mockito.argThat(new ArchiveMessageAttachmentMatcher(archiveMessage)));
+        Mockito.doThrow(new FeignException.InternalServerError("Some test error", Request.create(Request.HttpMethod.POST, "url", Map.of(), null, null, null), null, null))
+                .when(archiveClientMock)
+                .postArchive(Mockito.argThat(new ArchiveMessageAttachmentMatcher(archiveMessage)));
         doReturn(List.of(ArchiveHistory.builder()
                 .archiveStatus(ArchiveStatus.NOT_COMPLETED)
                 .build())).when(archiveHistoryRepositoryMock).getArchiveHistoriesByBatchHistoryId(any());
@@ -729,7 +733,7 @@ class ByggrArchiverServiceTest {
 
         Mockito.doReturn(arendeBatch).when(arendeExportIntegrationServiceMock).getUpdatedArenden(Mockito.argThat(new BatchFilterMatcher(batchFilter)));
 
-        Mockito.doThrow(Problem.valueOf(Status.BAD_REQUEST, responseBody)).when(archiveClientMock).postArchive(any());
+        Mockito.doThrow(new FeignException.BadRequest(responseBody, Request.create(Request.HttpMethod.POST, "url", Map.of(), null, null, null), null, null)).when(archiveClientMock).postArchive(any());
 
         // mocks messaging
         MessageStatusResponse messageStatusResponse = new MessageStatusResponse();

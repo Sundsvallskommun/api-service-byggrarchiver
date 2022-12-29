@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://xml.ra.se/e-arkiv/FGS-ERMS" targetNamespace="http://xml.ra.se/e-arkiv/FGS-ERMS" elementFormDefault="qualified">
-	<!-- Lagt till Fastighetsbeteckning, Elias Caselunghe, 2021-11-08 -->
+	<!-- Lagt till Fastighetsbeteckning, redacted, 2021-11-08 -->
 	<!-- Ändrat dokumentationen -->
-	<!-- Kardinalitet ändrad på ett antal element, ett element tillags, dokumentationen förfinad, Version 1.0. Niklas Aspenfjäll -->
-	<!-- Kardinalitet ändrad på EgetElement i EgetElement. Karin Bredenberg 2013-11-11 -->
-	<!-- Kardinalitet ändrad på Beskrivning för Bilaga så det överensstämmer med FGS. Så i detta fall inget nytt versions nummer Karin Bredenberg, 2013-08-21 -->
-	<!-- Kardinalitet ändrad på Agent för Arkivobjekt Ärende och Handling samt Rubrik för Handling så det överensstämmer med FGS. Så i detta fall inget nytt versions nummer Karin Bredenberg, 2013-06-18 -->
-	<!-- Första publicerade version av utbytesformat för ärendehantering, Karin Bredenberg, 2013-01-14 -->
-	<!-- Utkast till utbytesformat för ärendehantering, Karin Bredenberg, 2012-11-26 -->
-	<!-- Första version, Karin Bredenberg, 2012-11-20 -->
+	<!-- Kardinalitet ändrad på ett antal element, ett element tillags, dokumentationen förfinad, Version 1.0. redacted -->
+	<!-- Kardinalitet ändrad på EgetElement i EgetElement. redacted 2013-11-11 -->
+	<!-- Kardinalitet ändrad på Beskrivning för Bilaga så det överensstämmer med FGS. Så i detta fall inget nytt versions nummer redacted, 2013-08-21 -->
+	<!-- Kardinalitet ändrad på Agent för Arkivobjekt Ärende och Handling samt Rubrik för Handling så det överensstämmer med FGS. Så i detta fall inget nytt versions nummer redacted, 2013-06-18 -->
+	<!-- Första publicerade version av utbytesformat för ärendehantering, redacted, 2013-01-14 -->
+	<!-- Utkast till utbytesformat för ärendehantering, redacted, 2012-11-26 -->
+	<!-- Första version, redacted, 2012-11-20 -->
 	<xs:element name="Leveransobjekt" type="LeveransobjektTyp">
 		<xs:annotation>
 			<xs:documentation xml:lang="se">Detta är huvudelementet för ärendehanteringinformationen.</xs:documentation>
@@ -129,29 +129,29 @@
 			<xs:element ref="Beskrivning" minOccurs="0"/>
 			<xs:element ref="Beslutat" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Forvaringsplats" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Gallring" minOccurs="0"/>
 			<xs:element ref="Agent" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Karin Bredenberg, 2013-06-18</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2013-06-18</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Klass" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Restriktion" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="Motpart" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Notering" minOccurs="0"/>
@@ -159,7 +159,7 @@
 			<xs:element ref="SistaAnvandandetidpunkt" minOccurs="0"/>
 			<xs:element ref="Skapad" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Inkommen" minOccurs="0"/>
@@ -198,7 +198,7 @@
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
-		<!-- Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-05 -->
+		<!-- Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-05 -->
 		<xs:attribute name="Systemidentifierare" type="xs:string" use="optional">
 			<xs:annotation>
 				<xs:documentation xml:lang="se">En identifierare av typen UUID som senast vid överföringen sätts på varje ärendepost.</xs:documentation>
@@ -232,21 +232,21 @@
 			<xs:element ref="Gallring" minOccurs="0"/>
 			<xs:element ref="Agent" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Karin Bredenberg, 2013-06-18</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2013-06-18</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Inkommen" minOccurs="0"/>
 			<xs:element ref="Lopnummer" minOccurs="0"/>
 			<xs:element ref="Mottagare" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Notering" minOccurs="0"/>
 			<xs:element ref="HandlingRelation" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="Rubrik" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Karin Bredenberg, 2013-06-18</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2013-06-18</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Skapad" minOccurs="0"/>
@@ -260,7 +260,7 @@
 			<xs:element ref="Atkomst" minOccurs="0"/>
 			<xs:element ref="Forvaringsplats" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Element tillagt så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Element tillagt så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Restriktion" minOccurs="0" maxOccurs="unbounded"/>
@@ -284,7 +284,7 @@
 		<xs:attribute name="Systemidentifierare" type="xs:string" use="optional">
 			<xs:annotation>
 				<xs:documentation xml:lang="se">En identifierare av typen UUID som senast vid överföring sätts på varje handlingspost.</xs:documentation>
-				<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-06</xs:documentation>
+				<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
@@ -412,7 +412,7 @@
 		<xs:attribute name="Beskrivning" type="xs:string" use="optional">
 			<xs:annotation>
 				<xs:documentation xml:lang="se">Beskriver bilagans innehåll.</xs:documentation>
-				<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Karin Bredenberg, 2013-08-21</xs:documentation>
+				<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2013-08-21</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="Lank" type="xs:anyURI" use="required">
@@ -868,7 +868,7 @@
 			<xs:attribute name="ExtraIDTyp" use="optional">
 				<xs:annotation>
 					<xs:documentation xml:lang="se">Attributet används för att ange typ av alternativ beteckning. Till exempel "motpartens diarienummmer".</xs:documentation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. Niklas Aspenfjäll, 2018-12-05</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-05</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>

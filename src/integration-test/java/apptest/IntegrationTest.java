@@ -81,7 +81,7 @@ class IntegrationTest extends AbstractAppTest {
 
         Assertions.assertTrue(postBatchHistoryList.contains(postBatchHistory));
 
-        // GET archiveHistory
+        // GET archiveHistoryb
         List<ArchiveHistory> getArchiveHistoryList = Arrays.asList(
                 setupCall()
                         .withHttpMethod(HttpMethod.GET)

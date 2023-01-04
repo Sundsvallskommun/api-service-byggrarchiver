@@ -228,7 +228,7 @@ public class ByggrArchiverService {
                                 && newArchiveHistory.getArchiveId() != null
                                 && getAttachmentCategory(handling.getTyp()).equals(AttachmentCategory.GEO)) {
                             // Send email to Lantmateriet with info about the archived attachment
-                            sendEmailToLantmateriet(newArchiveHistory);
+                            sendEmailToLantmateriet(getFastighet(closedCase.getObjektLista().getAbstractArendeObjekt()).getFastighetsbeteckning(), newArchiveHistory);
                         }
                     }
                 }
@@ -566,7 +566,7 @@ public class ByggrArchiverService {
         sendEmail(archiveHistory, emailRequest);
     }
 
-    private void sendEmailToLantmateriet(ArchiveHistory archiveHistory) {
+    private void sendEmailToLantmateriet(String propertyDesignation, ArchiveHistory archiveHistory) {
 
         EmailRequest emailRequest = new EmailRequest();
 
@@ -580,9 +580,8 @@ public class ByggrArchiverService {
         emailRequest.setSubject("Arkiverad geoteknisk handling");
 
         Map<String, String> valuesMap = new HashMap<>();
-        valuesMap.put("archiveUrl", util.getStringOrEmpty(archiveHistory.getArchiveUrl()));
         valuesMap.put("byggrCaseId", util.getStringOrEmpty(archiveHistory.getCaseId()));
-        valuesMap.put("byggrDocumentName", util.getStringOrEmpty(archiveHistory.getDocumentName()));
+        valuesMap.put("propertyDesignation", util.getStringOrEmpty(propertyDesignation));
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
         String htmlWithReplacedValues = stringSubstitutor.replace(asString(geoTekniskHandlingHtmlTemplate));

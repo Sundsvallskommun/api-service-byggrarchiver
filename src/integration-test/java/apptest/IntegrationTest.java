@@ -1,5 +1,16 @@
 package apptest;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -12,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+
 import se.sundsvall.byggrarchiver.Application;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
@@ -23,20 +35,9 @@ import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.dept44.test.AbstractAppTest;
 import se.sundsvall.dept44.test.annotation.wiremock.WireMockAppTestSuite;
 
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
-
 @WireMockAppTestSuite(
-        files = "classpath:/IntegrationTest/",
-        classes = Application.class
+    files = "classpath:/IntegrationTest/",
+    classes = Application.class
 )
 class IntegrationTest extends AbstractAppTest {
 

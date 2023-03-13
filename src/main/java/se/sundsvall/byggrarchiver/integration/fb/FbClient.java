@@ -1,19 +1,19 @@
 package se.sundsvall.byggrarchiver.integration.fb;
 
-import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
+import java.util.List;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
 import se.sundsvall.byggrarchiver.integration.fb.configuration.FbConfiguration;
 
-import java.util.List;
+import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
+import io.github.resilience4j.retry.annotation.Retry;
 
 @FeignClient(name = "fb", url = "${integration.fb.url}", configuration = FbConfiguration.class)
-@CircuitBreaker(name = "fb")
 public interface FbClient {
 
     @Retry(name = "FbClient")

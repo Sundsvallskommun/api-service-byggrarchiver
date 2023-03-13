@@ -20,7 +20,9 @@ public class DateAdapter {
         return LocalDate.parse(isoFormatDate, dateFormatter);
     }
 
-    public static String printLocalDateTime(LocalDateTime date) { return date.format(dateTimeFormatter); }
+    public static String printLocalDateTime(LocalDateTime date) {
+        return date.format(dateTimeFormatter);
+    }
 
     public static String printLocalDate(LocalDate date) {
         return date.format(dateFormatter);

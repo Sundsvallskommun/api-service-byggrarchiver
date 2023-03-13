@@ -18,7 +18,7 @@
         <generated-sources-java-path>src/main/java</generated-sources-java-path>
 
         <!-- Dependency versions -->
-        <org.projectlombok.version>1.18.24</org.projectlombok.version>
+        <org.projectlombok.version>1.18.26</org.projectlombok.version>
         <openapi-generator-maven-plugin.version>6.0.1</openapi-generator-maven-plugin.version>
         <testcontainers.version>1.17.6</testcontainers.version>
 

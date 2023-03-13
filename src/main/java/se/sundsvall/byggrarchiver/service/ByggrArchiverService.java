@@ -1,5 +1,48 @@
 package se.sundsvall.byggrarchiver.service;
 
+import static se.sundsvall.dept44.util.ResourceUtils.asString;
+
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+
+import org.apache.commons.text.StringSubstitutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
+
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
+import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
+import se.sundsvall.byggrarchiver.integration.sundsvall.archive.ArchiveClient;
+import se.sundsvall.byggrarchiver.integration.sundsvall.messaging.MessagingClient;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+import se.sundsvall.byggrarchiver.service.util.Constants;
+import se.sundsvall.byggrarchiver.service.util.Util;
+
 import arendeexport.AbstractArendeObjekt;
 import arendeexport.Arende2;
 import arendeexport.ArendeBatch;
@@ -28,44 +71,6 @@ import generated.se.sundsvall.messaging.Email;
 import generated.se.sundsvall.messaging.EmailRequest;
 import generated.se.sundsvall.messaging.MessageStatusResponse;
 import generated.sokigo.fb.FastighetDto;
-import org.apache.commons.text.StringSubstitutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
-import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.byggrarchiver.integration.sundsvall.archive.ArchiveClient;
-import se.sundsvall.byggrarchiver.integration.sundsvall.messaging.MessagingClient;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-import se.sundsvall.byggrarchiver.service.util.Constants;
-import se.sundsvall.byggrarchiver.service.util.Util;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import java.io.StringWriter;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Base64;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import static se.sundsvall.dept44.util.ResourceUtils.asString;
 
 @Service
 public class ByggrArchiverService {
@@ -561,7 +566,7 @@ public class ByggrArchiverService {
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
         String htmlWithReplacedValues = stringSubstitutor.replace(asString(missingExtensionHtmlTemplate));
-        emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes()));
+        emailRequest.setHtmlMessage(Base64.getEncoder().encodeToString(htmlWithReplacedValues.getBytes(StandardCharsets.UTF_8)));
 
         sendEmail(archiveHistory, emailRequest);
     }
@@ -612,12 +617,12 @@ public class ByggrArchiverService {
     }
 
     private LocalDateTime getEnd(LocalDate searchEnd) {
-
-        if (searchEnd.isBefore(LocalDate.now())) {
+        var now = LocalDateTime.now(ZoneId.systemDefault());
+        if (searchEnd.isBefore(now.toLocalDate())) {
             return searchEnd.atTime(23, 59, 59);
         }
 
-        return LocalDateTime.now();
+        return LocalDateTime.now(ZoneId.systemDefault());
     }
 
     private BatchFilter getBatchFilter(LocalDateTime start, LocalDateTime end) {

@@ -1,17 +1,17 @@
 package se.sundsvall.byggrarchiver.integration.sundsvall.messaging;
 
-import generated.se.sundsvall.messaging.EmailRequest;
-import generated.se.sundsvall.messaging.MessageStatusResponse;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
 import se.sundsvall.byggrarchiver.integration.sundsvall.messaging.configuration.MessagingConfiguration;
 
+import generated.se.sundsvall.messaging.EmailRequest;
+import generated.se.sundsvall.messaging.MessageStatusResponse;
+
 @FeignClient(name = "messaging", url = "${integration.messaging.url}", configuration = MessagingConfiguration.class)
-@CircuitBreaker(name = "messaging")
 public interface MessagingClient {
 
     /**

@@ -3,6 +3,8 @@ target/
 bin/
 """
 
+build = "mvn"
+
 ignoreRules = ["InlineFormatString", "UnnecessaryParenthesis", "UnnecessaryFinal", "YodaCondition" ]
 
 jdkVersion = "17"

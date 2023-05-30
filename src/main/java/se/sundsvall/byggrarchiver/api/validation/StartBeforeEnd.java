@@ -1,20 +1,21 @@
 package se.sundsvall.byggrarchiver.api.validation;
 
-import se.sundsvall.byggrarchiver.api.validation.impl.StartBeforeEndValidator;
-import se.sundsvall.byggrarchiver.service.util.Constants;
-
-import javax.validation.Constraint;
-import javax.validation.Payload;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
+
+import se.sundsvall.byggrarchiver.api.validation.impl.StartBeforeEndValidator;
+
 @Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = StartBeforeEndValidator.class)
 public @interface StartBeforeEnd {
-    String message() default Constants.END_CAN_NOT_BE_BEFORE_START;
+
+    String message() default "End can not be before start";
 
     Class<?>[] groups() default {};
 

@@ -1,8 +1,12 @@
 package se.sundsvall.byggrarchiver.service;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 
 import java.time.LocalDate;
 
@@ -10,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
@@ -21,16 +24,19 @@ import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 class ArchiveScheduleServiceTest {
 
     @Mock
-    private ByggrArchiverService byggrArchiverServiceMock;
+    private ByggrArchiverService mockByggrArchiverService;
 
     @InjectMocks
     private ArchiverScheduleService archiverScheduleService;
 
     @Test
     void archive() throws ApplicationException {
-        doReturn(BatchHistory.builder().id(1L).build()).when(byggrArchiverServiceMock).runBatch(any(), any(), any());
+        when(mockByggrArchiverService.runBatch(any(LocalDate.class), any(LocalDate.class), any(BatchTrigger.class)))
+            .thenReturn(BatchHistory.builder().withId(randomLong()).build());
+
         archiverScheduleService.archive();
 
-        Mockito.verify(byggrArchiverServiceMock, times(1)).runBatch(LocalDate.now().minusDays(7), LocalDate.now().minusDays(1), BatchTrigger.SCHEDULED);
+        verify(mockByggrArchiverService, times(1)).runBatch(eq(LocalDate.now().minusDays(7)), eq(LocalDate.now().minusDays(1)), eq(BatchTrigger.SCHEDULED));
+        verifyNoMoreInteractions(mockByggrArchiverService);
     }
 }

@@ -2,16 +2,16 @@ package se.sundsvall.byggrarchiver.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.getRandomOfEnum;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.getRandomEnumValue;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,11 +37,11 @@ import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
 class ByggrArchiverResourceTest {
 
     @MockBean
-    private ByggrArchiverService byggrArchiverServiceMock;
+    private ByggrArchiverService mockByggrArchiverService;
     @MockBean
-    private ArchiveHistoryRepository archiveHistoryRepositoryMock;
+    private ArchiveHistoryRepository mockArchiveHistoryRepository;
     @MockBean
-    private BatchHistoryRepository batchHistoryRepositoryMock;
+    private BatchHistoryRepository mockBatchHistoryRepository;
 
     @Autowired
     private ByggrArchiverResource resource;
@@ -51,24 +51,23 @@ class ByggrArchiverResourceTest {
 
     @Test
     void getArchiveHistory() {
-        doReturn(List.of(createRandomArchiveHistory(), createRandomArchiveHistory())).when(archiveHistoryRepositoryMock).getArchiveHistoriesByArchiveStatusAndBatchHistoryId(any(), any());
+        when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(any(ArchiveStatus.class), anyLong()))
+            .thenReturn(List.of(createRandomArchiveHistory(), createRandomArchiveHistory()));
 
         webTestClient.get()
             .uri("archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}", ArchiveStatus.COMPLETED, 1L)
             .exchange()
             .expectStatus().isOk()
             .expectBodyList(ArchiveHistory.class);
-
     }
 
     @Test
     void getArchiveHistory404() {
-        ArchiveStatus archiveStatus = (ArchiveStatus) getRandomOfEnum(ArchiveStatus.class);
-        Long batchHistoryId = new Random().nextLong();
-        doReturn(new ArrayList<>()).when(archiveHistoryRepositoryMock).getArchiveHistoriesByArchiveStatusAndBatchHistoryId(archiveStatus, batchHistoryId);
+        when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(any(ArchiveStatus.class), anyLong()))
+            .thenReturn(List.of());
 
         webTestClient.get()
-            .uri("archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}", archiveStatus, batchHistoryId)
+            .uri("archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}", getRandomEnumValue(ArchiveStatus.class), randomLong())
             .exchange()
             .expectStatus().isNotFound()
             .expectBodyList(Problem.class);
@@ -76,7 +75,7 @@ class ByggrArchiverResourceTest {
 
     @Test
     void getBatchHistory() {
-        doReturn(List.of(createRandomBatchHistory())).when(batchHistoryRepositoryMock).findAll();
+        when(mockBatchHistoryRepository.findAll()).thenReturn(List.of(createRandomBatchHistory()));
 
         webTestClient.get()
             .uri("batch-jobs")
@@ -87,7 +86,7 @@ class ByggrArchiverResourceTest {
 
     @Test
     void getBatchHistory404() {
-        doReturn(new ArrayList<>()).when(batchHistoryRepositoryMock).findAll();
+        when(mockBatchHistoryRepository.findAll()).thenReturn(List.of());
 
         webTestClient.get()
             .uri("batch-jobs")
@@ -98,25 +97,27 @@ class ByggrArchiverResourceTest {
 
     @Test
     void postBatchJob() throws Exception {
-        BatchJob batchJobRequest = BatchJob.builder()
-            .start(LocalDate.now().minusDays(3))
-            .end(LocalDate.now())
-            .build();
-        BatchHistory batchHistory = BatchHistory.builder()
-            .id(new Random().nextLong())
-            .batchTrigger(BatchTrigger.MANUAL)
-            .archiveStatus(ArchiveStatus.COMPLETED)
-            .start(batchJobRequest.getStart())
-            .end(batchJobRequest.getEnd())
-            .timestamp(LocalDateTime.now())
+        var batchJob = BatchJob.builder()
+            .withStart(LocalDate.now().minusDays(3))
+            .withEnd(LocalDate.now())
             .build();
 
-        doReturn(batchHistory).when(byggrArchiverServiceMock).runBatch(batchJobRequest.getStart(), batchJobRequest.getEnd(), BatchTrigger.MANUAL);
+        var batchHistory = BatchHistory.builder()
+            .withId(randomLong())
+            .withBatchTrigger(BatchTrigger.MANUAL)
+            .withArchiveStatus(ArchiveStatus.COMPLETED)
+            .withStart(batchJob.getStart())
+            .withEnd(batchJob.getEnd())
+            .withTimestamp(LocalDateTime.now())
+            .build();
+
+        when(mockByggrArchiverService.runBatch(any(LocalDate.class), any(LocalDate.class), any(BatchTrigger.class)))
+            .thenReturn(batchHistory);
 
         webTestClient.post()
             .uri("/batch-jobs")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(batchJobRequest)
+            .bodyValue(batchJob)
             .exchange()
             .expectStatus().isOk()
             .expectBody(BatchHistory.class);
@@ -124,11 +125,10 @@ class ByggrArchiverResourceTest {
 
     @Test
     void reRunBatchJob() throws Exception {
-        Long batchHistoryId = new Random().nextLong();
-        doReturn(createRandomBatchHistory()).when(byggrArchiverServiceMock).reRunBatch(batchHistoryId);
+        when(mockByggrArchiverService.reRunBatch(anyLong())).thenReturn(createRandomBatchHistory());
 
         webTestClient.post()
-            .uri("batch-jobs/{batchHistoryId}/rerun", batchHistoryId)
+            .uri("batch-jobs/{batchHistoryId}/rerun", randomLong())
             .exchange()
             .expectStatus().isOk()
             .expectBody(BatchHistory.class);
@@ -138,7 +138,6 @@ class ByggrArchiverResourceTest {
     void mapToArchiveHistoryResponse_withNullInput() {
         assertThat(resource.mapToArchiveHistoryResponse(null)).isNull();
     }
-
 
     @Test
     void mapToArchiveHistoryResponse() {

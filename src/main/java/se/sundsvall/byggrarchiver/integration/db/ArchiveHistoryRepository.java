@@ -1,14 +1,15 @@
 package se.sundsvall.byggrarchiver.integration.db;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-
-import javax.transaction.Transactional;
-import java.util.List;
-import java.util.Optional;
 
 @Transactional
 public interface ArchiveHistoryRepository extends JpaRepository<ArchiveHistory, Long> {

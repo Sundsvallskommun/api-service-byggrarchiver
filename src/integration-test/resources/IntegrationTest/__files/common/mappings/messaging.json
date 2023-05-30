@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/messaging/email"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "common/response/messaging.200.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

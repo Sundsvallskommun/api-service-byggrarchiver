@@ -5,13 +5,13 @@
     <parent>
         <groupId>se.sundsvall.dept44</groupId>
         <artifactId>dept44-service-parent</artifactId>
-        <version>1.32</version>
+        <version>2.1.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>se.sundsvall</groupId>
-    <artifactId>ms-byggrarchiver</artifactId>
+    <artifactId>api-service-byggrarchiver</artifactId>
     <version>1.1</version>
-    <name>ms-byggrarchiver</name>
+    <name>api-service-byggrarchiver</name>
     <description>Application that archives documents from Byggr</description>
 
     <properties>
@@ -19,9 +19,10 @@
         <generated-sources-java-path>src/main/java</generated-sources-java-path>
 
         <!-- Dependency versions -->
-        <openapi-generator-maven-plugin.version>6.0.1</openapi-generator-maven-plugin.version>
-        <testcontainers.version>1.17.6</testcontainers.version>
-        <jaxb2-maven-plugin.version>2.5.0</jaxb2-maven-plugin.version>
+        <jmimemagic.version>0.1.5</jmimemagic.version>
+        <commons-text.version>1.10.0</commons-text.version>
+        <openapi-generator-maven-plugin.version>6.6.0</openapi-generator-maven-plugin.version>
+        <jaxb2-maven-plugin.version>3.1.0</jaxb2-maven-plugin.version>
         <jaxb2-fluent-api.version>3.0</jaxb2-fluent-api.version>
 
         <!-- Pipeline properties -->
@@ -41,21 +42,23 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <version>4.2.0</version>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <version>${testcontainers.version}</version>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>mariadb</artifactId>
-            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -66,6 +69,10 @@
         </dependency>
         <dependency>
             <groupId>se.sundsvall.dept44</groupId>
+            <artifactId>dept44-starter-webservicetemplate</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>se.sundsvall.dept44</groupId>
             <artifactId>dept44-common-validators</artifactId>
         </dependency>
         <dependency>
@@ -73,6 +80,7 @@
             <artifactId>dept44-starter-feign</artifactId>
         </dependency>
 
+        <!-- JPA/JDBC -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -82,16 +90,23 @@
             <artifactId>mariadb-java-client</artifactId>
         </dependency>
 
+        <!-- Other -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <scope>compile</scope>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
-
         <dependency>
             <groupId>net.sf.jmimemagic</groupId>
             <artifactId>jmimemagic</artifactId>
-            <version>0.1.5</version>
+            <version>${jmimemagic.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>
@@ -99,11 +114,10 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>1.10.0</version>
+            <version>${commons-text.version}</version>
         </dependency>
     </dependencies>
 
@@ -120,6 +134,28 @@
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>${openapi-generator-maven-plugin.version}</version>
+                <configuration>
+                    <output>${generated-sources-path}</output>
+                    <generatorName>spring</generatorName>
+                    <generateApis>false</generateApis>
+                    <configOptions>
+                        <sourceFolder>${generated-sources-java-path}</sourceFolder>
+                        <generateSupportingFiles>false</generateSupportingFiles>
+                        <generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
+                        <generatePom>false</generatePom>
+                        <library>spring-boot</library>
+                        <dateLibrary>java8</dateLibrary>
+                        <apiPackage>generated</apiPackage>
+                        <openApiNullable>false</openApiNullable>
+                        <useSwaggerUi>false</useSwaggerUi>
+                        <useBeanValidation>true</useBeanValidation>
+                        <useSwaggerAnnotations>true</useSwaggerAnnotations>
+                        <hideGenerationTimestamp>true</hideGenerationTimestamp>
+                        <interfaceOnly>true</interfaceOnly>
+                        <useJakartaEe>true</useJakartaEe>
+                        <useSpringBoot3>true</useSpringBoot3>
+                    </configOptions>
+                </configuration>
                 <executions>
                     <execution>
                         <id>messaging-api</id>
@@ -127,21 +163,9 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging/messaging-2.6.json</inputSpec>
-                            <output>${generated-sources-path}</output>
-                            <generatorName>jaxrs-spec</generatorName>
-                            <generateApis>false</generateApis>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging/messaging-3.1.yml</inputSpec>
                             <configOptions>
-                                <sourceFolder>${generated-sources-java-path}</sourceFolder>
-                                <generateSupportingFiles>false</generateSupportingFiles>
-                                <dateLibrary>java8</dateLibrary>
-                                <apiPackage>generated</apiPackage>
                                 <modelPackage>generated.se.sundsvall.messaging</modelPackage>
-                                <openApiNullable>false</openApiNullable>
-                                <generatePom>false</generatePom>
-                                <useBeanValidation>false</useBeanValidation>
-                                <useSwaggerAnnotations>false</useSwaggerAnnotations>
-                                <interfaceOnly>true</interfaceOnly>
                             </configOptions>
                         </configuration>
                     </execution>
@@ -153,20 +177,8 @@
                         </goals>
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/integrations/archive/archive-1.0.yaml</inputSpec>
-                            <output>${generated-sources-path}</output>
-                            <generatorName>jaxrs-spec</generatorName>
-                            <generateApis>false</generateApis>
                             <configOptions>
-                                <sourceFolder>${generated-sources-java-path}</sourceFolder>
-                                <generateSupportingFiles>false</generateSupportingFiles>
-                                <dateLibrary>java8</dateLibrary>
-                                <apiPackage>generated</apiPackage>
                                 <modelPackage>generated.se.sundsvall.archive</modelPackage>
-                                <openApiNullable>false</openApiNullable>
-                                <generatePom>false</generatePom>
-                                <useBeanValidation>false</useBeanValidation>
-                                <useSwaggerAnnotations>false</useSwaggerAnnotations>
-                                <interfaceOnly>true</interfaceOnly>
                             </configOptions>
                         </configuration>
                     </execution>
@@ -178,21 +190,68 @@
                         </goals>
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/integrations/fb/fb-v1.json</inputSpec>
-                            <output>${generated-sources-path}</output>
-                            <generatorName>jaxrs-spec</generatorName>
-                            <generateApis>false</generateApis>
                             <configOptions>
-                                <sourceFolder>${generated-sources-java-path}</sourceFolder>
-                                <generateSupportingFiles>false</generateSupportingFiles>
-                                <dateLibrary>java8</dateLibrary>
-                                <apiPackage>generated</apiPackage>
                                 <modelPackage>generated.sokigo.fb</modelPackage>
-                                <openApiNullable>false</openApiNullable>
-                                <generatePom>false</generatePom>
-                                <useBeanValidation>false</useBeanValidation>
-                                <useSwaggerAnnotations>false</useSwaggerAnnotations>
-                                <interfaceOnly>true</interfaceOnly>
                             </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>${jaxb2-maven-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb2_commons</groupId>
+                        <artifactId>jaxb2-fluent-api</artifactId>
+                        <version>${jaxb2-fluent-api.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <addGeneratedAnnotation>true</addGeneratedAnnotation>
+                    <noGeneratedHeaderComments>true</noGeneratedHeaderComments>
+                    <clearOutputDir>false</clearOutputDir>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>bygglov</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${generated-sources-path}/${generated-sources-java-path}</outputDirectory>
+                            <packageName>generated.se.sundsvall.bygglov</packageName>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/integrations/bygglov/Bygglov_v2.xsd</source>
+                            </sources>
+                            <xjbSources>
+                                <xjbSource>${project.basedir}/src/main/resources/integrations/bygglov/bindings.xjb</xjbSource>
+                            </xjbSources>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>arendeexport</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${generated-sources-path}/${generated-sources-java-path}</outputDirectory>
+                            <packageName>generated.se.sundsvall.arendeexport</packageName>
+                            <sourceType>wsdl</sourceType>
+                            <arguments>
+                                <argument>-Xfluent-api</argument>
+                                <argument>-XautoNameResolution</argument>
+                            </arguments>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/integrations/arendeexport/ArendeExportWS.wsdl</source>
+                            </sources>
+                            <xjbSources>
+                                <xjbSource>${project.basedir}/src/main/resources/integrations/arendeexport/bindings.xjb</xjbSource>
+                            </xjbSources>
                         </configuration>
                     </execution>
                 </executions>
@@ -213,66 +272,6 @@
                             <sources>
                                 <source>${generated-sources-path}/${generated-sources-java-path}</source>
                             </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>${jaxb2-maven-plugin.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jvnet.jaxb2_commons</groupId>
-                        <artifactId>jaxb2-fluent-api</artifactId>
-                        <version>${jaxb2-fluent-api.version}</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <id>bygglov</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${generated-sources-path}/${generated-sources-java-path}</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                            <packageName>generated.se.sundsvall.archive.metadata</packageName>
-                            <encoding>UTF-8</encoding>
-                            <addGeneratedAnnotation>true</addGeneratedAnnotation>
-                            <sources>
-                                <source>${project.basedir}/src/main/resources/integrations/bygglov/Bygglov_v2.xsd</source>
-                            </sources>
-                            <xjbSources>
-                                <xjbSource>${project.basedir}/src/main/resources/integrations/bygglov/bindings.xjb</xjbSource>
-                            </xjbSources>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>arendeexport</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${generated-sources-path}/${generated-sources-java-path}</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                            <packageName>arendeexport</packageName>
-                            <encoding>UTF-8</encoding>
-                            <addGeneratedAnnotation>true</addGeneratedAnnotation>
-                            <noGeneratedHeaderComments>true</noGeneratedHeaderComments>
-                            <sourceType>wsdl</sourceType>
-                            <arguments>
-                                <argument>-Xfluent-api</argument>
-                                <argument>-XautoNameResolution</argument>
-                            </arguments>
-                            <sources>
-                                <source>${project.basedir}/src/main/resources/integrations/arendeexport/ArendeExportWS.wsdl</source>
-                            </sources>
-                            <xjbSources>
-                                <xjbSource>${project.basedir}/src/main/resources/integrations/arendeexport/bindings.xjb</xjbSource>
-                            </xjbSources>
                         </configuration>
                     </execution>
                 </executions>

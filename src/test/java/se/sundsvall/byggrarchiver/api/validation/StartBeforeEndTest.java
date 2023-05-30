@@ -1,17 +1,19 @@
 package se.sundsvall.byggrarchiver.api.validation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.LocalDate;
+
+import jakarta.validation.ConstraintValidatorContext;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.validation.impl.StartBeforeEndValidator;
-
-import javax.validation.ConstraintValidatorContext;
-import java.time.LocalDate;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class StartBeforeEndTest {
@@ -24,48 +26,45 @@ class StartBeforeEndTest {
 
     @Test
     void valid() {
-        final BatchJob batchJob = BatchJob.builder()
-                .start(LocalDate.now().minusDays(3))
-                .end(LocalDate.now())
-                .build();
+        var batchJob = BatchJob.builder()
+            .withStart(LocalDate.now().minusDays(3))
+            .withEnd(LocalDate.now())
+            .build();
 
         assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isTrue();
-
     }
 
     @Test
     void validSameDate() {
-        final BatchJob batchJob = BatchJob.builder()
-                .start(LocalDate.now())
-                .end(LocalDate.now())
-                .build();
+        var batchJob = BatchJob.builder()
+            .withStart(LocalDate.now())
+            .withEnd(LocalDate.now())
+            .build();
 
         assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isTrue();
-
     }
 
     @Test
     void invalid() {
-        final BatchJob batchJob = BatchJob.builder()
-                .start(LocalDate.now())
-                .end(LocalDate.now().minusDays(3))
-                .build();
+        var batchJob = BatchJob.builder()
+            .withStart(LocalDate.now())
+            .withEnd(LocalDate.now().minusDays(3))
+            .build();
 
         assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isFalse();
-
     }
 
     @Test
     void nullValue() {
-        final BatchJob batchJob = BatchJob.builder()
-                .end(LocalDate.now().minusDays(3))
-                .build();
+        var batchJob = BatchJob.builder()
+            .withEnd(LocalDate.now().minusDays(3))
+            .build();
 
         assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isTrue();
 
-        final BatchJob batchJob2 = BatchJob.builder()
-                .start(LocalDate.now().minusDays(3))
-                .build();
+        var batchJob2 = BatchJob.builder()
+            .withStart(LocalDate.now().minusDays(3))
+            .build();
 
         assertThat(validator.isValid(batchJob2, constraintValidatorContextMock)).isTrue();
     }

@@ -20,14 +20,6 @@ https://sundsvall.atlassian.net/wiki/spaces/SK/pages/718274575/ByggrArchiver
 - **DB:**                           Maria DB
 - **Integrations:**                 Test
 
-### Sandbox-config
-
-- **API Gateway:**                  api-i-test.sundsvall.se
-- **Endpoint:**                     Sandbox
-- **Server:**                       microservices-test.sundsvall.se
-- **DB:**                           Maria DB
-- **Integrations:**                 Mocked (Wiremock)
-
 ## Integrations
 This application has integrations against these API's:
 * Archive

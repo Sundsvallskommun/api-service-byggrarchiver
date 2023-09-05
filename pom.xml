@@ -26,7 +26,6 @@
 
         <!-- Pipeline properties -->
         <docker.image.name>ms-byggrarchiver</docker.image.name>
-        <published.container.port.sandbox>8717</published.container.port.sandbox>
         <published.container.port.test>8718</published.container.port.test>
         <published.container.port.production>9091</published.container.port.production>
 

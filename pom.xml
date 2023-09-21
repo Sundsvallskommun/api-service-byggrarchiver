@@ -19,7 +19,7 @@
         <generated-sources-java-path>src/main/java</generated-sources-java-path>
 
         <!-- Dependency versions -->
-        <openapi-generator-maven-plugin.version>6.0.1</openapi-generator-maven-plugin.version>
+        <openapi-generator-maven-plugin.version>7.0.1</openapi-generator-maven-plugin.version>
         <testcontainers.version>1.17.6</testcontainers.version>
         <jaxb2-maven-plugin.version>2.5.0</jaxb2-maven-plugin.version>
         <jaxb2-fluent-api.version>3.0</jaxb2-fluent-api.version>
@@ -42,7 +42,6 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>4.2.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -130,9 +129,9 @@
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
+                            <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <sourceFolder>${generated-sources-java-path}</sourceFolder>
-                                <generateSupportingFiles>false</generateSupportingFiles>
                                 <dateLibrary>java8</dateLibrary>
                                 <apiPackage>generated</apiPackage>
                                 <modelPackage>generated.se.sundsvall.messaging</modelPackage>
@@ -155,9 +154,9 @@
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
+                            <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <sourceFolder>${generated-sources-java-path}</sourceFolder>
-                                <generateSupportingFiles>false</generateSupportingFiles>
                                 <dateLibrary>java8</dateLibrary>
                                 <apiPackage>generated</apiPackage>
                                 <modelPackage>generated.se.sundsvall.archive</modelPackage>
@@ -180,9 +179,9 @@
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>
+                            <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <sourceFolder>${generated-sources-java-path}</sourceFolder>
-                                <generateSupportingFiles>false</generateSupportingFiles>
                                 <dateLibrary>java8</dateLibrary>
                                 <apiPackage>generated</apiPackage>
                                 <modelPackage>generated.sokigo.fb</modelPackage>
@@ -204,7 +203,7 @@
                 <executions>
                     <execution>
                         <id>add-generated-source</id>
-                        <phase>initialize</phase>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>add-source</goal>
                         </goals>

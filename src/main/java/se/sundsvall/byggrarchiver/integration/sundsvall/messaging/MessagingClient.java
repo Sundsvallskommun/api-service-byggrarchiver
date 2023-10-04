@@ -14,10 +14,10 @@ import se.sundsvall.byggrarchiver.integration.sundsvall.messaging.configuration.
 public interface MessagingClient {
 
 	/**
-	 * Send an e-mail (independent of feedback settings)
+	 * Send an e-mail (independent of contact settings)
 	 *
 	 * @param  emailRequest (required)
-	 * @return              MessageStatusResponse
+	 * @return              MessageResult
 	 */
 	@PostMapping(path = "/email", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	MessageResult postEmail(@RequestBody EmailRequest emailRequest) throws ServiceException;

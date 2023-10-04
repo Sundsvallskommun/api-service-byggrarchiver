@@ -125,7 +125,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging/messaging-2.6.json</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/integrations/messaging/messaging-3.2.yaml</inputSpec>
                             <output>${generated-sources-path}</output>
                             <generatorName>jaxrs-spec</generatorName>
                             <generateApis>false</generateApis>

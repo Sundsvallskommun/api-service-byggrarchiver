@@ -20,7 +20,7 @@
 
         <!-- Dependency versions -->
         <openapi-generator-maven-plugin.version>7.1.0</openapi-generator-maven-plugin.version>
-        <testcontainers.version>1.19.2</testcontainers.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
         <jaxb2-maven-plugin.version>2.5.0</jaxb2-maven-plugin.version>
         <jaxb2-fluent-api.version>3.0</jaxb2-fluent-api.version>
 

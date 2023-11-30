@@ -1,14 +1,14 @@
 package se.sundsvall.byggrarchiver.testutils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
-
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class TestUtil {
 
@@ -57,5 +57,13 @@ public final class TestUtil {
 
     public static <E extends Enum<E>> E getRandomEnumValue(final Class<E> enumClass) {
         return enumClass.getEnumConstants()[randomInt(enumClass.getEnumConstants().length)];
+    }
+
+    public static BatchHistory createBatchHistory(LocalDate start, LocalDate end, BatchTrigger batchTrigger, ArchiveStatus archiveStatus) {
+        return BatchHistory.builder()
+            .withStart(start)
+            .withEnd(end)
+            .withBatchTrigger(batchTrigger)
+            .withArchiveStatus(archiveStatus).build();
     }
 }

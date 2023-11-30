@@ -1,42 +1,42 @@
 openapi: 3.0.1
 info:
   title: ByggR Archiver
-  description: Application that archives documents from Byggr
+  description: 'Application that archives documents from Byggr'
   contact: {}
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT
-  version: "1.1"
+  version: '1.1'
 servers:
-- url: http://localhost:8080
-  description: Generated server url
+  - url: http://localhost:8080
+    description: Generated server url
 paths:
   /batch-jobs:
     get:
       tags:
-      - byggr-archiver-resource
+        - byggr-archiver-resource
       operationId: getBatchHistory
       responses:
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        "500":
-          description: Internal Server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
         "400":
           description: Bad request
           content:
             application/problem+json:
               schema:
                 oneOf:
-                - $ref: '#/components/schemas/Problem'
-                - $ref: '#/components/schemas/ConstraintViolationProblem'
+                  - $ref: '#/components/schemas/Problem'
+                  - $ref: '#/components/schemas/ConstraintViolationProblem'
+        "500":
+          description: Internal Server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         "200":
           description: OK - Successful operation
           content:
@@ -52,7 +52,7 @@ paths:
                   $ref: '#/components/schemas/BatchHistoryResponse'
     post:
       tags:
-      - byggr-archiver-resource
+        - byggr-archiver-resource
       operationId: postBatchJob
       requestBody:
         content:
@@ -61,20 +61,20 @@ paths:
               $ref: '#/components/schemas/BatchJob'
         required: true
       responses:
-        "500":
-          description: Internal Server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
         "400":
           description: Bad request
           content:
             application/problem+json:
               schema:
                 oneOf:
-                - $ref: '#/components/schemas/Problem'
-                - $ref: '#/components/schemas/ConstraintViolationProblem'
+                  - $ref: '#/components/schemas/Problem'
+                  - $ref: '#/components/schemas/ConstraintViolationProblem'
+        "500":
+          description: Internal Server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         "200":
           description: OK - Successful operation
           content:
@@ -87,36 +87,36 @@ paths:
   /batch-jobs/{batchHistoryId}/rerun:
     post:
       tags:
-      - byggr-archiver-resource
+        - byggr-archiver-resource
       operationId: reRunBatchJob
       parameters:
-      - name: batchHistoryId
-        in: path
-        required: true
-        schema:
-          type: integer
-          format: int64
+        - name: batchHistoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        "500":
-          description: Internal Server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
         "400":
           description: Bad request
           content:
             application/problem+json:
               schema:
                 oneOf:
-                - $ref: '#/components/schemas/Problem'
-                - $ref: '#/components/schemas/ConstraintViolationProblem'
+                  - $ref: '#/components/schemas/Problem'
+                  - $ref: '#/components/schemas/ConstraintViolationProblem'
+        "500":
+          description: Internal Server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         "200":
           description: OK - Successful operation
           content:
@@ -129,44 +129,44 @@ paths:
   /archived/attachments:
     get:
       tags:
-      - byggr-archiver-resource
+        - byggr-archiver-resource
       operationId: getArchiveHistory
       parameters:
-      - name: archiveStatus
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - COMPLETED
-          - NOT_COMPLETED
-      - name: batchHistoryId
-        in: query
-        required: false
-        schema:
-          type: integer
-          format: int64
+        - name: archiveStatus
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - COMPLETED
+              - NOT_COMPLETED
+        - name: batchHistoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
       responses:
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        "500":
-          description: Internal Server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
         "400":
           description: Bad request
           content:
             application/problem+json:
               schema:
                 oneOf:
-                - $ref: '#/components/schemas/Problem'
-                - $ref: '#/components/schemas/ConstraintViolationProblem'
+                  - $ref: '#/components/schemas/Problem'
+                  - $ref: '#/components/schemas/ConstraintViolationProblem'
+        "500":
+          description: Internal Server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
         "200":
           description: OK - Successful operation
           content:
@@ -183,7 +183,7 @@ paths:
   /api-docs:
     get:
       tags:
-      - API
+        - API
       summary: OpenAPI
       operationId: getApiDocs
       responses:
@@ -200,8 +200,8 @@ components:
   schemas:
     BatchJob:
       required:
-      - end
-      - start
+        - end
+        - start
       type: object
       properties:
         start:
@@ -229,9 +229,9 @@ components:
             type: object
         status:
           $ref: '#/components/schemas/StatusType'
-        title:
-          type: string
         detail:
+          type: string
+        title:
           type: string
     StatusType:
       type: object
@@ -295,35 +295,6 @@ components:
           items:
             type: object
             properties:
-              cause:
-                type: object
-                properties:
-                  stackTrace:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        classLoaderName:
-                          type: string
-                        moduleName:
-                          type: string
-                        moduleVersion:
-                          type: string
-                        methodName:
-                          type: string
-                        fileName:
-                          type: string
-                        lineNumber:
-                          type: integer
-                          format: int32
-                        nativeMethod:
-                          type: boolean
-                        className:
-                          type: string
-                  message:
-                    type: string
-                  localizedMessage:
-                    type: string
               stackTrace:
                 type: array
                 items:
@@ -393,44 +364,15 @@ components:
             type: object
         status:
           $ref: '#/components/schemas/StatusType'
-        title:
-          type: string
         detail:
+          type: string
+        title:
           type: string
         suppressed:
           type: array
           items:
             type: object
             properties:
-              cause:
-                type: object
-                properties:
-                  stackTrace:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        classLoaderName:
-                          type: string
-                        moduleName:
-                          type: string
-                        moduleVersion:
-                          type: string
-                        methodName:
-                          type: string
-                        fileName:
-                          type: string
-                        lineNumber:
-                          type: integer
-                          format: int32
-                        nativeMethod:
-                          type: boolean
-                        className:
-                          type: string
-                  message:
-                    type: string
-                  localizedMessage:
-                    type: string
               stackTrace:
                 type: array
                 items:
@@ -481,13 +423,13 @@ components:
         archiveStatus:
           type: string
           enum:
-          - COMPLETED
-          - NOT_COMPLETED
+            - COMPLETED
+            - NOT_COMPLETED
         batchTrigger:
           type: string
           enum:
-          - MANUAL
-          - SCHEDULED
+            - MANUAL
+            - SCHEDULED
         timestamp:
           type: string
           format: date-time
@@ -509,8 +451,8 @@ components:
         archiveStatus:
           type: string
           enum:
-          - COMPLETED
-          - NOT_COMPLETED
+            - COMPLETED
+            - NOT_COMPLETED
         timestamp:
           type: string
           format: date-time

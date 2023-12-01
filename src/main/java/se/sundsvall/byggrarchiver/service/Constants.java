@@ -1,6 +1,8 @@
 package se.sundsvall.byggrarchiver.service;
 
 public class Constants {
+
+	private Constants() {}
 	public static final String STANGT = "Stängt";
 	public static final String BYGGR_STATUS_AVSLUTAT = "Avslutat";
 	public static final String BYGGR_HANDELSETYP_ARKIV = "ARKIV";
@@ -9,5 +11,4 @@ public class Constants {
 	public static final String SUNDSVALLS_KOMMUN = "Sundsvalls kommun";
 	public static final String BYGGNADSNAMNDEN = "Byggnadsnämnden";
 	public static final String STADSBYGGNADSNAMNDEN = "Stadsbyggnadsnämnden";
-
 }

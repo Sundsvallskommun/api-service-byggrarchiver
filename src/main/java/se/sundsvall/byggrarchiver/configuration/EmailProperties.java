@@ -3,7 +3,6 @@ package se.sundsvall.byggrarchiver.configuration;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -17,7 +16,11 @@ public record EmailProperties(
 
     @Valid
     @NotNull
-    Instance extensionError) {
+    Instance extensionError,
+
+    @Valid
+    @NotNull
+    Instance status) {
 
     public record Instance(@NotBlank String sender, @NotBlank String recipient) { }
 }

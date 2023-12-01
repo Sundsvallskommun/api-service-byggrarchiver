@@ -70,9 +70,6 @@ class ArchiveAttachmentServiceTest {
 	@Mock
 	private FastighetService fastighetService;
 
-	@Mock
-	private Marshaller marshallerMock;
-
 	@Captor
 	private ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestCaptor;
 
@@ -155,7 +152,6 @@ class ArchiveAttachmentServiceTest {
 		final var archiveHistory = createRandomArchiveHistory();
 
 		when(archiveHistoryRepositoryMock.save(archiveHistory)).thenReturn(archiveHistory);
-		//TODO Add capture to verify that the correct metadata is sent to archive
 		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture())).thenReturn(archiveResponse);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 

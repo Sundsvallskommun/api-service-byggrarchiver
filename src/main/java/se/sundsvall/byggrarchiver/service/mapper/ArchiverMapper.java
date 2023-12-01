@@ -15,8 +15,6 @@ import generated.se.sundsvall.bygglov.ArkivobjektListaHandlingarTyp;
 import generated.se.sundsvall.bygglov.BilagaTyp;
 import generated.se.sundsvall.bygglov.ExtraID;
 import generated.se.sundsvall.bygglov.StatusArande;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
@@ -37,7 +35,8 @@ import static se.sundsvall.byggrarchiver.service.Constants.STANGT;
 import static se.sundsvall.byggrarchiver.service.Constants.SUNDSVALLS_KOMMUN;
 
 public class ArchiverMapper {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ArchiverMapper.class);
+
+	private ArchiverMapper() {}
 
 	public static BilagaTyp toBilaga(final Dokument dokument) throws ApplicationException {
 		if (dokument.getFil().getFilAndelse() == null) {
@@ -109,17 +108,6 @@ public class ArchiverMapper {
 		return date.format(ISO_DATE);
 	}
 
-	public static Attachment toAttachment(final Dokument dokument) throws ApplicationException {
-		if (dokument.getFil().getFilAndelse() == null) {
-			dokument.getFil().setFilAndelse(Util.getExtensionFromByteArray(dokument.getFil().getFilBuffer()));
-		}
-		var attachment = new Attachment();
-		attachment.setExtension("." + dokument.getFil().getFilAndelse().toLowerCase());
-		attachment.setName(toNameWithExtension(dokument.getNamn(), dokument.getFil().getFilAndelse()));
-		attachment.setFile(Util.byteArrayToBase64(dokument.getFil().getFilBuffer()));
-		return attachment;
-	}
-
 	public static AttachmentCategory toAttachmentCategory(final String handlingsTyp) {
 		try {
 			return AttachmentCategory.fromCode(handlingsTyp);
@@ -129,38 +117,6 @@ public class ArchiverMapper {
 			// the archive
 			return AttachmentCategory.BIL;
 		}
-	}
-
-	private static ArkivobjektListaHandlingarTyp toArkivobjektListaHandlingar(final Handling handling,
-		final Dokument document) throws ApplicationException {
-		var arkivobjektHandling = new ArkivobjektHandlingTyp();
-		arkivobjektHandling.setArkivobjektID(document.getDokId());
-		arkivobjektHandling.setSkapad(toIsoDate(document.getSkapadDatum()));
-		arkivobjektHandling.getBilaga().add(toBilaga(document));
-		if (handling.getTyp() != null) {
-			var attachmentCategory = toAttachmentCategory(handling.getTyp());
-			arkivobjektHandling.setHandlingstyp(attachmentCategory.getArchiveClassification());
-			arkivobjektHandling.setRubrik(attachmentCategory.getDescription());
-		}
-		arkivobjektHandling.setInformationsklass(null);
-		arkivobjektHandling.setInkommen(null);
-		arkivobjektHandling.setAtkomst(null);
-		arkivobjektHandling.setAvsandare(null);
-		arkivobjektHandling.setBeskrivning(null);
-		arkivobjektHandling.setExpedierad(null);
-		arkivobjektHandling.setForvaringsenhetsReferens(null);
-		arkivobjektHandling.setGallring(null);
-		arkivobjektHandling.setLopnummer(null);
-		arkivobjektHandling.setNotering(null);
-		arkivobjektHandling.setSistaAnvandandetidpunkt(null);
-		arkivobjektHandling.setSkannad(null);
-		arkivobjektHandling.setStatusHandling(null);
-		arkivobjektHandling.setSystemidentifierare(null);
-		arkivobjektHandling.setUpprattad(null);
-
-		var arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
-		arkivobjektListaHandlingarTyp.getArkivobjektHandling().add(arkivobjektHandling);
-		return arkivobjektListaHandlingarTyp;
 	}
 
 	public static ArkivobjektArendeTyp toArkivobjektArendeTyp(final Arende2 arende, final Handling handling, final Dokument document) throws ApplicationException {
@@ -187,7 +143,7 @@ public class ArchiverMapper {
 
 		var archiveHistory = new ArchiveHistory();
 		archiveHistory.setDocumentId(getDocId(handling));
-		archiveHistory.setDocumentName(handling.getDokument().getNamn());
+		archiveHistory.setDocumentName(getDocumentName(handling));
 		archiveHistory.setDocumentType(getAttachmentCategoryDescription(attachmentCategory));
 		archiveHistory.setCaseId(caseId);
 		archiveHistory.setBatchHistory(batchHistory);
@@ -204,8 +160,40 @@ public class ArchiverMapper {
 		return request;
 	}
 
+	private static Attachment toAttachment(final Dokument dokument) throws ApplicationException {
+		if (dokument.getFil().getFilAndelse() == null) {
+			dokument.getFil().setFilAndelse(Util.getExtensionFromByteArray(dokument.getFil().getFilBuffer()));
+		}
+		var attachment = new Attachment();
+		attachment.setExtension("." + dokument.getFil().getFilAndelse().toLowerCase());
+		attachment.setName(toNameWithExtension(dokument.getNamn(), dokument.getFil().getFilAndelse()));
+		attachment.setFile(Util.byteArrayToBase64(dokument.getFil().getFilBuffer()));
+		return attachment;
+	}
+
+	private static ArkivobjektListaHandlingarTyp toArkivobjektListaHandlingar(final Handling handling,
+		final Dokument document) throws ApplicationException {
+		var arkivobjektHandling = new ArkivobjektHandlingTyp();
+		arkivobjektHandling.setArkivobjektID(document.getDokId());
+		arkivobjektHandling.setSkapad(toIsoDate(document.getSkapadDatum()));
+		arkivobjektHandling.getBilaga().add(toBilaga(document));
+		if (handling.getTyp() != null) {
+			var attachmentCategory = toAttachmentCategory(handling.getTyp());
+			arkivobjektHandling.setHandlingstyp(attachmentCategory.getArchiveClassification());
+			arkivobjektHandling.setRubrik(attachmentCategory.getDescription());
+		}
+
+		var arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
+		arkivobjektListaHandlingarTyp.getArkivobjektHandling().add(arkivobjektHandling);
+		return arkivobjektListaHandlingarTyp;
+	}
+
 	private static String getDocId(final Handling handling) {
-		return ofNullable(ofNullable(handling).orElse(new Handling()).getDokument()).orElse(new Dokument()).getDokId();
+		return ofNullable(handling).map(Handling::getDokument).map(Dokument::getDokId).orElse(null);
+	}
+
+	private static String getDocumentName(final Handling handling) {
+		return ofNullable(handling).map(Handling::getDokument).map(Dokument::getNamn).orElse(null);
 	}
 
 	private static String getAttachmentCategoryDescription(AttachmentCategory attachmentCategory) {

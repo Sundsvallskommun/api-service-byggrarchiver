@@ -1,5 +1,29 @@
 package apptest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import configuration.TestContainersConfiguration;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cloud.contract.wiremock.WireMockConfigurationCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import se.sundsvall.byggrarchiver.Application;
+import se.sundsvall.byggrarchiver.api.model.BatchJob;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
+import se.sundsvall.dept44.test.AbstractAppTest;
+import se.sundsvall.dept44.test.annotation.wiremock.WireMockAppTestSuite;
+
+import java.time.LocalDate;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpMethod.GET;
@@ -13,32 +37,6 @@ import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
-
-import java.time.LocalDate;
-import java.util.List;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
-import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.contract.wiremock.WireMockConfigurationCustomizer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-
-import se.sundsvall.byggrarchiver.Application;
-import se.sundsvall.byggrarchiver.api.model.BatchJob;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.dept44.test.AbstractAppTest;
-import se.sundsvall.dept44.test.annotation.wiremock.WireMockAppTestSuite;
-
-import configuration.TestContainersConfiguration;
 
 @WireMockAppTestSuite(
     files = "classpath:/IntegrationTest/",
@@ -114,8 +112,7 @@ class IntegrationTest extends AbstractAppTest {
                 .sendRequestAndVerifyResponse()
                 .andReturnBody(ArchiveHistory[].class));
 
-        assertThat(getArchiveHistoryList).isEqualTo(getArchiveHistoryListCompleted);
-        assertThat(getArchiveHistoryList).allSatisfy(archiveHistory -> {
+        assertThat(getArchiveHistoryList).isEqualTo(getArchiveHistoryListCompleted).allSatisfy(archiveHistory -> {
             assertThat(archiveHistory.getBatchHistory()).isEqualTo(postBatchHistory);
             assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED);
         });

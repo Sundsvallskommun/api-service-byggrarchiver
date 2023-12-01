@@ -102,8 +102,10 @@ public class ArchiveHistoryService {
 			// Persist that this batch is completed
 			batchHistory.setArchiveStatus(COMPLETED);
 			batchHistoryRepository.save(batchHistory);
+		} else {
+			// Send email when batch is not completed
+			messagingIntegration.sendStatusMail(archiveHistoriesRelatedToBatch, batchHistory.getId());
 		}
-		//TODO Send email when INCOMPLETE:d archive histories exist
 
 		LOG.info("Batch with ID: {} is {}", batchHistory.getId(), batchHistory.getArchiveStatus());
 		LOG.info("Batch with ID: {} has {} archive histories", batchHistory.getId(), archiveHistoriesRelatedToBatch.size());

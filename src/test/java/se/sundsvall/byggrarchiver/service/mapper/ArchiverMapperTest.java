@@ -81,6 +81,23 @@ class ArchiverMapperTest {
 	}
 
 	@Test
+	void testToBilagaNameWithExtension() throws Exception {
+		final var dokument = new Dokument().withDokId("dokId")
+			.withNamn("1_NameWithExtension.docx")
+			.withFil(new DokumentFil()
+				.withFilBuffer(new byte[] { 1, 2, 3 })
+				.withFilAndelse("notUsed"))
+			.withBeskrivning("beskrivning");
+
+		final var bilaga = ArchiverMapper.toBilaga(dokument);
+
+		assertThat(bilaga.getNamn()).isEqualTo("1_NameWithExtension.docx");
+		assertThat(bilaga.getBeskrivning()).isEqualTo("beskrivning");
+		assertThat(bilaga.getLank()).isEqualTo("Bilagor\\1_NameWithExtension.docx");
+
+	}
+
+	@Test
 	void testToBilagaWhenNoExtension() throws Exception {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("namn")

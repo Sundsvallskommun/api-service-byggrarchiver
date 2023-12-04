@@ -6,7 +6,6 @@ import generated.se.sundsvall.arendeexport.BatchFilter;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
@@ -32,26 +31,33 @@ import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeF
 @Service
 public class ArchiveHistoryService {
 
-	@Autowired
-	private BatchHistoryRepository batchHistoryRepository;
+	private final BatchHistoryRepository batchHistoryRepository;
 
-	@Autowired
-	private ArendeExportIntegrationService arendeExportIntegrationService;
+	private final ArendeExportIntegrationService arendeExportIntegrationService;
 
-	@Autowired
-	private ArchiveHistoryRepository archiveHistoryRepository;
+	private final ArchiveHistoryRepository archiveHistoryRepository;
 
-	@Autowired
-	private MessagingIntegration messagingIntegration;
+	private final MessagingIntegration messagingIntegration;
 
-	@Autowired
-	private ArchiveAttachmentService archiveAttachmentService;
+	private final ArchiveAttachmentService archiveAttachmentService;
 
-	@Autowired
-	private FastighetService fastighetService;
+	private final FastighetService fastighetService;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ArchiveHistoryService.class);
 
+	public ArchiveHistoryService(final BatchHistoryRepository batchHistoryRepository,
+		final ArendeExportIntegrationService arendeExportIntegrationService,
+		final ArchiveHistoryRepository archiveHistoryRepository,
+		final MessagingIntegration messagingIntegration,
+		final ArchiveAttachmentService archiveAttachmentService,
+		final FastighetService fastighetService) {
+		this.batchHistoryRepository = batchHistoryRepository;
+		this.arendeExportIntegrationService = arendeExportIntegrationService;
+		this.archiveHistoryRepository = archiveHistoryRepository;
+		this.messagingIntegration = messagingIntegration;
+		this.archiveAttachmentService = archiveAttachmentService;
+		this.fastighetService = fastighetService;
+	}
 	public BatchHistory archive(final LocalDate searchStart, final LocalDate searchEnd,
 		final BatchHistory batchHistory) {
 		LOG.info("Batch: {} was started with start-date: {} and end-date: {}", batchHistory.getId(), searchStart, searchEnd);

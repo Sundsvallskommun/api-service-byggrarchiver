@@ -22,10 +22,10 @@ import static org.mockito.Mockito.when;
 class FastighetServiceTest {
 
 	@Mock
-	FbIntegration fbIntegration;
+	private FbIntegration fbIntegration;
 
 	@InjectMocks
-	FastighetService fastighetService;
+	private FastighetService fastighetService;
 
 	@Test
 	void getFastighet() throws Exception {

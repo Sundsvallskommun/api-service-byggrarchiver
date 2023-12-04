@@ -5,7 +5,7 @@
     <parent>
         <groupId>se.sundsvall.dept44</groupId>
         <artifactId>dept44-service-parent</artifactId>
-        <version>2.1.1</version>
+        <version>3.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>se.sundsvall</groupId>
@@ -20,8 +20,8 @@
 
         <!-- Dependency versions -->
         <jmimemagic.version>0.1.5</jmimemagic.version>
-        <commons-text.version>1.10.0</commons-text.version>
-        <openapi-generator-maven-plugin.version>6.6.0</openapi-generator-maven-plugin.version>
+        <commons-text.version>1.11.0</commons-text.version>
+        <openapi-generator-maven-plugin.version>7.0.1</openapi-generator-maven-plugin.version>
         <jaxb2-maven-plugin.version>3.1.0</jaxb2-maven-plugin.version>
         <jaxb2-fluent-api.version>3.0</jaxb2-fluent-api.version>
 
@@ -283,7 +283,7 @@
                 <configuration>
                     <excludes>
                         <exclude>**/byggrarchiver/Application*</exclude>
-                        <exclude>**/util/Constants*</exclude>
+                        <exclude>**/byggrarchiver/service/Constants*</exclude>
                         <exclude>**/generated/**</exclude>
                         <exclude>**/arendeexport/**</exclude>
                     </excludes>

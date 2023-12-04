@@ -50,17 +50,6 @@ public class ArchiverMapper {
 		return bilaga;
 	}
 
-	public static String toNameWithExtension(final String name, final String extension) {
-		var trimmedExtension = extension.trim().toLowerCase();
-
-		if (Pattern.compile(".*(\\.[a-zA-Z]{3,4})$").matcher(name).find()) {
-			return name;
-		} else {
-			var extensionWithDot = trimmedExtension.contains(".") ? trimmedExtension : "." + trimmedExtension;
-			return name + extensionWithDot;
-		}
-	}
-
 	public static List<ArendeFastighet> toArendeFastighetList(final List<AbstractArendeObjekt> abstractArendeObjektList) {
 		return abstractArendeObjektList.stream()
 			.filter(ArendeFastighet.class::isInstance)
@@ -158,6 +147,17 @@ public class ArchiverMapper {
 		request.setMetadata(metaData);
 
 		return request;
+	}
+
+	private static String toNameWithExtension(final String name, final String extension) {
+		var trimmedExtension = extension.trim().toLowerCase();
+
+		if (Pattern.compile("^[a-zA-Z0-9_. -]*\\.[a-zA-Z]{3,4}$").matcher(name).find()) {
+			return name;
+		} else {
+			var extensionWithDot = trimmedExtension.contains(".") ? trimmedExtension : "." + trimmedExtension;
+			return name + extensionWithDot;
+		}
 	}
 
 	private static Attachment toAttachment(final Dokument dokument) throws ApplicationException {

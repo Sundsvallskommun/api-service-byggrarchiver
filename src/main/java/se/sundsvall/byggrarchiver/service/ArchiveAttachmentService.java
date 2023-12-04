@@ -12,7 +12,6 @@ import jakarta.xml.bind.JAXBContext;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
 import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
@@ -40,16 +39,25 @@ public class ArchiveAttachmentService {
 
 	static final String ARCHIVE_URL_QUERY = "/Search?searchPath=AGS%20Bygglov&aipFilterOption=0&Arkivpakets-ID=MatchesPhrase(${archiveId})";
 	private static final Logger LOG = LoggerFactory.getLogger(ArchiveAttachmentService.class);
-	@Autowired
+
 	LongTermArchiveProperties longTermArchiveProperties;
-	@Autowired
-	private ArchiveHistoryRepository archiveHistoryRepository;
-	@Autowired
-	private MessagingIntegration messagingIntegration;
-	@Autowired
-	private ArchiveIntegration archiveIntegration;
-	@Autowired
-	private FastighetService fastighetService;
+
+	private final ArchiveHistoryRepository archiveHistoryRepository;
+
+	private final MessagingIntegration messagingIntegration;
+
+	private final ArchiveIntegration archiveIntegration;
+
+	private final FastighetService fastighetService;
+
+	public ArchiveAttachmentService(final LongTermArchiveProperties longTermArchiveProperties, final ArchiveHistoryRepository archiveHistoryRepository,
+		final MessagingIntegration messagingIntegration, final ArchiveIntegration archiveIntegration, final FastighetService fastighetService) {
+		this.longTermArchiveProperties = longTermArchiveProperties;
+		this.archiveHistoryRepository = archiveHistoryRepository;
+		this.messagingIntegration = messagingIntegration;
+		this.archiveIntegration = archiveIntegration;
+		this.fastighetService = fastighetService;
+	}
 
 	public ArchiveHistory archiveAttachment(final Arende2 arende, final Handling handling, final Dokument document, final ArchiveHistory archiveHistory) throws ApplicationException {
 
@@ -89,11 +97,11 @@ public class ArchiveAttachmentService {
 			"archiveId", ofNullable(archiveId).orElse("")
 		);
 
-		return longTermArchiveProperties.url() + replace(ARCHIVE_URL_QUERY, values);
+		return longTermArchiveProperties.url() + replace(values);
 	}
 
-	private String replace(final String source, final Map<String, String> values) {
-		return new StringSubstitutor(values).replace(source);
+	private String replace(final Map<String, String> values) {
+		return new StringSubstitutor(values).replace(ARCHIVE_URL_QUERY);
 	}
 
 	private ArkivobjektListaArendenTyp toArkivobjektListaArenden(final Arende2 arende,

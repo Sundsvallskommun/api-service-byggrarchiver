@@ -1,0 +1,57 @@
+cron:
+    expression: '-'
+email:
+    extension-error:
+        recipient: junit-recipient@test.se
+        sender: junit-sender@test.se
+    lantmateriet:
+        recipient: junit-recipient@test.se
+        sender: junit-sender@test.se
+    status:
+        recipient: junit-recipient@test.se
+        sender: junit-sender@test.se
+integration:
+    archive:
+        oauth2:
+            clientId: client-id
+            clientSecret: client-secret
+            tokenUrl: ${sundsvall.token-uri}
+        url: http://archive.url
+    arendeexport:
+        url: http://arendeexport.url
+    fb:
+        database: database
+        password: password
+        url: http://fbservice.url
+        username: username
+    messaging:
+        oauth2:
+            clientId: client-id
+            clientSecret: client-secret
+            tokenUrl: ${sundsvall.token-uri}
+        url: http://messaging.url
+long-term-archive:
+    url: http://sundsvall-junit-test.se
+spring:
+    datasource:
+        driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+        url: jdbc:tc:mariadb:10.6.14:///
+    jpa:
+        properties:
+            hibernate:
+                format_sql: true
+                hbm2ddl:
+                    schema-generation:
+                        script:
+                            append: false
+            jakarta:
+                persistence:
+                    schema-generation:
+                        create-source: metadata
+                        database:
+                            action: update
+                        scripts:
+                            action: create
+                            create-target: target/database/generated-schema.sql
+sundsvall:
+    token-uri: http://token.uri

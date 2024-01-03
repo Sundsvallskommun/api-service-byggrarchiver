@@ -2,16 +2,10 @@ package apptest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import configuration.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.contract.wiremock.WireMockConfigurationCustomizer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import se.sundsvall.byggrarchiver.Application;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
@@ -42,17 +36,7 @@ import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
     files = "classpath:/IntegrationTest/",
     classes = Application.class
 )
-@Import({IntegrationTest.WireMockTestConfiguration.class, TestContainersConfiguration.class})
 class IntegrationTest extends AbstractAppTest {
-
-    @TestConfiguration
-    static class WireMockTestConfiguration {
-
-        @Bean
-        WireMockConfigurationCustomizer optionsCustomizer() {
-            return config -> config.notifier(new ConsoleNotifier(true));
-        }
-    }
 
     @Autowired
     private ObjectMapper objectMapper;

@@ -5,7 +5,7 @@
     <parent>
         <groupId>se.sundsvall.dept44</groupId>
         <artifactId>dept44-service-parent</artifactId>
-        <version>3.4</version>
+        <version>4.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>se.sundsvall</groupId>
@@ -21,7 +21,6 @@
         <!-- Dependency versions -->
         <jmimemagic.version>0.1.5</jmimemagic.version>
         <commons-text.version>1.11.0</commons-text.version>
-        <openapi-generator-maven-plugin.version>7.0.1</openapi-generator-maven-plugin.version>
         <jaxb2-maven-plugin.version>3.1.0</jaxb2-maven-plugin.version>
         <jaxb2-fluent-api.version>3.0</jaxb2-fluent-api.version>
 
@@ -39,21 +38,6 @@
         <dependency>
             <groupId>se.sundsvall.dept44</groupId>
             <artifactId>dept44-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-testcontainers</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -88,6 +72,10 @@
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
         </dependency>
 
         <!-- Other -->
@@ -133,7 +121,6 @@
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>${openapi-generator-maven-plugin.version}</version>
                 <configuration>
                     <output>${generated-sources-path}</output>
                     <generatorName>spring</generatorName>

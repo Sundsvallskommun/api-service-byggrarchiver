@@ -1,9 +1,7 @@
 package apptest;
 
-import configuration.TestContainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import se.sundsvall.byggrarchiver.Application;
 import se.sundsvall.byggrarchiver.service.ArchiverScheduleService;
@@ -21,7 +19,6 @@ import static org.mockito.Mockito.verify;
     classes = Application.class
 )
 @TestPropertySource(properties = {"cron.expression=* * * ? * *"})
-@Import(TestContainersConfiguration.class)
 class ArchiveScheduleServiceTest extends AbstractAppTest {
 
     @SpyBean

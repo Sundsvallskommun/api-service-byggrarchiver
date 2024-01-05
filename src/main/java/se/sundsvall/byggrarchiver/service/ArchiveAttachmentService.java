@@ -1,29 +1,5 @@
 package se.sundsvall.byggrarchiver.service;
 
-import feign.FeignException;
-import generated.se.sundsvall.archive.ArchiveResponse;
-import generated.se.sundsvall.arendeexport.Arende2;
-import generated.se.sundsvall.arendeexport.Dokument;
-import generated.se.sundsvall.arendeexport.Handling;
-import generated.se.sundsvall.bygglov.ArkivobjektListaArendenTyp;
-import generated.se.sundsvall.bygglov.LeveransobjektTyp;
-import generated.se.sundsvall.bygglov.ObjectFactory;
-import jakarta.xml.bind.JAXBContext;
-import org.apache.commons.text.StringSubstitutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
-import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-
-import java.io.StringWriter;
-import java.time.LocalDate;
-import java.util.Map;
-
 import static java.util.Optional.ofNullable;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
@@ -33,6 +9,31 @@ import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeF
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivbildarStruktur;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivobjektArendeTyp;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toByggRArchiveRequest;
+
+import java.io.StringWriter;
+import java.time.LocalDate;
+import java.util.Map;
+
+import org.apache.commons.text.StringSubstitutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import feign.FeignException;
+import generated.se.sundsvall.archive.ArchiveResponse;
+import generated.se.sundsvall.arendeexport.Arende2;
+import generated.se.sundsvall.arendeexport.Dokument;
+import generated.se.sundsvall.arendeexport.Handling;
+import generated.se.sundsvall.bygglov.ArkivobjektListaArendenTyp;
+import generated.se.sundsvall.bygglov.LeveransobjektTyp;
+import generated.se.sundsvall.bygglov.ObjectFactory;
+import jakarta.xml.bind.JAXBContext;
+import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
+import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 @Service
 public class ArchiveAttachmentService {
@@ -65,7 +66,7 @@ public class ArchiveAttachmentService {
 		ArchiveResponse archiveResponse = null;
 		try {
 			archiveResponse = archiveIntegration.archive(toByggRArchiveRequest(document, createMetadata(arende, handling, document)));
-		} catch (FeignException e) {
+		} catch (final FeignException e) {
 			LOG.error("Request to Archive failed. Continue with the rest.", e);
 
 			if (e.getMessage().contains("extension must be valid") || e.getMessage().contains("File format")) {
@@ -75,7 +76,7 @@ public class ArchiveAttachmentService {
 			}
 		}
 
-		if (archiveResponse != null && archiveResponse.getArchiveId() != null) {
+		if ((archiveResponse != null) && (archiveResponse.getArchiveId() != null)) {
 			// Success! Set status to completed
 			LOG.info("The archive-process of document with ID: {} succeeded!", archiveHistory.getDocumentId());
 
@@ -93,9 +94,8 @@ public class ArchiveAttachmentService {
 	}
 
 	private String createArchiveUrl(final String archiveId) {
-		var values = Map.of(
-			"archiveId", ofNullable(archiveId).orElse("")
-		);
+		final var values = Map.of(
+			"archiveId", ofNullable(archiveId).orElse(""));
 
 		return longTermArchiveProperties.url() + replace(values);
 	}
@@ -107,15 +107,15 @@ public class ArchiveAttachmentService {
 	private ArkivobjektListaArendenTyp toArkivobjektListaArenden(final Arende2 arende,
 		final Handling handling, final Dokument document) throws ApplicationException {
 
-		var arkivobjektArende = toArkivobjektArendeTyp(arende, handling, document);
+		final var arkivobjektArende = toArkivobjektArendeTyp(arende, handling, document);
 
 		if (arende.getObjektLista() != null) {
-			var arendeFastighetList = toArendeFastighetList(arende.getObjektLista().getAbstractArendeObjekt());
+			final var arendeFastighetList = toArendeFastighetList(arende.getObjektLista().getAbstractArendeObjekt());
 
 			arkivobjektArende.getFastighet().add(fastighetService.getFastighet(arendeFastighetList));
 		}
 
-		if (arende.getAnkomstDatum() == null || arende.getAnkomstDatum().isAfter(LocalDate.of(2016, 12, 31))) {
+		if ((arende.getAnkomstDatum() == null) || arende.getAnkomstDatum().isAfter(LocalDate.of(2016, 12, 31))) {
 			arkivobjektArende.getKlass().add(HANTERA_BYGGLOV);
 		} else {
 			arkivobjektArende.getKlass().add(F_2_BYGGLOV);
@@ -125,28 +125,28 @@ public class ArchiveAttachmentService {
 			arkivobjektArende.setNotering(String.valueOf(arende.getAnkomstDatum().getYear()));
 		}
 
-		var arkivobjektListaArendenTyp = new ArkivobjektListaArendenTyp();
+		final var arkivobjektListaArendenTyp = new ArkivobjektListaArendenTyp();
 		arkivobjektListaArendenTyp.getArkivobjektArende().add(arkivobjektArende);
 		return arkivobjektListaArendenTyp;
 	}
 
 	private LeveransobjektTyp toLeveransobjektTyp(final Arende2 arende, final Handling handling,
 		final Dokument document) throws ApplicationException {
-		var leveransobjekt = new LeveransobjektTyp();
+		final var leveransobjekt = new LeveransobjektTyp();
 		leveransobjekt.setArkivbildarStruktur(toArkivbildarStruktur(arende.getAnkomstDatum()));
 		leveransobjekt.setArkivobjektListaArenden(toArkivobjektListaArenden(arende, handling, document));
 		return leveransobjekt;
 	}
 
 	private String createMetadata(final Arende2 arende, final Handling handling, final Dokument document) throws ApplicationException {
-		var leveransObjektTyp = toLeveransobjektTyp(arende, handling, document);
+		final var leveransObjektTyp = toLeveransobjektTyp(arende, handling, document);
 		try {
-			var context = JAXBContext.newInstance(LeveransobjektTyp.class);
-			var marshaller = context.createMarshaller();
-			var stringWriter = new StringWriter();
+			final var context = JAXBContext.newInstance(LeveransobjektTyp.class);
+			final var marshaller = context.createMarshaller();
+			final var stringWriter = new StringWriter();
 			marshaller.marshal(new ObjectFactory().createLeveransobjekt(leveransObjektTyp), stringWriter);
 			return stringWriter.toString();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
 		}
 	}

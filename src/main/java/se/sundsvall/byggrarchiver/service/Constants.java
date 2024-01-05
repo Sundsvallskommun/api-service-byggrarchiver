@@ -1,8 +1,9 @@
 package se.sundsvall.byggrarchiver.service;
 
-public class Constants {
+public final class Constants {
 
 	private Constants() {}
+
 	public static final String STANGT = "Stängt";
 	public static final String BYGGR_STATUS_AVSLUTAT = "Avslutat";
 	public static final String BYGGR_HANDELSETYP_ARKIV = "ARKIV";

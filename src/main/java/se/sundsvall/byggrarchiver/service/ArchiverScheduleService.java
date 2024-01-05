@@ -15,24 +15,23 @@ import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 @Service
 public class ArchiverScheduleService {
 
-    private static final Logger log = LoggerFactory.getLogger(ArchiverScheduleService.class);
+	private static final Logger log = LoggerFactory.getLogger(ArchiverScheduleService.class);
 
-    private final ByggrArchiverService byggrArchiverService;
+	private final ByggrArchiverService byggrArchiverService;
 
-    public ArchiverScheduleService (ByggrArchiverService byggrArchiverService) {
-        this.byggrArchiverService = byggrArchiverService;
-    }
+	public ArchiverScheduleService(ByggrArchiverService byggrArchiverService) {
+		this.byggrArchiverService = byggrArchiverService;
+	}
 
+	@Scheduled(cron = "${cron.expression}")
+	public void archive() throws ApplicationException {
+		log.info("Running archiving on schedule. Timestamp: {}", LocalDateTime.now(ZoneId.systemDefault()));
 
-    @Scheduled(cron = "${cron.expression}")
-    public void archive() throws ApplicationException {
-        log.info("Running archiving on schedule. Timestamp: {}", LocalDateTime.now(ZoneId.systemDefault()));
+		// Run batch from one week back in time to yesterday
+		// TODO - change this when we run this job everyday
+		final LocalDate oneWeekBack = LocalDate.now(ZoneId.systemDefault()).minusDays(7);
+		final LocalDate yesterday = LocalDate.now(ZoneId.systemDefault()).minusDays(1);
 
-        // Run batch from one week back in time to yesterday
-        // TODO - change this when we run this job everyday
-        LocalDate oneWeekBack = LocalDate.now(ZoneId.systemDefault()).minusDays(7);
-        LocalDate yesterday = LocalDate.now(ZoneId.systemDefault()).minusDays(1);
-
-        byggrArchiverService.runBatch(oneWeekBack, yesterday, BatchTrigger.SCHEDULED);
-    }
+		byggrArchiverService.runBatch(oneWeekBack, yesterday, BatchTrigger.SCHEDULED);
+	}
 }

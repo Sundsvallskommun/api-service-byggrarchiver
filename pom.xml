@@ -13,26 +13,20 @@
     <version>1.1</version>
     <name>api-service-byggrarchiver</name>
     <description>Application that archives documents from Byggr</description>
-
     <properties>
         <generated-sources-path>${project.build.directory}/generated-sources</generated-sources-path>
         <generated-sources-java-path>src/main/java</generated-sources-java-path>
-
         <!-- Dependency versions -->
         <jmimemagic.version>0.1.5</jmimemagic.version>
         <commons-text.version>1.11.0</commons-text.version>
         <jaxb2-maven-plugin.version>3.1.0</jaxb2-maven-plugin.version>
         <jaxb2-fluent-api.version>3.0</jaxb2-fluent-api.version>
-
         <!-- Pipeline properties -->
         <docker.image.name>ms-byggrarchiver</docker.image.name>
-        <published.container.port.sandbox>8717</published.container.port.sandbox>
         <published.container.port.test>8718</published.container.port.test>
         <published.container.port.production>9091</published.container.port.production>
-
         <app.jvm.xmx.mb>2048</app.jvm.xmx.mb>
     </properties>
-
     <dependencies>
         <!-- Test -->
         <dependency>
@@ -45,7 +39,6 @@
             <artifactId>mariadb</artifactId>
             <scope>test</scope>
         </dependency>
-
         <!-- Framework -->
         <dependency>
             <groupId>se.sundsvall.dept44</groupId>
@@ -63,7 +56,6 @@
             <groupId>se.sundsvall.dept44</groupId>
             <artifactId>dept44-starter-feign</artifactId>
         </dependency>
-
         <!-- JPA/JDBC -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -77,7 +69,6 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
         </dependency>
-
         <!-- Other -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -108,7 +99,6 @@
             <version>${commons-text.version}</version>
         </dependency>
     </dependencies>
-
     <build>
         <testResources>
             <testResource>
@@ -116,7 +106,6 @@
                 <filtering>false</filtering>
             </testResource>
         </testResources>
-
         <plugins>
             <plugin>
                 <groupId>org.openapitools</groupId>
@@ -125,9 +114,9 @@
                     <output>${generated-sources-path}</output>
                     <generatorName>spring</generatorName>
                     <generateApis>false</generateApis>
+                    <generateSupportingFiles>false</generateSupportingFiles>
                     <configOptions>
                         <sourceFolder>${generated-sources-java-path}</sourceFolder>
-                        <generateSupportingFiles>false</generateSupportingFiles>
                         <generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
                         <generatePom>false</generatePom>
                         <library>spring-boot</library>
@@ -139,7 +128,6 @@
                         <useSwaggerAnnotations>true</useSwaggerAnnotations>
                         <hideGenerationTimestamp>true</hideGenerationTimestamp>
                         <interfaceOnly>true</interfaceOnly>
-                        <useJakartaEe>true</useJakartaEe>
                         <useSpringBoot3>true</useSpringBoot3>
                     </configOptions>
                 </configuration>
@@ -156,7 +144,6 @@
                             </configOptions>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>archive-api</id>
                         <goals>
@@ -169,7 +156,6 @@
                             </configOptions>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>fb-api</id>
                         <goals>
@@ -184,7 +170,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
@@ -219,7 +204,6 @@
                             </xjbSources>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>arendeexport</id>
                         <goals>
@@ -243,7 +227,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -263,7 +246,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -278,5 +260,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

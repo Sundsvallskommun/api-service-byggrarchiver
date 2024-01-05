@@ -1,5 +1,38 @@
 package se.sundsvall.byggrarchiver.service;
 
+import static feign.Request.HttpMethod.POST;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
+import static se.sundsvall.byggrarchiver.service.Constants.BYGGR_HANDELSETYP_ARKIV;
+import static se.sundsvall.byggrarchiver.service.Constants.BYGGR_STATUS_AVSLUTAT;
+import static se.sundsvall.byggrarchiver.service.Constants.F_2_BYGGLOV;
+import static se.sundsvall.byggrarchiver.service.Constants.HANTERA_BYGGLOV;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import feign.FeignException;
 import feign.Request;
 import generated.se.sundsvall.archive.ArchiveResponse;
@@ -15,17 +48,6 @@ import generated.se.sundsvall.arendeexport.Fastighet;
 import generated.se.sundsvall.arendeexport.Handelse;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
 import generated.se.sundsvall.bygglov.FastighetTyp;
-import jakarta.xml.bind.Marshaller;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
@@ -33,28 +55,6 @@ import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static feign.Request.HttpMethod.POST;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
-import static se.sundsvall.byggrarchiver.service.Constants.BYGGR_HANDELSETYP_ARKIV;
-import static se.sundsvall.byggrarchiver.service.Constants.BYGGR_STATUS_AVSLUTAT;
-import static se.sundsvall.byggrarchiver.service.Constants.F_2_BYGGLOV;
-import static se.sundsvall.byggrarchiver.service.Constants.HANTERA_BYGGLOV;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiveAttachmentServiceTest {
@@ -87,7 +87,7 @@ class ArchiveAttachmentServiceTest {
 		document2.getFil().setFilAndelse("pdf");
 
 		final var document3 = new Dokument();
-		var dokumentFil = new DokumentFil();
+		final var dokumentFil = new DokumentFil();
 		dokumentFil.setFilAndelse("pdf");
 		document3.setFil(dokumentFil);
 		document3.setNamn("test.with   .extension.DOCX");
@@ -95,7 +95,7 @@ class ArchiveAttachmentServiceTest {
 		return Stream.of(
 			// Sanity check passes
 			Arguments.of(document1),
-			//Sanity check passes
+			// Sanity check passes
 			Arguments.of(document2),
 			Arguments.of(document3));
 	}
@@ -222,15 +222,12 @@ class ArchiveAttachmentServiceTest {
 		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture())).thenReturn(archiveResponse);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 
-		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory);
+		archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory);
 
-		assertThat(byggRArchiveRequestCaptor.getAllValues()).allSatisfy(request ->
-			assertThat(request.getMetadata()).containsAnyOf(
-				"Bilaga Namn=\"test.without.extension.docx\" Lank=\"Bilagor\\test.without.extension.docx\"",
-				"Bilaga Namn=\"test.without extension 2.pdf\" Lank=\"Bilagor\\test.without extension 2.pdf\"",
-				"Bilaga Namn=\"test.with   .extension.DOCX\" Lank=\"Bilagor\\test.with   .extension.DOCX\""
-			)
-		);
+		assertThat(byggRArchiveRequestCaptor.getAllValues()).allSatisfy(request -> assertThat(request.getMetadata()).containsAnyOf(
+			"Bilaga Namn=\"test.without.extension.docx\" Lank=\"Bilagor\\test.without.extension.docx\"",
+			"Bilaga Namn=\"test.without extension 2.pdf\" Lank=\"Bilagor\\test.without extension 2.pdf\"",
+			"Bilaga Namn=\"test.with   .extension.DOCX\" Lank=\"Bilagor\\test.with   .extension.DOCX\""));
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
 		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class));
 		verify(fastighetService).getFastighet(any());
@@ -293,39 +290,39 @@ class ArchiveAttachmentServiceTest {
 	/**
 	 * Util method for creating arende-objects
 	 *
-	 * @param status               - status for the arende
-	 * @param handelsetyp          - type of handelse that should be included
-	 * @param attachmentCategories - the documents that should be generated
-	 * @return Arende
+	 * @param  status               - status for the arende
+	 * @param  handelsetyp          - type of handelse that should be included
+	 * @param  attachmentCategories - the documents that should be generated
+	 * @return                      Arende
 	 */
 	private Arende createArendeObject(final String status, final String handelsetyp,
 		final List<AttachmentCategory> attachmentCategories) {
-		var arrayOfHandelseHandling = new ArrayOfHandelseHandling();
-		var dokumentList = new ArrayList<Dokument>();
+		final var arrayOfHandelseHandling = new ArrayOfHandelseHandling();
+		final var dokumentList = new ArrayList<Dokument>();
 		attachmentCategories.forEach(category -> {
-			var dokument = new Dokument();
+			final var dokument = new Dokument();
 			dokument.setDokId(String.valueOf(randomInt(999999)));
 			dokument.setNamn("Test filnamn");
-			var dokumentFil = new DokumentFil();
+			final var dokumentFil = new DokumentFil();
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
 			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
 
 			dokumentList.add(dokument);
 
-			var handling = new HandelseHandling();
+			final var handling = new HandelseHandling();
 			handling.setTyp(category.name());
 			handling.setDokument(dokument);
 
 			arrayOfHandelseHandling.getHandling().add(handling);
 		});
 
-		var handelse = new Handelse();
+		final var handelse = new Handelse();
 		handelse.setHandelsetyp(handelsetyp);
 		handelse.setHandlingLista(arrayOfHandelseHandling);
-		var arrayOfHandelse = new ArrayOfHandelse();
+		final var arrayOfHandelse = new ArrayOfHandelse();
 		arrayOfHandelse.getHandelse().add(handelse);
-		var arende = new Arende();
+		final var arende = new Arende();
 		arende.setDnr("BYGG 2021-" + randomInt(999999));
 		arende.setStatus(status);
 		arende.setHandelseLista(arrayOfHandelse);
@@ -335,12 +332,12 @@ class ArchiveAttachmentServiceTest {
 	}
 
 	private ArrayOfAbstractArendeObjekt2 createArrayOfAbstractArendeObjekt() {
-		var fastighet = new Fastighet();
+		final var fastighet = new Fastighet();
 		fastighet.setFnr(123456);
-		var arendeFastighet = new ArendeFastighet();
+		final var arendeFastighet = new ArendeFastighet();
 		arendeFastighet.setFastighet(fastighet);
 		arendeFastighet.setArHuvudObjekt(true);
-		var arrayOfAbstractArendeObjekt = new ArrayOfAbstractArendeObjekt2();
+		final var arrayOfAbstractArendeObjekt = new ArrayOfAbstractArendeObjekt2();
 		arrayOfAbstractArendeObjekt.getAbstractArendeObjekt().add(arendeFastighet);
 		return arrayOfAbstractArendeObjekt;
 	}

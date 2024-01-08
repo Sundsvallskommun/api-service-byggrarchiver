@@ -48,11 +48,11 @@ public class BatchHistory {
     @Column(nullable = false)
     private LocalDate end;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(255)")
     @Enumerated(EnumType.STRING)
     private ArchiveStatus archiveStatus;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(255)")
     @Enumerated(EnumType.STRING)
     private BatchTrigger batchTrigger;
 

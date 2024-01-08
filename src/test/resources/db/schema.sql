@@ -8,7 +8,7 @@
         document_id varchar(255) not null,
         document_name varchar(255),
         document_type varchar(255),
-        archive_status enum ('COMPLETED','NOT_COMPLETED') not null,
+        archive_status varchar(255) not null,
         primary key (case_id, document_id)
     ) engine=InnoDB;
 
@@ -17,8 +17,8 @@
         start date not null,
         id bigint not null auto_increment,
         timestamp datetime(6) not null,
-        archive_status enum ('COMPLETED','NOT_COMPLETED') not null,
-        batch_trigger enum ('MANUAL','SCHEDULED') not null,
+        archive_status varchar(255) not null,
+        batch_trigger varchar(255) not null,
         primary key (id)
     ) engine=InnoDB;
 

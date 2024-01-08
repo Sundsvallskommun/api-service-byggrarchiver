@@ -32,7 +32,7 @@ class ArendeExportIntegrationConfiguration {
     private static final String ACTION_GET_UPDATED_ARENDEN = ACTION_PREFIX + "/GetUpdatedArenden";
     private static final String ACTION_GET_DOCUMENT = ACTION_PREFIX + "/GetDocument";
 
-    @Bean("integration.arendeexport.ws-template")
+    @Bean("arendeexportWsTemplate")
     WebServiceTemplate arendeExportWebServiceTemplate(final ArendeExportIntegrationProperties properties, final Logbook logbook) {
         return new WebServiceTemplateBuilder()
             .withBaseUrl(properties.url())
@@ -44,12 +44,12 @@ class ArendeExportIntegrationConfiguration {
             .build();
     }
 
-    @Bean("integration.arendeexport.ws-callback.get-updated-arenden")
+    @Bean("arendeexportWsCallbackGetUpdatedArenden")
     WebServiceMessageCallback getUpdatedArendenWebServiceMessageCallback() {
         return message -> ((SoapMessage) message).setSoapAction(ACTION_GET_UPDATED_ARENDEN);
     }
 
-    @Bean("integration.arendeexport.ws-callback.get-document")
+    @Bean("arendeexportWsCallbackGetDocument")
     WebServiceMessageCallback getDocumentWebServiceMessageCallback() {
         return message -> ((SoapMessage) message).setSoapAction(ACTION_GET_DOCUMENT);
     }

@@ -20,11 +20,11 @@ public class ArendeExportIntegration {
     private final WebServiceMessageCallback getDocumentCallback;
 
     public ArendeExportIntegration(
-            @Qualifier("integration.arendeexport.ws-template")
+            @Qualifier("arendeexportWsTemplate")
             final WebServiceTemplate webServiceTemplate,
-            @Qualifier("integration.arendeexport.ws-callback.get-updated-arenden")
+            @Qualifier("arendeexportWsCallbackGetUpdatedArenden")
             final WebServiceMessageCallback getUpdatedArendenCallback,
-            @Qualifier("integration.arendeexport.ws-callback.get-document")
+            @Qualifier("arendeexportWsCallbackGetDocument")
             final WebServiceMessageCallback getDocumentCallback) {
         this.webServiceTemplate = webServiceTemplate;
         this.getUpdatedArendenCallback = getUpdatedArendenCallback;

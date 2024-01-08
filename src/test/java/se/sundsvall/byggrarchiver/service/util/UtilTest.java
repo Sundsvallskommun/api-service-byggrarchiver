@@ -43,7 +43,7 @@ class UtilTest {
 
     @Test
     void testGetStringOrEmpty_1() {
-        assertThat(Util.getStringOrEmpty(null)).isEqualTo("");
+        assertThat(Util.getStringOrEmpty(null)).isEmpty();
     }
 
     @Test

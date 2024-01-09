@@ -6,17 +6,17 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.validation.constraints.NotNull;
 
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 
@@ -31,7 +31,7 @@ import lombok.ToString;
 
 @Entity
 @IdClass(IdPk.class)
-@Builder
+@Builder(setterPrefix = "with")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -52,7 +52,7 @@ public class ArchiveHistory {
 
     private String archiveUrl;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(255)")
     @Enumerated(EnumType.STRING)
     private ArchiveStatus archiveStatus;
 

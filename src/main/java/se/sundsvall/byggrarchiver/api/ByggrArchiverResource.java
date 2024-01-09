@@ -6,8 +6,8 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import java.util.List;
 import java.util.Optional;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -33,22 +33,38 @@ import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-import se.sundsvall.byggrarchiver.service.util.Constants;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@RestController
 @Validated
-@RequestMapping("/")
+@RestController
+@RequestMapping(produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
+@ApiResponse(
+    responseCode = "200",
+    description = "OK - Successful operation"
+)
+@ApiResponse(
+    responseCode = "400",
+    description = "Bad request",
+    content = @Content(
+        mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+        schema = @Schema(oneOf = { Problem.class, ConstraintViolationProblem.class })
+    )
+)
+@ApiResponse(
+    responseCode = "500",
+    description = "Internal Server error",
+    content = @Content(
+        mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+        schema = @Schema(implementation = Problem.class)
+    )
+)
 class ByggrArchiverResource {
 
     private final ByggrArchiverService byggrArchiverService;
-
     private final ArchiveHistoryRepository archiveHistoryRepository;
-
     private final BatchHistoryRepository batchHistoryRepository;
 
     ByggrArchiverResource(final ByggrArchiverService byggrArchiverService,
@@ -59,18 +75,22 @@ class ByggrArchiverResource {
         this.batchHistoryRepository = batchHistoryRepository;
     }
 
-    @GetMapping(path = "archived/attachments", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
-    @ApiResponse(responseCode = "200", description = "OK - Successful operation")
-    @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
-    @ApiResponse(responseCode = "404", description = "Not found", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
-    @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    @GetMapping("/archived/attachments")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not found",
+        content = @Content(
+            mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = Problem.class)
+        )
+    )
     ResponseEntity<List<ArchiveHistoryResponse>> getArchiveHistory(
             @RequestParam(value = "archiveStatus", required = false) final ArchiveStatus archiveStatus,
             @RequestParam(value = "batchHistoryId", required = false) final Long batchHistoryId) {
         var archiveHistoryList = archiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(archiveStatus, batchHistoryId);
 
         if (archiveHistoryList.isEmpty()) {
-            throw Problem.valueOf(Status.NOT_FOUND, Constants.ARCHIVE_HISTORY_NOT_FOUND);
+            throw Problem.valueOf(Status.NOT_FOUND, "ArchiveHistory not found");
         }
 
         return ResponseEntity.ok(archiveHistoryList.stream()
@@ -78,16 +98,20 @@ class ByggrArchiverResource {
             .toList());
     }
 
-    @GetMapping(path = "batch-jobs", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
-    @ApiResponse(responseCode = "200", description = "OK - Successful operation")
-    @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
-    @ApiResponse(responseCode = "404", description = "Not found", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
-    @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    @GetMapping("/batch-jobs")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not found",
+        content = @Content(
+            mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = Problem.class)
+        )
+    )
     ResponseEntity<List<BatchHistoryResponse>> getBatchHistory() {
-        List<BatchHistory> batchHistoryList = batchHistoryRepository.findAll();
+        var batchHistoryList = batchHistoryRepository.findAll();
 
         if (batchHistoryList.isEmpty()) {
-            throw Problem.valueOf(Status.NOT_FOUND, Constants.BATCH_HISTORY_NOT_FOUND);
+            throw Problem.valueOf(Status.NOT_FOUND, "BatchHistory not found");
         }
 
         return ResponseEntity.ok(batchHistoryList.stream()
@@ -95,27 +119,28 @@ class ByggrArchiverResource {
             .toList());
     }
 
-    @PostMapping(path = "batch-jobs", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
-    @ApiResponse(responseCode = "200", description = "OK - Successful operation")
-    @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
-    @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
+    @PostMapping("/batch-jobs")
     public ResponseEntity<BatchHistoryResponse> postBatchJob(
             @Valid
             @StartBeforeEnd
             @NotNull(message = "Request body must not be null")
-            @RequestBody final BatchJob batchJob) throws ApplicationException {
+            @RequestBody final BatchJob batchJob) {
         var result = byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL);
 
         return ResponseEntity.ok(mapToBatchHistoryResponse(result));
     }
 
-    @PostMapping(path = "batch-jobs/{batchHistoryId}/rerun", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
-    @ApiResponse(responseCode = "200", description = "OK - Successful operation")
-    @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
-    @ApiResponse(responseCode = "404", description = "Not found", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
-    @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
-    public ResponseEntity<BatchHistoryResponse> reRunBatchJob(
-            @PathVariable("batchHistoryId") final Long batchHistoryId) throws ApplicationException {
+    @PostMapping("/batch-jobs/{batchHistoryId}/rerun")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Not found",
+        content = @Content(
+            mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+            schema = @Schema(implementation = Problem.class)
+        )
+    )
+    ResponseEntity<BatchHistoryResponse> reRunBatchJob(
+            @PathVariable("batchHistoryId") final Long batchHistoryId) {
         var result = byggrArchiverService.reRunBatch(batchHistoryId);
 
         return ResponseEntity.ok(mapToBatchHistoryResponse(result));

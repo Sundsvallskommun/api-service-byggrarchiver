@@ -1,91 +1,111 @@
 package se.sundsvall.byggrarchiver.service;
 
-import arendeexport.ArendeBatch;
-import arendeexport.BatchFilter;
-import arendeexport.Dokument;
-import arendeexport.GetDocumentResponse;
-import arendeexport.GetUpdatedArendenResponse;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import jakarta.xml.ws.soap.SOAPFaultException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
-import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportClient;
 
-import javax.xml.ws.soap.SOAPFaultException;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static se.sundsvall.byggrarchiver.service.util.Constants.ARENDEEXPORT_ERROR_MESSAGE;
+import generated.se.sundsvall.arendeexport.ArendeBatch;
+import generated.se.sundsvall.arendeexport.BatchFilter;
+import generated.se.sundsvall.arendeexport.Dokument;
+import generated.se.sundsvall.arendeexport.GetDocument;
+import generated.se.sundsvall.arendeexport.GetDocumentResponse;
+import generated.se.sundsvall.arendeexport.GetUpdatedArenden;
+import generated.se.sundsvall.arendeexport.GetUpdatedArendenResponse;
 
 @ExtendWith(MockitoExtension.class)
 class ArendeExportIntegrationServiceTest {
 
     @Mock
-    private ArendeExportClient arendeExportClientMock;
+    private ArendeExportIntegration mockArendeExportClient;
 
     @InjectMocks
     private ArendeExportIntegrationService arendeExportIntegrationService;
 
     @Test
     void getUpdatedArenden() {
-        BatchFilter batchFilter = new BatchFilter();
-        batchFilter.setLowerExclusiveBound(LocalDateTime.now().minusDays(3));
-        batchFilter.setUpperInclusiveBound(LocalDateTime.now());
+        var batchFilter = new BatchFilter()
+            .withLowerExclusiveBound(LocalDateTime.now().minusDays(3))
+            .withUpperInclusiveBound(LocalDateTime.now());
+        var arendeBatch = new ArendeBatch()
+            .withBatchStart(batchFilter.getLowerExclusiveBound())
+            .withBatchEnd(batchFilter.getUpperInclusiveBound());
+        var response = new GetUpdatedArendenResponse()
+            .withGetUpdatedArendenResult(arendeBatch);
 
-        GetUpdatedArendenResponse getUpdatedArendenResponse = new GetUpdatedArendenResponse();
-        ArendeBatch arendeBatch = new ArendeBatch();
-        arendeBatch.setBatchStart(batchFilter.getLowerExclusiveBound());
-        arendeBatch.setBatchEnd(batchFilter.getUpperInclusiveBound());
-        getUpdatedArendenResponse.setGetUpdatedArendenResult(arendeBatch);
-
-        doReturn(getUpdatedArendenResponse).when(arendeExportClientMock).getUpdatedArenden(any());
+        when(mockArendeExportClient.getUpdatedArenden(any(GetUpdatedArenden.class)))
+            .thenReturn(response);
 
         var result = arendeExportIntegrationService.getUpdatedArenden(batchFilter);
-        assertEquals(arendeBatch, result);
+
+        assertThat(result).isEqualTo(arendeBatch);
+
+        verify(mockArendeExportClient, times(1)).getUpdatedArenden(any(GetUpdatedArenden.class));
+        verifyNoMoreInteractions(mockArendeExportClient);
     }
 
     @Test
     void getUpdatedArendenError() {
-        doThrow(SOAPFaultException.class).when(arendeExportClientMock).getUpdatedArenden(any());
+        when(mockArendeExportClient.getUpdatedArenden(any(GetUpdatedArenden.class)))
+            .thenThrow(SOAPFaultException.class);
 
         var batchFilter = new BatchFilter();
-        ThrowableProblem throwableProblem = assertThrows(ThrowableProblem.class, () -> arendeExportIntegrationService.getUpdatedArenden(batchFilter));
-        assertEquals(Status.SERVICE_UNAVAILABLE, throwableProblem.getStatus());
-        assertEquals(Status.SERVICE_UNAVAILABLE.getReasonPhrase(), throwableProblem.getTitle());
-        assertEquals(ARENDEEXPORT_ERROR_MESSAGE, throwableProblem.getDetail());
+
+        assertThatExceptionOfType(ThrowableProblem.class)
+            .isThrownBy(() -> arendeExportIntegrationService.getUpdatedArenden(batchFilter))
+            .satisfies(throwableProblem -> {
+                assertThat(throwableProblem.getStatus()).isEqualTo(SERVICE_UNAVAILABLE);
+                assertThat(throwableProblem.getDetail()).startsWith("ArendeExport integration failed");
+            });
     }
 
     @Test
     void getDocument() {
-        String dokId = UUID.randomUUID().toString();
-        GetDocumentResponse getDocumentResponse = new GetDocumentResponse();
-        Dokument dokument = new Dokument();
-        dokument.setNamn("Test");
+        var dokId = UUID.randomUUID().toString();
+        var dokument = new Dokument();
         dokument.setDokId(dokId);
-        getDocumentResponse.getGetDocumentResult().add(dokument);
-        doReturn(getDocumentResponse).when(arendeExportClientMock).getDocument(any());
+        dokument.setNamn("Test");
+        var response = new GetDocumentResponse();
+        response.getGetDocumentResult().add(dokument);
+
+        doReturn(response).when(mockArendeExportClient).getDocument(any());
+
         var result = arendeExportIntegrationService.getDocument(dokId);
 
-        assertEquals(getDocumentResponse.getGetDocumentResult(), result);
+        assertThat(result).isEqualTo(response.getGetDocumentResult());
     }
 
     @Test
     void getDocumentError() {
-        doThrow(SOAPFaultException.class).when(arendeExportClientMock).getDocument(any());
+        when(mockArendeExportClient.getDocument(any(GetDocument.class)))
+            .thenThrow(SOAPFaultException.class);
 
         var randomUuid = UUID.randomUUID().toString();
-        ThrowableProblem throwableProblem = assertThrows(ThrowableProblem.class, () -> arendeExportIntegrationService.getDocument(randomUuid));
-        assertEquals(Status.SERVICE_UNAVAILABLE, throwableProblem.getStatus());
-        assertEquals(Status.SERVICE_UNAVAILABLE.getReasonPhrase(), throwableProblem.getTitle());
-        assertEquals(ARENDEEXPORT_ERROR_MESSAGE, throwableProblem.getDetail());
-    }
 
+        assertThatExceptionOfType(ThrowableProblem.class)
+            .isThrownBy(() -> arendeExportIntegrationService.getDocument(randomUuid))
+            .satisfies(throwableProblem -> {
+                assertThat(throwableProblem.getStatus()).isEqualTo(SERVICE_UNAVAILABLE);
+                assertThat(throwableProblem.getDetail()).startsWith("ArendeExport integration failed");
+            });
+    }
 }

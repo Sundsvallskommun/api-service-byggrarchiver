@@ -14,11 +14,11 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 
-@TestPropertySource(properties = {"cron.expression=* * * ? * *"})
 @WireMockAppTestSuite(
-        files = "classpath:/IntegrationTest/",
-        classes = Application.class
+    files = "classpath:/IntegrationTest/",
+    classes = Application.class
 )
+@TestPropertySource(properties = {"cron.expression=* * * ? * *"})
 class ArchiveScheduleServiceTest extends AbstractAppTest {
 
     @SpyBean
@@ -27,7 +27,7 @@ class ArchiveScheduleServiceTest extends AbstractAppTest {
     @Test
     void archive() {
         await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> verify(archiverScheduleService, atLeast(9)).archive());
+            .atMost(Duration.ofSeconds(10))
+            .untilAsserted(() -> verify(archiverScheduleService, atLeast(9)).archive());
     }
 }

@@ -6,15 +6,15 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
@@ -29,7 +29,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Builder
+@Builder(setterPrefix = "with")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -48,11 +48,11 @@ public class BatchHistory {
     @Column(nullable = false)
     private LocalDate end;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(255)")
     @Enumerated(EnumType.STRING)
     private ArchiveStatus archiveStatus;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(255)")
     @Enumerated(EnumType.STRING)
     private BatchTrigger batchTrigger;
 

@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.testutils;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
@@ -8,41 +7,63 @@ import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
-public class TestUtil {
+public final class TestUtil {
+
+    private TestUtil() { }
+
     public static ArchiveHistory createRandomArchiveHistory() {
         return ArchiveHistory.builder()
-                .archiveId(UUID.randomUUID().toString())
-                .archiveUrl("https://random-url")
-                .batchHistory(createRandomBatchHistory())
-                .archiveStatus((ArchiveStatus) getRandomOfEnum(ArchiveStatus.class))
-                .documentId(UUID.randomUUID().toString())
-                .documentName(getRandomString(20))
-                .documentType(getRandomString(20))
-                .caseId(UUID.randomUUID().toString())
-                .timestamp(LocalDateTime.now())
-                .build();
+            .withArchiveId(UUID.randomUUID().toString())
+            .withArchiveUrl("https://random-url")
+            .withBatchHistory(createRandomBatchHistory())
+            .withArchiveStatus((ArchiveStatus) getRandomEnumValue(ArchiveStatus.class))
+            .withDocumentId(UUID.randomUUID().toString())
+            .withDocumentName(UUID.randomUUID().toString().substring(0, 21))
+            .withDocumentType(UUID.randomUUID().toString().substring(0, 21))
+            .withCaseId(UUID.randomUUID().toString())
+            .withTimestamp(LocalDateTime.now())
+            .build();
     }
 
     public static BatchHistory createRandomBatchHistory() {
         return BatchHistory.builder()
-                .id(new Random().nextLong())
-                .batchTrigger((BatchTrigger) getRandomOfEnum(BatchTrigger.class))
-                .start(LocalDate.now())
-                .end(LocalDate.now())
-                .timestamp(LocalDateTime.now())
-                .archiveStatus((ArchiveStatus) getRandomOfEnum(ArchiveStatus.class))
-                .build();
+            .withId(randomLong())
+            .withBatchTrigger(getRandomEnumValue(BatchTrigger.class))
+            .withStart(LocalDate.now())
+            .withEnd(LocalDate.now())
+            .withTimestamp(LocalDateTime.now())
+            .withArchiveStatus(getRandomEnumValue(ArchiveStatus.class))
+            .build();
     }
 
-    public static <E extends Enum<E>> Enum<?> getRandomOfEnum(Class<E> enumClass) {
-        return Arrays.stream(enumClass.getEnumConstants()).toList().get(new Random().nextInt(enumClass.getEnumConstants().length));
+    public static int randomInt() {
+        return randomInt(Integer.MAX_VALUE);
     }
 
-    public static String getRandomString(int numberOfLetters) {
-        return RandomStringUtils.random(numberOfLetters, true, false);
+    public static int randomInt(final int max) {
+        return ThreadLocalRandom.current().nextInt(max);
+    }
+
+    public static long randomLong() {
+        return randomLong(Long.MAX_VALUE);
+    }
+
+    public static long randomLong(final long max) {
+        return ThreadLocalRandom.current().nextLong(max);
+    }
+
+    public static <E extends Enum<E>> E getRandomEnumValue(final Class<E> enumClass) {
+        return enumClass.getEnumConstants()[randomInt(enumClass.getEnumConstants().length)];
+    }
+
+    public static BatchHistory createBatchHistory(LocalDate start, LocalDate end, BatchTrigger batchTrigger, ArchiveStatus archiveStatus) {
+        return BatchHistory.builder()
+            .withStart(start)
+            .withEnd(end)
+            .withBatchTrigger(batchTrigger)
+            .withArchiveStatus(archiveStatus).build();
     }
 }

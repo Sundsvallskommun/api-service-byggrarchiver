@@ -1,10 +1,8 @@
 package se.sundsvall.byggrarchiver.service;
 
-import static se.sundsvall.byggrarchiver.service.util.Constants.ARENDEEXPORT_ERROR_MESSAGE;
-
 import java.util.List;
 
-import javax.xml.ws.soap.SOAPFaultException;
+import jakarta.xml.ws.soap.SOAPFaultException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,33 +10,34 @@ import org.springframework.stereotype.Service;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
-import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportClient;
+import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
 
-import arendeexport.ArendeBatch;
-import arendeexport.BatchFilter;
-import arendeexport.Dokument;
-import arendeexport.GetDocument;
-import arendeexport.GetUpdatedArenden;
+import generated.se.sundsvall.arendeexport.ArendeBatch;
+import generated.se.sundsvall.arendeexport.BatchFilter;
+import generated.se.sundsvall.arendeexport.Dokument;
+import generated.se.sundsvall.arendeexport.GetDocument;
+import generated.se.sundsvall.arendeexport.GetUpdatedArenden;
 
 @Service
 public class ArendeExportIntegrationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ArendeExportIntegrationService.class);
 
-    private final ArendeExportClient arendeExportClient;
+    private final ArendeExportIntegration arendeExportIntegration;
 
-    public ArendeExportIntegrationService(ArendeExportClient arendeExportClient) {
-        this.arendeExportClient = arendeExportClient;
+    public ArendeExportIntegrationService(final ArendeExportIntegration arendeExportIntegration) {
+        this.arendeExportIntegration = arendeExportIntegration;
     }
 
     public ArendeBatch getUpdatedArenden(BatchFilter filter) {
         try {
-            GetUpdatedArenden getUpdatedArenden = new GetUpdatedArenden();
-            getUpdatedArenden.setFilter(filter);
-            return arendeExportClient.getUpdatedArenden(getUpdatedArenden).getGetUpdatedArendenResult();
+            GetUpdatedArenden request = new GetUpdatedArenden();
+            request.setFilter(filter);
+            return arendeExportIntegration.getUpdatedArenden(request).getGetUpdatedArendenResult();
         } catch (SOAPFaultException e) {
-            LOG.info(ARENDEEXPORT_ERROR_MESSAGE, e);
-            throw Problem.valueOf(Status.SERVICE_UNAVAILABLE, ARENDEEXPORT_ERROR_MESSAGE);
+            LOG.warn("ArendeExport integration failed ('GetUpdatedArenden')", e);
+
+            throw Problem.valueOf(Status.SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetUpdatedArenden')");
         }
     }
 
@@ -46,10 +45,11 @@ public class ArendeExportIntegrationService {
         try {
             GetDocument getDocument = new GetDocument();
             getDocument.setDocumentId(dokId);
-            return arendeExportClient.getDocument(getDocument).getGetDocumentResult();
+            return arendeExportIntegration.getDocument(getDocument).getGetDocumentResult();
         } catch (SOAPFaultException e) {
-            LOG.info(ARENDEEXPORT_ERROR_MESSAGE, e);
-            throw Problem.valueOf(Status.SERVICE_UNAVAILABLE, ARENDEEXPORT_ERROR_MESSAGE);
+            LOG.warn("ArendeExport integration failed ('GetDocument')", e);
+
+            throw Problem.valueOf(Status.SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetDocument')");
         }
     }
 }

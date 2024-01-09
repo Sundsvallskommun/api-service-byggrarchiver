@@ -33,7 +33,6 @@ import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -125,7 +124,7 @@ class ByggrArchiverResource {
             @Valid
             @StartBeforeEnd
             @NotNull(message = "Request body must not be null")
-            @RequestBody final BatchJob batchJob) throws ApplicationException {
+            @RequestBody final BatchJob batchJob) {
         var result = byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL);
 
         return ResponseEntity.ok(mapToBatchHistoryResponse(result));
@@ -141,7 +140,7 @@ class ByggrArchiverResource {
         )
     )
     ResponseEntity<BatchHistoryResponse> reRunBatchJob(
-            @PathVariable("batchHistoryId") final Long batchHistoryId) throws ApplicationException {
+            @PathVariable("batchHistoryId") final Long batchHistoryId) {
         var result = byggrArchiverService.reRunBatch(batchHistoryId);
 
         return ResponseEntity.ok(mapToBatchHistoryResponse(result));

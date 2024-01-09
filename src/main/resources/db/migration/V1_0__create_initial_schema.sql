@@ -1,6 +1,6 @@
 
     create table archive_history (
-        batch_history_id bigint,
+        batch_history_id bigint not null,
         timestamp datetime(6) not null,
         archive_id varchar(255),
         archive_url varchar(255),

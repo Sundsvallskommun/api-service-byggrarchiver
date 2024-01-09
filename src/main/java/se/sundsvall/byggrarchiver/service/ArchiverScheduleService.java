@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 @Service
 public class ArchiverScheduleService {
@@ -24,7 +23,7 @@ public class ArchiverScheduleService {
 	}
 
 	@Scheduled(cron = "${cron.expression}")
-	public void archive() throws ApplicationException {
+	public void archive() {
 		log.info("Running archiving on schedule. Timestamp: {}", LocalDateTime.now(ZoneId.systemDefault()));
 
 		// Run batch from one week back in time to yesterday

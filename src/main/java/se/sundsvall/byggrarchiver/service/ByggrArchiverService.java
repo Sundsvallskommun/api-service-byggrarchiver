@@ -9,7 +9,6 @@ import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -52,7 +51,7 @@ public class ByggrArchiverService {
         return result;
     }
 
-    public BatchHistory reRunBatch(final Long batchHistoryId) throws ApplicationException {
+    public BatchHistory reRunBatch(final Long batchHistoryId) {
         LOG.info("Rerun was started with batchHistoryId: {}", batchHistoryId);
 
         var batchHistory = batchHistoryRepository.findById(batchHistoryId)

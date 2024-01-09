@@ -53,18 +53,13 @@ Tjänsten har integrationer mot följande API:er:
 |**Inställningar för Sokigo Ärendeexport/ByggR-integration**||
 |`integration.arendeexport.url`|URL|
 
-### Bygga och starta tjänsten med Docker
+## Status
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Sundsvallskommun_api-service-byggrarchiver&metric=alert_status)](https://sonarcloud.io/summary/overall?id=Sundsvallskommun_api-service-byggrarchiver)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Sundsvallskommun_api-service-byggrarchiver&metric=reliability_rating)](https://sonarcloud.io/summary/overall?id=Sundsvallskommun_api-service-byggrarchiver)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Sundsvallskommun_api-service-byggrarchiver&metric=security_rating)](https://sonarcloud.io/summary/overall?id=Sundsvallskommun_api-service-byggrarchiver)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Sundsvallskommun_api-service-byggrarchiver&metric=sqale_rating)](https://sonarcloud.io/summary/overall?id=Sundsvallskommun_api-service-byggrarchiver)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=Sundsvallskommun_api-service-byggrarchiver&metric=vulnerabilities)](https://sonarcloud.io/summary/overall?id=Sundsvallskommun_api-service-byggrarchiver)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=Sundsvallskommun_api-service-byggrarchiver&metric=bugs)](https://sonarcloud.io/summary/overall?id=Sundsvallskommun_api-service-byggrarchiver)
 
-Bygg en Docker-image av tjänsten:
-
-```
-mvn spring-boot:build-image
-```
-
-Starta en Docker-container:
-
-```
-docker run -i --rm -p 8080:8080 evil.sundsvall.se/ms-byggrarchiver:latest
-```
 
 Copyright &copy; 2022 Sundsvalls Kommun

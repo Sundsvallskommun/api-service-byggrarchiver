@@ -21,6 +21,7 @@
         <commons-text.version>1.11.0</commons-text.version>
         <jaxb2-maven-plugin.version>3.1.0</jaxb2-maven-plugin.version>
         <jaxb2-fluent-api.version>3.0</jaxb2-fluent-api.version>
+        <shedlock.version>5.10.2</shedlock.version>
         <!-- Pipeline properties -->
         <docker.image.name>ms-byggrarchiver</docker.image.name>
         <published.container.port.test>8718</published.container.port.test>
@@ -68,6 +69,16 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${shedlock.version}</version>
         </dependency>
         <!-- Other -->
         <dependency>

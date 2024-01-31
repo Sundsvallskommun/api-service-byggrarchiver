@@ -1,15 +1,15 @@
 package se.sundsvall.byggrarchiver.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 public class ArchiverScheduleService {
@@ -22,7 +22,8 @@ public class ArchiverScheduleService {
 		this.byggrArchiverService = byggrArchiverService;
 	}
 
-	@Scheduled(cron = "${cron.expression}")
+	@Scheduled(cron = "${byggrarchiver.cron.expression}")
+	@SchedulerLock(name = "archive", lockAtMostFor = "${byggrarchiver.shedlock-lock-at-most-for}")
 	public void archive() {
 		log.info("Running archiving on schedule. Timestamp: {}", LocalDateTime.now(ZoneId.systemDefault()));
 

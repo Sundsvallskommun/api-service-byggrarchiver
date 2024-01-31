@@ -28,3 +28,7 @@ logbook:
     exclusionfilters:
         jsonPath:
             '$.attachment.file': '[base64]'
+byggrarchiver:
+    cron:
+        expression: '-'
+    shedlock-lock-at-most-for: PT2M

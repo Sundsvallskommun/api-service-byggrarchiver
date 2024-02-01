@@ -1,5 +1,3 @@
-cron:
-    expression: '-'
 email:
     extension-error:
         recipient: junit-recipient@test.se

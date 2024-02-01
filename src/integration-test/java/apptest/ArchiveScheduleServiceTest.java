@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verify;
     files = "classpath:/IntegrationTest/",
     classes = Application.class
 )
-@TestPropertySource(properties = {"cron.expression=* * * ? * *"})
+@TestPropertySource(properties = {"byggrarchiver.cron.expression=* * * ? * *"})
 class ArchiveScheduleServiceTest extends AbstractAppTest {
 
     @SpyBean

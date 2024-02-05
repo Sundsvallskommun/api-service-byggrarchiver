@@ -25,9 +25,10 @@ spring:
         enabled: false
         baseline-on-migrate: true
 logbook:
-    exclusionfilters:
+    body-filters:
         jsonPath:
-            '$.attachment.file': '[base64]'
+            - key: '$..file'
+              value: '[base64]'
 byggrarchiver:
     cron:
         expression: '-'

@@ -6,9 +6,6 @@ info:
     name: MIT License
     url: https://opensource.org/licenses/MIT
   version: "3.2"
-servers:
-- url: https://api-i-test.sundsvall.se/messaging
-  description: Generated server url
 paths:
   /webmessage:
     post:

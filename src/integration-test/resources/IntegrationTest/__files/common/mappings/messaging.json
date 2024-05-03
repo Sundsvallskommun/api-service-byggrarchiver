@@ -1,5 +1,10 @@
 {
   "request": {
+    "headers": {
+        "Authorization": {
+            "equalTo": "Bearer 0000000000000000AAAAAAAAAAAAAAAA"
+        }
+    },
     "method": "POST",
     "urlPath": "/messaging/email"
   },

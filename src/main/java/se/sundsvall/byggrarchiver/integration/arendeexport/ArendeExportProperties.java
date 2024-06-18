@@ -5,5 +5,5 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties("integration.arendeexport")
-record ArendeExportIntegrationProperties(String url, int connectTimeout, int readTimeout) {
+record ArendeExportProperties(int connectTimeout, int readTimeout) {
 }

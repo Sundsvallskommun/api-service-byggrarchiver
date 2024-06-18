@@ -261,7 +261,6 @@
                         <exclude>**/byggrarchiver/Application*</exclude>
                         <exclude>**/byggrarchiver/service/Constants*</exclude>
                         <exclude>**/generated/**</exclude>
-                        <exclude>**/arendeexport/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>

@@ -16,6 +16,8 @@ integration:
             tokenUrl: ${sundsvall.token-uri}
         url: http://archive.url
     arendeexport:
+        connectTimeout: 1
+        readTimeout: 2
         url: http://arendeexport.url
     fb:
         database: database

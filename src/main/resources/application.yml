@@ -29,6 +29,9 @@ logbook:
         jsonPath:
             - key: '$..file'
               value: '[base64]'
+        xPath:
+            - key: '//*[contains(local-name(), "filBuffer")]'
+              value: '[binary]'
 byggrarchiver:
     cron:
         expression: '-'

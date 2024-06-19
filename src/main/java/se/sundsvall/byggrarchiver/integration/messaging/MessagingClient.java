@@ -15,7 +15,7 @@ import generated.se.sundsvall.messaging.MessageResult;
     url = "${integration.messaging.url}",
     configuration = MessagingIntegrationConfiguration.class
 )
-interface MessagingClient {
+public interface MessagingClient {
 
     @PostMapping(
         path = "/email",

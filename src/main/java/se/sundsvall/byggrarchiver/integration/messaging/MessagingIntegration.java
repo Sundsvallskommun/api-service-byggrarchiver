@@ -101,15 +101,19 @@ public class MessagingIntegration {
 			.filter(response -> !response.getDeliveries().isEmpty())
 			.filter(response -> response.getDeliveries().getFirst().getStatus() == SENT)
 			.ifPresentOrElse(response -> LOG.info("E-mail sent to {} with message id {}", request.getEmailAddress(), response.getMessageId()),
-				() -> LOG.error("Failed to send e-mail to {}, Payload: {}", request.getEmailAddress(), request.getHtmlMessage()));
+				() -> LOG.error("Failed to send e-mail to {}, Payload: {}", request.getEmailAddress(), fromBase64(request.getHtmlMessage())));
 	}
 
 	String replace(final String source, final Map<String, String> values) {
 		return new StringSubstitutor(values).replace(source);
 	}
 
-	String toBase64(final String s) {
+	private String toBase64(final String s) {
 		return Base64.getEncoder().encodeToString(s.getBytes(UTF_8));
+	}
+
+	private String fromBase64(final String s) {
+		return new String(Base64.getDecoder().decode(s), UTF_8);
 	}
 
 }

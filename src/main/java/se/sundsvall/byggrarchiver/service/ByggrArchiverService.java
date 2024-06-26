@@ -61,7 +61,7 @@ public class ByggrArchiverService {
             throw Problem.valueOf(Status.BAD_REQUEST, "It's not possible to rerun a completed batch.");
         }
 
-        LOG.info("Rerun batch: {}", batchHistory);
+        LOG.info("Rerun bat ch: {}", batchHistory);
 
         // Do the archiving
         return archiveHistoryService.archive(batchHistory.getStart(), batchHistory.getEnd(), batchHistory);

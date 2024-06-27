@@ -26,12 +26,15 @@ spring:
         baseline-on-migrate: true
 logbook:
     body-filters:
-        jsonPath:
-            - key: '$..file'
-              value: '[base64]'
         xPath:
             - key: '//*[contains(local-name(), "filBuffer")]'
               value: '[binary]'
+            - key: '//*[contains(local-name(), "GetUpdatedArendenResponse")]'
+              value: '[filtered-xml]'
+        jsonPath:
+            - key: '$..file'
+              value: '[base64]'
+
 byggrarchiver:
     cron:
         expression: '-'

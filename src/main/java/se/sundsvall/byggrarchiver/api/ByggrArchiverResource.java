@@ -4,7 +4,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 
 import java.util.List;
-import java.util.Optional;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
@@ -28,159 +26,64 @@ import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.api.validation.StartBeforeEnd;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
+import se.sundsvall.byggrarchiver.service.ArchiveHistoryService;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
+import se.sundsvall.dept44.common.validators.annotation.ValidMunicipalityId;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Validated
 @RestController
-@RequestMapping(produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
-@ApiResponse(
-	responseCode = "200",
-	description = "OK - Successful operation"
-)
-@ApiResponse(
-	responseCode = "400",
-	description = "Bad request",
-	content = @Content(
-		mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-		schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})
-	)
-)
-@ApiResponse(
-	responseCode = "500",
-	description = "Internal Server error",
-	content = @Content(
-		mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-		schema = @Schema(implementation = Problem.class)
-	)
-)
+@RequestMapping(path = "/{municipalityId}", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
+@ApiResponse(responseCode = "200", description = "OK - Successful operation")
+@ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
+@ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
 class ByggrArchiverResource {
 
 	private final ByggrArchiverService byggrArchiverService;
 
-	private final ArchiveHistoryRepository archiveHistoryRepository;
-
-	private final BatchHistoryRepository batchHistoryRepository;
+	private final ArchiveHistoryService archiveHistoryService;
 
 	ByggrArchiverResource(final ByggrArchiverService byggrArchiverService,
-		final ArchiveHistoryRepository archiveHistoryRepository,
-		final BatchHistoryRepository batchHistoryRepository) {
+
+		final ArchiveHistoryService archiveHistoryService) {
 		this.byggrArchiverService = byggrArchiverService;
-		this.archiveHistoryRepository = archiveHistoryRepository;
-		this.batchHistoryRepository = batchHistoryRepository;
+		this.archiveHistoryService = archiveHistoryService;
 	}
 
 	@GetMapping("/archived/attachments")
-	@ApiResponse(
-		responseCode = "404",
-		description = "Not found",
-		content = @Content(
-			mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-			schema = @Schema(implementation = Problem.class)
-		)
-	)
-	ResponseEntity<List<ArchiveHistoryResponse>> getArchiveHistory(
+	ResponseEntity<List<ArchiveHistoryResponse>> getArchiveHistory(@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
 		@RequestParam(value = "archiveStatus", required = false) final ArchiveStatus archiveStatus,
 		@RequestParam(value = "batchHistoryId", required = false) final Long batchHistoryId) {
-		var archiveHistoryList = archiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(archiveStatus, batchHistoryId);
-
-		if (archiveHistoryList.isEmpty()) {
-			throw Problem.valueOf(Status.NOT_FOUND, "ArchiveHistory not found");
-		}
-
-		return ResponseEntity.ok(archiveHistoryList.stream()
-			.map(this::mapToArchiveHistoryResponse)
-			.toList());
+		return ResponseEntity.ok(archiveHistoryService.getArchiveHistories(archiveStatus, batchHistoryId, municipalityId));
 	}
 
 	@GetMapping("/batch-jobs")
-	@ApiResponse(
-		responseCode = "404",
-		description = "Not found",
-		content = @Content(
-			mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-			schema = @Schema(implementation = Problem.class)
-		)
-	)
-	ResponseEntity<List<BatchHistoryResponse>> getBatchHistory() {
-		var batchHistoryList = batchHistoryRepository.findAll();
-
-		if (batchHistoryList.isEmpty()) {
-			throw Problem.valueOf(Status.NOT_FOUND, "BatchHistory not found");
-		}
-
-		return ResponseEntity.ok(batchHistoryList.stream()
-			.map(this::mapToBatchHistoryResponse)
-			.toList());
+	ResponseEntity<List<BatchHistoryResponse>> getBatchHistory(
+		@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId) {
+		return ResponseEntity.ok(byggrArchiverService.findAllBatchHistories(municipalityId));
 	}
 
 	@PostMapping("/batch-jobs")
 	public ResponseEntity<BatchHistoryResponse> postBatchJob(
-		@Valid
-		@StartBeforeEnd
+		@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
+		@Valid @StartBeforeEnd
 		@NotNull(message = "Request body must not be null")
 		@RequestBody final BatchJob batchJob) {
-		var result = byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL);
-
-		return ResponseEntity.ok(mapToBatchHistoryResponse(result));
+		return ResponseEntity.ok(byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL, municipalityId));
 	}
 
 	@PostMapping("/batch-jobs/{batchHistoryId}/rerun")
-	@ApiResponse(
-		responseCode = "404",
-		description = "Not found",
-		content = @Content(
-			mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-			schema = @Schema(implementation = Problem.class)
-		)
-	)
+	@ApiResponse(responseCode = "404", description = "Not found", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
 	ResponseEntity<BatchHistoryResponse> reRunBatchJob(
+		@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
 		@PathVariable("batchHistoryId") final Long batchHistoryId) {
-		var result = byggrArchiverService.reRunBatch(batchHistoryId);
+		final var result = byggrArchiverService.reRunBatch(batchHistoryId, municipalityId);
 
-		return ResponseEntity.ok(mapToBatchHistoryResponse(result));
-	}
-
-	ArchiveHistoryResponse mapToArchiveHistoryResponse(final ArchiveHistory archiveHistory) {
-		if (archiveHistory == null) {
-			return null;
-		}
-
-		return ArchiveHistoryResponse.builder()
-			.withDocumentId(archiveHistory.getDocumentId())
-			.withCaseId(archiveHistory.getCaseId())
-			.withDocumentName(archiveHistory.getDocumentName())
-			.withDocumentType(archiveHistory.getDocumentType())
-			.withArchiveId(archiveHistory.getArchiveId())
-			.withArchiveUrl(archiveHistory.getArchiveUrl())
-			.withArchiveStatus(archiveHistory.getArchiveStatus())
-			.withTimestamp(archiveHistory.getTimestamp())
-			.withBatchHistory(Optional.ofNullable(archiveHistory.getBatchHistory())
-				.map(this::mapToBatchHistoryResponse)
-				.orElse(null))
-			.build();
-	}
-
-	BatchHistoryResponse mapToBatchHistoryResponse(final BatchHistory batchHistory) {
-		if (batchHistory == null) {
-			return null;
-		}
-
-		return BatchHistoryResponse.builder()
-			.withId(batchHistory.getId())
-			.withStart(batchHistory.getStart())
-			.withEnd(batchHistory.getEnd())
-			.withArchiveStatus(batchHistory.getArchiveStatus())
-			.withBatchTrigger(batchHistory.getBatchTrigger())
-			.withTimestamp(batchHistory.getTimestamp())
-			.build();
+		return ResponseEntity.ok((result));
 	}
 
 }

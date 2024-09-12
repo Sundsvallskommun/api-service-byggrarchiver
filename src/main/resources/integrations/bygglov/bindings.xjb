@@ -7,8 +7,8 @@
 			   version="3.0">
 	<jaxb:globalBindings typesafeEnumMemberName="generateName">
 		<xjc:javaType xmlType="xs:date" name="java.time.LocalDate"
-					  adapter="se.sundsvall.byggrarchiver.support.LocalDateAdapter"/>
+					  adapter="se.sundsvall.byggrarchiver.util.LocalDateAdapter"/>
 		<xjc:javaType xmlType="xs:dateTime" name="java.time.LocalDateTime"
-					  adapter="se.sundsvall.byggrarchiver.support.LocalDateTimeAdapter"/>
+					  adapter="se.sundsvall.byggrarchiver.util.LocalDateTimeAdapter"/>
 	</jaxb:globalBindings>
 </jaxb:bindings>

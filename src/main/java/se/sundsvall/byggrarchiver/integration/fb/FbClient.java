@@ -16,7 +16,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 	url = "${integration.fb.url}",
 	configuration = FbIntegrationConfiguration.class
 )
-interface FbClient {
+public interface FbClient {
 
 	@Retry(name = FbIntegrationConfiguration.INTEGRATION_NAME)
 	@PostMapping(path = "Fastighet/info/fnr", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)

@@ -3,12 +3,12 @@ package se.sundsvall.byggrarchiver.service;
 import static java.util.Optional.ofNullable;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
-import static se.sundsvall.byggrarchiver.service.Constants.F_2_BYGGLOV;
-import static se.sundsvall.byggrarchiver.service.Constants.HANTERA_BYGGLOV;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivbildarStruktur;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivobjektArendeTyp;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toByggRArchiveRequest;
+import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
+import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
 
 import java.io.StringWriter;
 import java.time.LocalDate;
@@ -25,6 +25,7 @@ import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
 import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
@@ -50,32 +51,32 @@ public class ArchiveAttachmentService {
 
 	private final ArchiveIntegration archiveIntegration;
 
-	private final FastighetService fastighetService;
+	private final FbIntegration fbIntegration;
 
 	LongTermArchiveProperties longTermArchiveProperties;
 
 	public ArchiveAttachmentService(final LongTermArchiveProperties longTermArchiveProperties, final ArchiveHistoryRepository archiveHistoryRepository,
-		final MessagingIntegration messagingIntegration, final ArchiveIntegration archiveIntegration, final FastighetService fastighetService) {
+		final MessagingIntegration messagingIntegration, final ArchiveIntegration archiveIntegration, final FbIntegration fbIntegration) {
 		this.longTermArchiveProperties = longTermArchiveProperties;
 		this.archiveHistoryRepository = archiveHistoryRepository;
 		this.messagingIntegration = messagingIntegration;
 		this.archiveIntegration = archiveIntegration;
-		this.fastighetService = fastighetService;
+		this.fbIntegration = fbIntegration;
 	}
 
-	public ArchiveHistory archiveAttachment(final Arende2 arende, final Handling handling, final Dokument document, final ArchiveHistory archiveHistory) throws ApplicationException {
+	public ArchiveHistory archiveAttachment(final Arende2 arende, final Handling handling, final Dokument document, final ArchiveHistory archiveHistory, final String municipalityId) throws ApplicationException {
 
 		// Request to Archive
 		ArchiveResponse archiveResponse = null;
 		try {
-			archiveResponse = archiveIntegration.archive(toByggRArchiveRequest(document, createMetadata(arende, handling, document)));
+			archiveResponse = archiveIntegration.archive(toByggRArchiveRequest(document, createMetadata(arende, handling, document)), municipalityId);
 		} catch (final FeignException e) {
 			LOG.error("Request to Archive failed. Continue with the rest.", e);
 
 			if (e.getMessage().contains("extension must be valid") || e.getMessage().contains("File format")) {
 				LOG.info("The problem was related to the file extension. Send email with the information.");
 
-				messagingIntegration.sendExtensionErrorEmail(archiveHistory);
+				messagingIntegration.sendExtensionErrorEmail(archiveHistory, municipalityId);
 			}
 		}
 
@@ -115,7 +116,7 @@ public class ArchiveAttachmentService {
 		if (arende.getObjektLista() != null) {
 			final var arendeFastighetList = toArendeFastighetList(arende.getObjektLista().getAbstractArendeObjekt());
 
-			arkivobjektArende.getFastighet().add(fastighetService.getFastighet(arendeFastighetList));
+			arkivobjektArende.getFastighet().add(fbIntegration.getFastighet(arendeFastighetList));
 		}
 
 		if ((arende.getAnkomstDatum() == null) || arende.getAnkomstDatum().isAfter(LocalDate.of(2016, 12, 31))) {

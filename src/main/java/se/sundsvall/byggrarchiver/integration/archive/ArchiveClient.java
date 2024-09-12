@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration.INTEGRATION_NAME;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -17,7 +18,9 @@ import generated.se.sundsvall.archive.ByggRArchiveRequest;
 )
 interface ArchiveClient {
 
-	@PostMapping(path = "/archive/byggr", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-	ArchiveResponse postArchive(@RequestBody ByggRArchiveRequest archiveMessage);
+	@PostMapping(path = "/{municipalityId}/archive/byggr", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+	ArchiveResponse postArchive(
+		@PathVariable(name = "municipalityId") String municipalityId,
+		@RequestBody ByggRArchiveRequest archiveMessage);
 
 }

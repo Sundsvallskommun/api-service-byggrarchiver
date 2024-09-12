@@ -16,8 +16,8 @@ public class ArchiveIntegration {
 		this.archiveClient = archiveClient;
 	}
 
-	public ArchiveResponse archive(final ByggRArchiveRequest archiveRequest) {
-		return archiveClient.postArchive(archiveRequest);
+	public ArchiveResponse archive(final ByggRArchiveRequest archiveRequest, final String municipalityId) {
+		return archiveClient.postArchive(municipalityId, archiveRequest);
 	}
 
 }

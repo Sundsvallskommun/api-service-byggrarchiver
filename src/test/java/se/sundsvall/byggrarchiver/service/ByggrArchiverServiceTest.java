@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,8 +22,6 @@ import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.MANUAL;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
-import static se.sundsvall.byggrarchiver.service.Constants.BYGGR_HANDELSETYP_ARKIV;
-import static se.sundsvall.byggrarchiver.service.Constants.BYGGR_STATUS_AVSLUTAT;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 
@@ -50,6 +48,7 @@ import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
 import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
+import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
@@ -77,23 +76,7 @@ import generated.sokigo.fb.FastighetDto;
 @ExtendWith(MockitoExtension.class)
 class ByggrArchiverServiceTest {
 
-	public static final String POST_ARCHIVE_EXCEPTION_MESSAGE = """
-		{
-		  "httpCode": 500,
-		  "message": "Service error",
-		  "technicalDetails": {
-		    "rootCode": 500,
-		    "rootCause": "Internal Server Error",
-		    "serviceId": "api-service-archive",
-		    "requestId": null,
-		    "details": [
-		      "Error invoking subclass method",
-		      "Request: /documents"
-		    ]
-		  }
-		}""";
-
-	public static final String ONGOING = "Pågående";
+	private static final String MUNICIPALITY_ID = "2281";
 
 	@Mock
 	ArchiveHistoryService mockArchiveHistoryService;
@@ -114,7 +97,7 @@ class ByggrArchiverServiceTest {
 	private FbIntegration mockFbIntegration;
 
 	@Mock
-	private ArendeExportIntegrationService mockArendeExportIntegrationService;
+	private ArendeExportIntegration mockArendeExportIntegrationService;
 
 	@Mock
 	private LongTermArchiveProperties mockLongTermArchiveProperties;
@@ -135,14 +118,14 @@ class ByggrArchiverServiceTest {
 		// Messaging
 		lenient()
 			.doNothing()
-			.when(mockMessagingIntegration).sendEmailToLantmateriet(anyString(), any(ArchiveHistory.class));
+			.when(mockMessagingIntegration).sendEmailToLantmateriet(anyString(), any(ArchiveHistory.class), any());
 		lenient()
 			.doNothing()
-			.when(mockMessagingIntegration).sendExtensionErrorEmail(any(ArchiveHistory.class));
+			.when(mockMessagingIntegration).sendExtensionErrorEmail(any(ArchiveHistory.class), any());
 
 		// Archiver
 		lenient()
-			.when(mockArchiveIntegration.archive(any(ByggRArchiveRequest.class)))
+			.when(mockArchiveIntegration.archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID)))
 			.thenReturn(new ArchiveResponse().archiveId("FORMPIPE ID 123-123-123"));
 
 		// FB
@@ -162,56 +145,59 @@ class ByggrArchiverServiceTest {
 
 	// Try to run scheduled batch for the same date and verify it doesn't run
 	@Test
-	void testRunScheduledBatchForSameDate() throws Exception {
-		var yesterday = LocalDate.now().minusDays(1);
+	void testRunScheduledBatchForSameDate() {
+		final var yesterday = LocalDate.now().minusDays(1);
+		final var batchHistory = BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build();
 
-		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture())).thenReturn(BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build());
+		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(batchHistory);
 
 		// Run the first batch
-		var firstBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED);
+		byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
 
-		doReturn(List.of(firstBatchHistory)).when(mockBatchHistoryRepository).findAll();
+		when(mockBatchHistoryRepository.findAll()).thenReturn(List.of(batchHistory));
 
 		// Run second batch with the same date
-		var secondBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED);
+		final var secondBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
 		assertThat(secondBatchHistory).isNull();
 
 		// Only the first batch
-		verify(mockArchiveHistoryService).archive(any(), any(), any());
+		verify(mockArchiveHistoryService).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
 	}
 
 	@Test
-	void testRunManualBatchForSameDate() throws Exception {
-		var yesterday = LocalDate.now().minusDays(1);
+	void testRunManualBatchForSameDate() {
+		final var yesterday = LocalDate.now().minusDays(1);
 
-		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture())).thenReturn(BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build());
+		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build());
 
 		// Run the first batch
-		var firstBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED);
+		final var firstBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
 
 		// Run second batch with the same date
-		var secondBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, MANUAL);
+		final var secondBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, MANUAL, MUNICIPALITY_ID);
 
 		assertThat(secondBatchHistory).isEqualTo(firstBatchHistory);
-		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), any());
-		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), batchHistoryCaptor.capture());
+		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), any(), any());
+		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), batchHistoryCaptor.capture(), any());
 	}
 
 	// Try to run batch for a date back in time and verify the scheduled batch change the startDate back in time to the day after latest scheduled batch.
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
-	void testTimeGapScheduled(BatchTrigger batchTrigger) throws Exception {
-		var aLongTimeAgo = LocalDate.now().minusDays(20);
-		var yesterday = LocalDate.now().minusDays(1);
+	void testTimeGapScheduled(final BatchTrigger batchTrigger) {
+		final var aLongTimeAgo = LocalDate.now().minusDays(20);
+		final var yesterday = LocalDate.now().minusDays(1);
+		final var batchHistory = BatchHistory.builder().withStart(aLongTimeAgo).withEnd(aLongTimeAgo).withArchiveStatus(COMPLETED).build();
 
-		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture())).thenReturn(BatchHistory.builder().withStart(aLongTimeAgo).withEnd(aLongTimeAgo).withArchiveStatus(COMPLETED).build());
+		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(batchHistory);
 
 		// Run the first batch
-		var firstBatchHistory = byggrArchiverService.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger);
+		byggrArchiverService.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger, MUNICIPALITY_ID);
 
-		doReturn(List.of(firstBatchHistory)).when(mockBatchHistoryRepository).findAll();
 
-		byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED);
+		when(mockBatchHistoryRepository.findAll()).thenReturn(List.of(batchHistory));
+
+		byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
 
 		// First batch should have the same start and end date
 		assertThat(batchHistoryCaptor.getAllValues().get(0).getStart()).isEqualTo(aLongTimeAgo);
@@ -224,16 +210,16 @@ class ByggrArchiverServiceTest {
 	// Try to run batch for a date back in time and verify the manual batch does NOT change the startDate back in time.
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
-	void testTimeGapManual(BatchTrigger batchTrigger) throws Exception {
-		var aLongTimeAgo = LocalDate.now().minusDays(20);
+	void testTimeGapManual(final BatchTrigger batchTrigger) {
+		final var aLongTimeAgo = LocalDate.now().minusDays(20);
 
-		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture())).thenReturn(BatchHistory.builder().withStart(aLongTimeAgo).withEnd(aLongTimeAgo).withArchiveStatus(COMPLETED).build());
+		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(BatchHistory.builder().withStart(aLongTimeAgo).withEnd(aLongTimeAgo).withArchiveStatus(COMPLETED).build());
 
 		// Run the first batch
-		byggrArchiverService.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger);
+		byggrArchiverService.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger, MUNICIPALITY_ID);
 
-		var yesterday = LocalDate.now().minusDays(1);
-		byggrArchiverService.runBatch(yesterday, yesterday, MANUAL);
+		final var yesterday = LocalDate.now().minusDays(1);
+		byggrArchiverService.runBatch(yesterday, yesterday, MANUAL, MUNICIPALITY_ID);
 
 		// First batch should have the same start and end date
 		assertThat(batchHistoryCaptor.getAllValues().get(0).getStart()).isEqualTo(aLongTimeAgo);
@@ -244,12 +230,12 @@ class ByggrArchiverServiceTest {
 	}
 
 	@Test
-	void testRunBatchScheduledWhenLatestBatchIsAfterCurrent() throws Exception {
+	void testRunBatchScheduledWhenLatestBatchIsAfterCurrent() {
 		final var today = LocalDate.now();
 
 		when(mockBatchHistoryRepository.findAll()).thenReturn(List.of(BatchHistory.builder().withStart(today.plusDays(1)).withEnd(today.plusDays(1)).withArchiveStatus(COMPLETED).build()));
 
-		final var result = byggrArchiverService.runBatch(today, today, SCHEDULED);
+		final var result = byggrArchiverService.runBatch(today, today, SCHEDULED, MUNICIPALITY_ID);
 
 		assertThat(result).isNull();
 		verifyNoInteractions(mockArchiveHistoryService);
@@ -258,54 +244,42 @@ class ByggrArchiverServiceTest {
 	// Run batch and simulate request to Archive failure.
 	// Rerun an earlier not_completed batch - GET batchhistory and verify it was completed
 	@Test
-	void testReRunNotCompletedBatch() throws Exception {
-		var yesterday = LocalDate.now().minusDays(1);
-
-		var start = yesterday.atStartOfDay();
-		var end = yesterday.atTime(23, 59, 59);
-
-		var batchFilter = new BatchFilter();
-		batchFilter.setLowerExclusiveBound(start);
-		batchFilter.setUpperInclusiveBound(end);
-
-		var arrayOfArende = new ArrayOfArende();
-		var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(GEO, FASSIT2, TOMTPLBE));
+	void testReRunNotCompletedBatch() {
+		final var yesterday = LocalDate.now().minusDays(1);
+		final var arrayOfArende = new ArrayOfArende();
+		final var arende = createArendeObject(List.of(GEO, FASSIT2, TOMTPLBE));
 		arrayOfArende.getArende().add(arende);
-		var arendeBatch = new ArendeBatch();
-		arendeBatch.setBatchStart(start);
-		arendeBatch.setBatchEnd(end);
-		arendeBatch.setArenden(arrayOfArende);
+		final var batchHistory = BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(NOT_COMPLETED).build();
+		final var uncompletedBatch = BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build();
 
 		// Mock
-		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture())).thenReturn(BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(NOT_COMPLETED).build())
-			.thenReturn(BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build());
+		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(batchHistory)
+			.thenReturn(uncompletedBatch);
 
 		// First run, fails
-		var firstBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED);
+		final var firstBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
 		assertThat(firstBatchHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED);
 
 		// The first attempt
-		verify(mockArchiveHistoryService).archive(any(), any(), any());
+		verify(mockArchiveHistoryService).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
 
 		// ReRun, success
-		var archiveResponse = new ArchiveResponse();
-		archiveResponse.setArchiveId("FORMPIPE ID 111-111-111");
-		doReturn(Optional.of(firstBatchHistory)).when(mockBatchHistoryRepository).findById(firstBatchHistory.getId());
+		when(mockBatchHistoryRepository.findById(firstBatchHistory.getId())).thenReturn(Optional.of(batchHistory));
 
-		var reRunBatchHistory = byggrArchiverService.reRunBatch(firstBatchHistory.getId());
+		final var reRunBatchHistory = byggrArchiverService.reRunBatch(firstBatchHistory.getId(), MUNICIPALITY_ID);
 
 		assertThat(reRunBatchHistory.getArchiveStatus()).isEqualTo(COMPLETED);
 		assertEquals(firstBatchHistory.getId(), reRunBatchHistory.getId());
 
 		// Both the first batch and the reRun
-		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), any());
-		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), batchHistoryCaptor.capture());
+		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
+		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID));
 		assertThat(batchHistoryCaptor.getAllValues().get(0).getArchiveStatus()).isEqualTo(NOT_COMPLETED);
 		assertThat(batchHistoryCaptor.getAllValues().get(1).getArchiveStatus()).isEqualTo(NOT_COMPLETED);
 	}
 
 	@Test
-	void rerunBatch() throws Exception {
+	void rerunBatch() {
 		final var randomId = randomLong();
 		final var start = LocalDate.now().minusDays(7);
 		final var end = LocalDate.now().minusDays(7);
@@ -313,28 +287,28 @@ class ByggrArchiverServiceTest {
 		when(mockBatchHistoryRepository.findById(randomId))
 			.thenReturn(Optional.of(BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(NOT_COMPLETED).build()));
 
-		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture()))
+		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID)))
 			.thenReturn(BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(COMPLETED).build());
 
-		byggrArchiverService.reRunBatch(randomId);
+		byggrArchiverService.reRunBatch(randomId, MUNICIPALITY_ID);
 
 
-		verify(mockArchiveHistoryService).archive(any(), any(), any());
+		verify(mockArchiveHistoryService).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
 		assertThat(batchHistoryCaptor.getValue().getStart()).isEqualTo(start);
 		assertThat(batchHistoryCaptor.getValue().getEnd()).isEqualTo(end);
 	}
 
 	@Test
 	void rerunBatchThatDoesNotExist() {
-		var randomId = randomLong();
+		final var randomId = randomLong();
 
 		assertThatExceptionOfType(ThrowableProblem.class)
-			.isThrownBy(() -> byggrArchiverService.reRunBatch(randomId))
+			.isThrownBy(() -> byggrArchiverService.reRunBatch(randomId, MUNICIPALITY_ID))
 			.satisfies(throwableProblem -> assertThat(throwableProblem.getStatus()).isEqualTo(NOT_FOUND));
 	}
 
 	@Test
-	void rerunBatchCompleted() throws Exception {
+	void rerunBatchCompleted() {
 		final var randomId = randomLong();
 		final var start = LocalDate.now().minusDays(7);
 		final var end = LocalDate.now().minusDays(7);
@@ -342,7 +316,7 @@ class ByggrArchiverServiceTest {
 		when(mockBatchHistoryRepository.findById(randomId))
 			.thenReturn(Optional.of(BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(COMPLETED).build()));
 
-		final var exception = assertThrows(ThrowableProblem.class, () -> byggrArchiverService.reRunBatch(randomId));
+		final var exception = assertThrows(ThrowableProblem.class, () -> byggrArchiverService.reRunBatch(randomId, MUNICIPALITY_ID));
 
 		assertThat(exception.getStatus()).isEqualTo(BAD_REQUEST);
 		assertThat(exception.getMessage()).isEqualTo("Bad Request: It's not possible to rerun a completed batch.");
@@ -351,45 +325,42 @@ class ByggrArchiverServiceTest {
 	/**
 	 * Util method for creating arende-objects
 	 *
-	 * @param status - status for the arende
-	 * @param handelsetyp - type of handelse that should be included
 	 * @param attachmentCategories - the documents that should be generated
 	 * @return Arende
 	 */
-	private Arende createArendeObject(final String status, final String handelsetyp,
-		final List<AttachmentCategory> attachmentCategories) {
-		var arrayOfHandelseHandling = new ArrayOfHandelseHandling();
-		var dokumentList = new ArrayList<Dokument>();
+	private Arende createArendeObject(final List<AttachmentCategory> attachmentCategories) {
+		final var arrayOfHandelseHandling = new ArrayOfHandelseHandling();
+		final var dokumentList = new ArrayList<Dokument>();
 		attachmentCategories.forEach(category -> {
-			var dokument = new Dokument();
+			final var dokument = new Dokument();
 			dokument.setDokId(String.valueOf(randomInt(999999)));
 			dokument.setNamn("Test filnamn");
-			var dokumentFil = new DokumentFil();
+			final var dokumentFil = new DokumentFil();
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
 			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
 
 			dokumentList.add(dokument);
 
-			var handling = new HandelseHandling();
+			final var handling = new HandelseHandling();
 			handling.setTyp(category.name());
 			handling.setDokument(dokument);
 
 			arrayOfHandelseHandling.getHandling().add(handling);
 		});
 
-		var handelse = new Handelse();
-		handelse.setHandelsetyp(handelsetyp);
+		final var handelse = new Handelse();
+		handelse.setHandelsetyp(se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV);
 		handelse.setHandlingLista(arrayOfHandelseHandling);
-		var arrayOfHandelse = new ArrayOfHandelse();
+		final var arrayOfHandelse = new ArrayOfHandelse();
 		arrayOfHandelse.getHandelse().add(handelse);
-		var arende = new Arende();
+		final var arende = new Arende();
 		arende.setDnr("BYGG 2021-" + randomInt(999999));
-		arende.setStatus(status);
+		arende.setStatus(se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT);
 		arende.setHandelseLista(arrayOfHandelse);
 		arende.setObjektLista(createArrayOfAbstractArendeObjekt());
 
-		for (var doc : dokumentList) {
+		for (final var doc : dokumentList) {
 			lenient().doReturn(List.of(doc)).when(mockArendeExportIntegrationService).getDocument(doc.getDokId());
 		}
 
@@ -397,12 +368,12 @@ class ByggrArchiverServiceTest {
 	}
 
 	private ArrayOfAbstractArendeObjekt2 createArrayOfAbstractArendeObjekt() {
-		var fastighet = new Fastighet();
+		final var fastighet = new Fastighet();
 		fastighet.setFnr(123456);
-		var arendeFastighet = new ArendeFastighet();
+		final var arendeFastighet = new ArendeFastighet();
 		arendeFastighet.setFastighet(fastighet);
 		arendeFastighet.setArHuvudObjekt(true);
-		var arrayOfAbstractArendeObjekt = new ArrayOfAbstractArendeObjekt2();
+		final var arrayOfAbstractArendeObjekt = new ArrayOfAbstractArendeObjekt2();
 		arrayOfAbstractArendeObjekt.getAbstractArendeObjekt().add(arendeFastighet);
 		return arrayOfAbstractArendeObjekt;
 	}

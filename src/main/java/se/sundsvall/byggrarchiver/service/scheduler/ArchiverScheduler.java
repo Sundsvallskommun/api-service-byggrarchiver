@@ -1,4 +1,4 @@
-package se.sundsvall.byggrarchiver.service;
+package se.sundsvall.byggrarchiver.service.scheduler;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,31 +10,35 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Service
-public class ArchiverScheduleService {
+public class ArchiverScheduler {
 
-	private static final Logger log = LoggerFactory.getLogger(ArchiverScheduleService.class);
+	private static final Logger log = LoggerFactory.getLogger(ArchiverScheduler.class);
 
 	private final ByggrArchiverService byggrArchiverService;
 
-	public ArchiverScheduleService(ByggrArchiverService byggrArchiverService) {
+	private final SchedulerProperties schedulerProperties;
+
+	public ArchiverScheduler(final ByggrArchiverService byggrArchiverService, final SchedulerProperties schedulerProperties) {
 		this.byggrArchiverService = byggrArchiverService;
+		this.schedulerProperties = schedulerProperties;
 	}
 
-	@Scheduled(cron = "${byggrarchiver.cron.expression}")
-	@SchedulerLock(name = "archive", lockAtMostFor = "${byggrarchiver.shedlock-lock-at-most-for}")
+	@Scheduled(cron = "${scheduler.cron.expression}")
+	@SchedulerLock(name = "archive", lockAtMostFor = "${scheduler.shedlock-lock-at-most-for}")
 	public void archive() {
 		log.info("Running archiving on schedule. Timestamp: {}", LocalDateTime.now(ZoneId.systemDefault()));
 
 		// Run batch from one week back in time to yesterday
-		// TODO - change this when we run this job everyday
 		final LocalDate oneWeekBack = LocalDate.now(ZoneId.systemDefault()).minusDays(7);
 		final LocalDate yesterday = LocalDate.now(ZoneId.systemDefault()).minusDays(1);
 
-		byggrArchiverService.runBatch(oneWeekBack, yesterday, BatchTrigger.SCHEDULED);
+		schedulerProperties.municipalityIds().forEach(municipalityId
+			-> byggrArchiverService.runBatch(oneWeekBack, yesterday, BatchTrigger.SCHEDULED, municipalityId));
 	}
 
 }

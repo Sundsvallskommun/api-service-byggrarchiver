@@ -3,9 +3,11 @@ package se.sundsvall.byggrarchiver.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistoryResponse;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.getRandomEnumValue;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 
@@ -20,9 +22,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.zalando.problem.Problem;
 
 import se.sundsvall.byggrarchiver.Application;
+import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
+import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
@@ -35,6 +38,12 @@ import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
 @ActiveProfiles("junit")
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ByggrArchiverResourceTest {
+
+	private static final String MUNICIPALITY_ID = "2281";
+
+	private static final String BATCH_PATH = "/{municipalityId}/batch-jobs";
+
+	private static final String ARCHIVED_PATH = "/{municipalityId}/archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}";
 
 	@MockBean
 	private ByggrArchiverService mockByggrArchiverService;
@@ -53,11 +62,11 @@ class ByggrArchiverResourceTest {
 
 	@Test
 	void getArchiveHistory() {
-		when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(any(ArchiveStatus.class), anyLong()))
+		when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(any(ArchiveStatus.class), anyLong(), eq(MUNICIPALITY_ID)))
 			.thenReturn(List.of(createRandomArchiveHistory(), createRandomArchiveHistory()));
 
 		webTestClient.get()
-			.uri("archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}", ArchiveStatus.COMPLETED, 1L)
+			.uri(ARCHIVED_PATH, MUNICIPALITY_ID, ArchiveStatus.COMPLETED, 1L)
 			.exchange()
 			.expectStatus().isOk()
 			.expectBodyList(ArchiveHistory.class);
@@ -65,14 +74,18 @@ class ByggrArchiverResourceTest {
 
 	@Test
 	void getArchiveHistory404() {
-		when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(any(ArchiveStatus.class), anyLong()))
+		when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(any(ArchiveStatus.class), anyLong(), eq(MUNICIPALITY_ID)))
 			.thenReturn(List.of());
 
-		webTestClient.get()
-			.uri("archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}", getRandomEnumValue(ArchiveStatus.class), randomLong())
+		final var resutlt = webTestClient.get()
+			.uri(ARCHIVED_PATH, MUNICIPALITY_ID, getRandomEnumValue(ArchiveStatus.class), randomLong())
 			.exchange()
-			.expectStatus().isNotFound()
-			.expectBodyList(Problem.class);
+			.expectStatus().isOk()
+			.expectBodyList(ArchiveHistoryResponse.class)
+			.returnResult()
+			.getResponseBody();
+
+		assertThat(resutlt).isEmpty();
 	}
 
 	@Test
@@ -80,7 +93,7 @@ class ByggrArchiverResourceTest {
 		when(mockBatchHistoryRepository.findAll()).thenReturn(List.of(createRandomBatchHistory()));
 
 		webTestClient.get()
-			.uri("batch-jobs")
+			.uri(BATCH_PATH, MUNICIPALITY_ID)
 			.exchange()
 			.expectStatus().isOk()
 			.expectBodyList(BatchHistory.class);
@@ -90,21 +103,25 @@ class ByggrArchiverResourceTest {
 	void getBatchHistory404() {
 		when(mockBatchHistoryRepository.findAll()).thenReturn(List.of());
 
-		webTestClient.get()
-			.uri("batch-jobs")
+		final var result = webTestClient.get()
+			.uri(BATCH_PATH, MUNICIPALITY_ID)
 			.exchange()
-			.expectStatus().isNotFound()
-			.expectBodyList(Problem.class);
+			.expectStatus().isOk()
+			.expectBodyList(BatchHistoryResponse.class)
+			.returnResult()
+			.getResponseBody();
+
+		assertThat(result).isEmpty();
 	}
 
 	@Test
-	void postBatchJob() throws Exception {
-		var batchJob = BatchJob.builder()
+	void postBatchJob() {
+		final var batchJob = BatchJob.builder()
 			.withStart(LocalDate.now().minusDays(3))
 			.withEnd(LocalDate.now())
 			.build();
 
-		var batchHistory = BatchHistory.builder()
+		final var batchHistory = BatchHistoryResponse.builder()
 			.withId(randomLong())
 			.withBatchTrigger(BatchTrigger.MANUAL)
 			.withArchiveStatus(ArchiveStatus.COMPLETED)
@@ -113,11 +130,11 @@ class ByggrArchiverResourceTest {
 			.withTimestamp(LocalDateTime.now())
 			.build();
 
-		when(mockByggrArchiverService.runBatch(any(LocalDate.class), any(LocalDate.class), any(BatchTrigger.class)))
+		when(mockByggrArchiverService.runBatch(any(LocalDate.class), any(LocalDate.class), any(BatchTrigger.class), eq(MUNICIPALITY_ID)))
 			.thenReturn(batchHistory);
 
 		webTestClient.post()
-			.uri("/batch-jobs")
+			.uri(BATCH_PATH, MUNICIPALITY_ID)
 			.contentType(MediaType.APPLICATION_JSON)
 			.bodyValue(batchJob)
 			.exchange()
@@ -126,53 +143,15 @@ class ByggrArchiverResourceTest {
 	}
 
 	@Test
-	void reRunBatchJob() throws Exception {
-		when(mockByggrArchiverService.reRunBatch(anyLong())).thenReturn(createRandomBatchHistory());
+	void reRunBatchJob() {
+		when(mockByggrArchiverService.reRunBatch(anyLong(), eq(MUNICIPALITY_ID))).thenReturn(createRandomBatchHistoryResponse());
 
 		webTestClient.post()
-			.uri("batch-jobs/{batchHistoryId}/rerun", randomLong())
+			.uri(BATCH_PATH + "/{batchHistoryId}/rerun", MUNICIPALITY_ID, randomLong())
 			.exchange()
 			.expectStatus().isOk()
 			.expectBody(BatchHistory.class);
 	}
 
-	@Test
-	void mapToArchiveHistoryResponse_withNullInput() {
-		assertThat(resource.mapToArchiveHistoryResponse(null)).isNull();
-	}
-
-	@Test
-	void mapToArchiveHistoryResponse() {
-		var archiveHistory = createRandomArchiveHistory();
-		var archiveHistoryResponse = resource.mapToArchiveHistoryResponse(archiveHistory);
-
-		assertThat(archiveHistoryResponse.getDocumentId()).isEqualTo(archiveHistory.getDocumentId());
-		assertThat(archiveHistoryResponse.getCaseId()).isEqualTo(archiveHistory.getCaseId());
-		assertThat(archiveHistoryResponse.getDocumentName()).isEqualTo(archiveHistory.getDocumentName());
-		assertThat(archiveHistoryResponse.getDocumentType()).isEqualTo(archiveHistory.getDocumentType());
-		assertThat(archiveHistoryResponse.getArchiveId()).isEqualTo(archiveHistory.getArchiveId());
-		assertThat(archiveHistoryResponse.getArchiveUrl()).isEqualTo(archiveHistory.getArchiveUrl());
-		assertThat(archiveHistoryResponse.getArchiveStatus()).isEqualTo(archiveHistory.getArchiveStatus());
-		assertThat(archiveHistoryResponse.getTimestamp()).isEqualTo(archiveHistory.getTimestamp());
-		assertThat(archiveHistoryResponse.getBatchHistory()).isNotNull();
-	}
-
-	@Test
-	void mapToBatchHistoryResponse_withNullInput() {
-		assertThat(resource.mapToBatchHistoryResponse(null)).isNull();
-	}
-
-	@Test
-	void mapToBatchHistoryResponse() {
-		var batchHistory = createRandomBatchHistory();
-		var batchHistoryResponse = resource.mapToBatchHistoryResponse(batchHistory);
-
-		assertThat(batchHistoryResponse.getId()).isEqualTo(batchHistory.getId());
-		assertThat(batchHistoryResponse.getStart()).isEqualTo(batchHistory.getStart());
-		assertThat(batchHistoryResponse.getEnd()).isEqualTo(batchHistory.getEnd());
-		assertThat(batchHistoryResponse.getArchiveStatus()).isEqualTo(batchHistory.getArchiveStatus());
-		assertThat(batchHistoryResponse.getBatchTrigger()).isEqualTo(batchHistory.getBatchTrigger());
-		assertThat(batchHistoryResponse.getTimestamp()).isEqualTo(batchHistory.getTimestamp());
-	}
 
 }

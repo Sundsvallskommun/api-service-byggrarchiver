@@ -4,6 +4,7 @@ import static generated.se.sundsvall.messaging.MessageStatus.SENT;
 import static generated.se.sundsvall.messaging.MessageType.EMAIL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -30,6 +31,8 @@ import generated.se.sundsvall.messaging.MessageResult;
 @ExtendWith(MockitoExtension.class)
 class MessagingIntegrationTest {
 
+	private static final String MUNICIPALITY_ID = "2281";
+
 	private final EmailProperties.Instance instance = new EmailProperties.Instance("someSender", "someRecipient");
 
 	@Mock
@@ -44,7 +47,7 @@ class MessagingIntegrationTest {
 	@Test
 	void test_sendExtensionErrorEmail() {
 		when(mockEmailProperties.extensionError()).thenReturn(instance);
-		when(mockClient.sendEmail(any(EmailRequest.class)))
+		when(mockClient.sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class)))
 			.thenReturn(new MessageResult()
 				.messageId(UUID.randomUUID())
 				.deliveries(List.of(
@@ -53,18 +56,18 @@ class MessagingIntegrationTest {
 						.messageType(EMAIL)
 						.status(SENT))));
 
-		messagingIntegration.sendExtensionErrorEmail(new ArchiveHistory());
+		messagingIntegration.sendExtensionErrorEmail(new ArchiveHistory(), MUNICIPALITY_ID);
 
 		verify(mockEmailProperties, times(2)).extensionError();
 		verifyNoMoreInteractions(mockEmailProperties);
-		verify(mockClient, times(1)).sendEmail(any(EmailRequest.class));
+		verify(mockClient, times(1)).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
 		verifyNoMoreInteractions(mockClient);
 	}
 
 	@Test
 	void test_sendStatusEmail() {
 		when(mockEmailProperties.status()).thenReturn(instance);
-		when(mockClient.sendEmail(any(EmailRequest.class)))
+		when(mockClient.sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class)))
 			.thenReturn(new MessageResult()
 				.messageId(UUID.randomUUID())
 				.deliveries(List.of(
@@ -77,18 +80,18 @@ class MessagingIntegrationTest {
 		archiveHistory.setArchiveStatus(COMPLETED);
 		final var archiveHistories = List.of(archiveHistory);
 
-		messagingIntegration.sendStatusMail(archiveHistories, 1L);
+		messagingIntegration.sendStatusMail(archiveHistories, 1L, MUNICIPALITY_ID);
 
 		verify(mockEmailProperties, times(2)).status();
 		verifyNoMoreInteractions(mockEmailProperties);
-		verify(mockClient, times(1)).sendEmail(any(EmailRequest.class));
+		verify(mockClient, times(1)).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
 		verifyNoMoreInteractions(mockClient);
 	}
 
 	@Test
 	void test_sendEmailToLantmateriet() {
 		when(mockEmailProperties.lantmateriet()).thenReturn(instance);
-		when(mockClient.sendEmail(any(EmailRequest.class)))
+		when(mockClient.sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class)))
 			.thenReturn(new MessageResult()
 				.messageId(UUID.randomUUID())
 				.deliveries(List.of(
@@ -97,11 +100,11 @@ class MessagingIntegrationTest {
 						.messageType(EMAIL)
 						.status(SENT))));
 
-		messagingIntegration.sendEmailToLantmateriet("somePropertyDesignation", new ArchiveHistory());
+		messagingIntegration.sendEmailToLantmateriet("somePropertyDesignation", new ArchiveHistory(), MUNICIPALITY_ID);
 
 		verify(mockEmailProperties, times(2)).lantmateriet();
 		verifyNoMoreInteractions(mockEmailProperties);
-		verify(mockClient, times(1)).sendEmail(any(EmailRequest.class));
+		verify(mockClient, times(1)).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
 		verifyNoMoreInteractions(mockClient);
 	}
 

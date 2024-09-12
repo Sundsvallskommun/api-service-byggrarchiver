@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration.INTEGRATION_NAME;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -18,10 +19,12 @@ import generated.se.sundsvall.messaging.MessageResult;
 public interface MessagingClient {
 
 	@PostMapping(
-		path = "/email",
+		path = "/{municipalityId}/email",
 		consumes = APPLICATION_JSON_VALUE,
 		produces = APPLICATION_JSON_VALUE
 	)
-	MessageResult sendEmail(@RequestBody EmailRequest emailRequest);
+	MessageResult sendEmail(
+		@PathVariable("municipalityId") String municipalityId,
+		@RequestBody EmailRequest emailRequest);
 
 }

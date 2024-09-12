@@ -1,4 +1,4 @@
-package se.sundsvall.byggrarchiver.integration.db.model;
+package se.sundsvall.byggrarchiver.api.model;
 
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEquals;
@@ -7,9 +7,10 @@ import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanToString;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidGettersAndSetters;
 import static com.google.code.beanmatchers.BeanMatchers.registerValueGenerator;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.core.AllOf.allOf;
+import static org.hamcrest.Matchers.allOf;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hamcrest.MatcherAssert;
@@ -18,16 +19,19 @@ import org.junit.jupiter.api.Test;
 
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 
-class ArchiveHistoryTest {
+
+class ArchiveHistoryResponseTest {
 
 	@BeforeAll
 	static void setup() {
+		registerValueGenerator(() -> LocalDate.now().plusDays(randomInt()), LocalDate.class);
 		registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
 	}
 
+
 	@Test
 	void testBean() {
-		MatcherAssert.assertThat(ArchiveHistory.class, allOf(
+		MatcherAssert.assertThat(ArchiveHistoryResponse.class, allOf(
 			hasValidBeanConstructor(),
 			hasValidGettersAndSetters(),
 			hasValidBeanHashCode(),
@@ -46,11 +50,10 @@ class ArchiveHistoryTest {
 		final var archiveUrl = "archiveUrl";
 		final var archiveStatus = ArchiveStatus.COMPLETED;
 		final var timestamp = LocalDateTime.now();
-		final var batchHistory = new BatchHistory();
-		final var municipalityId = "municipalityId";
+		final var batchHistory = new BatchHistoryResponse();
 
 		// Act
-		final var archiveHistory = ArchiveHistory.builder()
+		final var batchHistoryResponse = ArchiveHistoryResponse.builder()
 			.withDocumentId(documentId)
 			.withCaseId(caseId)
 			.withDocumentName(documentName)
@@ -60,29 +63,25 @@ class ArchiveHistoryTest {
 			.withArchiveStatus(archiveStatus)
 			.withTimestamp(timestamp)
 			.withBatchHistory(batchHistory)
-			.withMunicipalityId(municipalityId)
 			.build();
 
 		// Assert
-		assertThat(archiveHistory).hasNoNullFieldsOrProperties();
-		assertThat(archiveHistory.getDocumentId()).isEqualTo(documentId);
-		assertThat(archiveHistory.getCaseId()).isEqualTo(caseId);
-		assertThat(archiveHistory.getDocumentName()).isEqualTo(documentName);
-		assertThat(archiveHistory.getDocumentType()).isEqualTo(documentType);
-		assertThat(archiveHistory.getArchiveId()).isEqualTo(archiveId);
-		assertThat(archiveHistory.getArchiveUrl()).isEqualTo(archiveUrl);
-		assertThat(archiveHistory.getArchiveStatus()).isEqualTo(archiveStatus);
-		assertThat(archiveHistory.getTimestamp()).isEqualTo(timestamp);
-		assertThat(archiveHistory.getBatchHistory()).isEqualTo(batchHistory);
-		assertThat(archiveHistory.getMunicipalityId()).isEqualTo(municipalityId);
-
+		assertThat(batchHistoryResponse).isNotNull().hasNoNullFieldsOrProperties();
+		assertThat(batchHistoryResponse.getDocumentId()).isEqualTo(documentId);
+		assertThat(batchHistoryResponse.getCaseId()).isEqualTo(caseId);
+		assertThat(batchHistoryResponse.getDocumentName()).isEqualTo(documentName);
+		assertThat(batchHistoryResponse.getDocumentType()).isEqualTo(documentType);
+		assertThat(batchHistoryResponse.getArchiveId()).isEqualTo(archiveId);
+		assertThat(batchHistoryResponse.getArchiveUrl()).isEqualTo(archiveUrl);
+		assertThat(batchHistoryResponse.getArchiveStatus()).isEqualTo(archiveStatus);
+		assertThat(batchHistoryResponse.getTimestamp()).isEqualTo(timestamp);
+		assertThat(batchHistoryResponse.getBatchHistory()).isEqualTo(batchHistory);
 	}
-
 
 	@Test
 	void testNoDirtOnCreatedBean() {
-		assertThat(ArchiveHistory.builder().build()).hasAllNullFieldsOrProperties();
-		assertThat(new ArchiveHistory()).hasAllNullFieldsOrProperties();
+		assertThat(ArchiveHistoryResponse.builder().build()).hasAllNullFieldsOrProperties();
+		assertThat(new ArchiveHistoryResponse()).hasAllNullFieldsOrProperties();
 	}
 
 }

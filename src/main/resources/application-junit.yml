@@ -1,3 +1,6 @@
+scheduler:
+  municipality-ids: 2281, 2282, 2283
+
 email:
   extension-error:
     recipient: junit-recipient@test.se

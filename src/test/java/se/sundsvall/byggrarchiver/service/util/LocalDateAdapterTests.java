@@ -1,10 +1,12 @@
-package se.sundsvall.byggrarchiver.support;
+package se.sundsvall.byggrarchiver.service.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
+
+import se.sundsvall.byggrarchiver.util.LocalDateAdapter;
 
 class LocalDateAdapterTests {
 
@@ -17,7 +19,7 @@ class LocalDateAdapterTests {
 
 	@Test
 	void testUnmarshalWithNonNullInput() {
-		var result = localDateAdapter.unmarshal("2023-06-06");
+		final var result = localDateAdapter.unmarshal("2023-06-06");
 
 		assertThat(result.getYear()).isEqualTo(2023);
 		assertThat(result.getMonthValue()).isEqualTo(6);
@@ -32,7 +34,7 @@ class LocalDateAdapterTests {
 
 	@Test
 	void testMarshalWithNonNullInput() {
-		var result = localDateAdapter.marshal(LocalDate.of(2023, 12, 24));
+		final var result = localDateAdapter.marshal(LocalDate.of(2023, 12, 24));
 
 		assertThat(result).isEqualTo("2023-12-24");
 	}

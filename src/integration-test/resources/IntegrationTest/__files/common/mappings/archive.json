@@ -6,7 +6,7 @@
       }
     },
     "method": "POST",
-    "urlPath": "/archive/1.0/archive/byggr"
+    "urlPath": "/archive/2.0/2281/archive/byggr"
   },
   "response": {
     "status": 200,

@@ -11,7 +11,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestPropertySource;
 
 import se.sundsvall.byggrarchiver.Application;
-import se.sundsvall.byggrarchiver.service.ArchiverScheduleService;
+import se.sundsvall.byggrarchiver.service.scheduler.ArchiverScheduler;
 import se.sundsvall.dept44.test.AbstractAppTest;
 import se.sundsvall.dept44.test.annotation.wiremock.WireMockAppTestSuite;
 
@@ -19,17 +19,17 @@ import se.sundsvall.dept44.test.annotation.wiremock.WireMockAppTestSuite;
 	files = "classpath:/IntegrationTest/",
 	classes = Application.class
 )
-@TestPropertySource(properties = {"byggrarchiver.cron.expression=* * * ? * *"})
-class ArchiveScheduleServiceTest extends AbstractAppTest {
+@TestPropertySource(properties = {"scheduler.cron.expression=* * * ? * *"})
+class ArchiveSchedulerTest extends AbstractAppTest {
 
 	@SpyBean
-	private ArchiverScheduleService archiverScheduleService;
+	private ArchiverScheduler archiverScheduler;
 
 	@Test
 	void archive() {
 		await()
 			.atMost(Duration.ofSeconds(10))
-			.untilAsserted(() -> verify(archiverScheduleService, atLeast(9)).archive());
+			.untilAsserted(() -> verify(archiverScheduler, atLeast(9)).archive());
 	}
 
 }

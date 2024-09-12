@@ -11,6 +11,8 @@ import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 @Transactional
 public interface BatchHistoryRepository extends JpaRepository<BatchHistory, Long> {
 
-	List<BatchHistory> findBatchHistoriesByArchiveStatus(ArchiveStatus archiveStatus);
+	List<BatchHistory> findAllByMunicipalityId(String municipalityId);
+
+	List<BatchHistory> findBatchHistoriesByArchiveStatusAndMunicipalityId(ArchiveStatus archiveStatus, String municipalityId);
 
 }

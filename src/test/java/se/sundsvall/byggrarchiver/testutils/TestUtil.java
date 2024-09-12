@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
@@ -19,7 +20,7 @@ public final class TestUtil {
 			.withArchiveId(UUID.randomUUID().toString())
 			.withArchiveUrl("https://random-url")
 			.withBatchHistory(createRandomBatchHistory())
-			.withArchiveStatus((ArchiveStatus) getRandomEnumValue(ArchiveStatus.class))
+			.withArchiveStatus(getRandomEnumValue(ArchiveStatus.class))
 			.withDocumentId(UUID.randomUUID().toString())
 			.withDocumentName(UUID.randomUUID().toString().substring(0, 21))
 			.withDocumentType(UUID.randomUUID().toString().substring(0, 21))
@@ -30,6 +31,17 @@ public final class TestUtil {
 
 	public static BatchHistory createRandomBatchHistory() {
 		return BatchHistory.builder()
+			.withId(randomLong())
+			.withBatchTrigger(getRandomEnumValue(BatchTrigger.class))
+			.withStart(LocalDate.now())
+			.withEnd(LocalDate.now())
+			.withTimestamp(LocalDateTime.now())
+			.withArchiveStatus(getRandomEnumValue(ArchiveStatus.class))
+			.build();
+	}
+
+	public static BatchHistoryResponse createRandomBatchHistoryResponse() {
+		return BatchHistoryResponse.builder()
 			.withId(randomLong())
 			.withBatchTrigger(getRandomEnumValue(BatchTrigger.class))
 			.withStart(LocalDate.now())
@@ -59,7 +71,7 @@ public final class TestUtil {
 		return enumClass.getEnumConstants()[randomInt(enumClass.getEnumConstants().length)];
 	}
 
-	public static BatchHistory createBatchHistory(LocalDate start, LocalDate end, BatchTrigger batchTrigger, ArchiveStatus archiveStatus) {
+	public static BatchHistory createBatchHistory(final LocalDate start, final LocalDate end, final BatchTrigger batchTrigger, final ArchiveStatus archiveStatus) {
 		return BatchHistory.builder()
 			.withStart(start)
 			.withEnd(end)

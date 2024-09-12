@@ -1,3 +1,6 @@
+scheduler:
+  municipality-ids: 2281, 2282, 2283
+
 email:
   extension-error:
     recipient: junit-recipient@test.se
@@ -14,7 +17,7 @@ integration:
       clientId: client-id
       clientSecret: client-secret
       tokenUrl: ${sundsvall.token-uri}
-    url: http://localhost:${wiremock.server.port}/archive/1.0
+    url: http://localhost:${wiremock.server.port}/archive/2.0
   arendeexport:
     url: http://localhost:${wiremock.server.port}/TekisArende/ArendeExportWS.svc
   fb:

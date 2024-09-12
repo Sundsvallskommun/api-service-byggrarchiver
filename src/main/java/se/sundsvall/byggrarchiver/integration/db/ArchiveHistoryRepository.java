@@ -14,12 +14,12 @@ import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 @Transactional
 public interface ArchiveHistoryRepository extends JpaRepository<ArchiveHistory, Long> {
 
-	Optional<ArchiveHistory> getArchiveHistoryByDocumentIdAndCaseId(String documentId, String caseId);
+	Optional<ArchiveHistory> getArchiveHistoryByDocumentIdAndCaseIdAndMunicipalityId(String documentId, String caseId, String municipalityId);
 
-	List<ArchiveHistory> getArchiveHistoriesByBatchHistoryId(Long batchHistoryId);
+	List<ArchiveHistory> getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(Long batchHistoryId, String municipalityId);
 
-	@Query("select a from ArchiveHistory a where (:archiveStatus is null or a.archiveStatus = :archiveStatus) and (:batchHistoryId is null or a.batchHistory.id = :batchHistoryId) ")
-	List<ArchiveHistory> getArchiveHistoriesByArchiveStatusAndBatchHistoryId(@Param("archiveStatus") ArchiveStatus archiveStatus, @Param("batchHistoryId") Long batchHistoryId);
+	@Query("select a from ArchiveHistory a where (:archiveStatus is null or a.archiveStatus = :archiveStatus) and (:batchHistoryId is null or a.batchHistory.id = :batchHistoryId) and (:municipalityId is null or a.municipalityId = :municipalityId)")
+	List<ArchiveHistory> getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(@Param("archiveStatus") ArchiveStatus archiveStatus, @Param("batchHistoryId") Long batchHistoryId, @Param("municipalityId") String municipalityId);
 
 	void deleteArchiveHistoriesByCaseIdAndArchiveStatus(String caseId, ArchiveStatus archiveStatus);
 

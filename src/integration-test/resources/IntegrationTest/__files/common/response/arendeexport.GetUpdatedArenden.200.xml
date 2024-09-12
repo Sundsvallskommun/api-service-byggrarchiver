@@ -1,1524 +1,1561 @@
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
-    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-        <GetUpdatedArendenResponse xmlns="www.tekis.se/ServiceContract">
-            <GetUpdatedArendenResult>
-                <BatchStart>2021-12-16T07:16:56</BatchStart>
-                <BatchEnd>2021-12-17T14:14:35</BatchEnd>
-                <Arenden>
-                    <arende arendeId="55522" dnr="BYGG 2021-000771" diarieprefix="BYGG" kommun="Sundsvall" enhet="SBK"
-                            enhetkod="" arendegrupp="LOV" arendetyp="BL" arendeslag="A" arendeklass="LB" namndkod="SBN"
-                            kalla="3">
-                        <status xmlns="www.tekis.se/arende">Pågående</status>
-                        <beskrivning xmlns="www.tekis.se/arende">Bygglov för nybyggnad av lagerbyggnad, parkering &amp;
-                            småbåtshamn
-                        </beskrivning>
-                        <ankomstDatum xmlns="www.tekis.se/arende">2021-12-16</ankomstDatum>
-                        <uppdateradDatum xmlns="www.tekis.se/arende">2021-12-16</uppdateradDatum>
-                        <registreradDatum xmlns="www.tekis.se/arende">2021-12-16</registreradDatum>
-                        <handlaggare handlaggareId="-1" signatur="" xmlns="www.tekis.se/arende">
-                            <fornamn/>
-                            <efternamn/>
-                        </handlaggare>
-                        <intressentLista xmlns="www.tekis.se/arende">
-                            <intressent intressentId="36552" attentionId="11858"
-                                        arForetag="true" intressentVersionId="56522">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress>co adress</coAdress>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn/>
-                                <efternamn/>
-                                <attention>attention</attention>
-                                <rollLista>
-                                    <roll>SOK</roll>
-                                </rollLista>
-                            </intressent>
-                            <intressent intressentId="36540" attentionId="0"
-                                        intressentVersionId="56524">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress>annan kontakt co</coAdress>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn/>
-                                <efternamn/>
-                                <attention/>
-                                <rollLista>
-                                    <roll>BETA</roll>
-                                </rollLista>
-                            </intressent>
-                            <intressent intressentId="36535" attentionId="0"
-                                        intressentVersionId="56523">
-                                <namn>Test Testorsson</namn>
-                                <adress/>
-                                <coAdress/>
-                                <postNr/>
-                                <ort/>
-                                <land/>
-                                <fornamn/>
-                                <efternamn/>
-                                <attention/>
-                                <rollLista>
-                                    <roll>KPER</roll>
-                                </rollLista>
-                            </intressent>
-                        </intressentLista>
-                        <handelseLista xmlns="www.tekis.se/arende">
-                            <handelse handelseId="362923" checksum="60">
-                                <riktning>In</riktning>
-                                <rubrik>Bygglov</rubrik>
-                                <startDatum>2021-12-16T08:16:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>Bygglov</handelseslag>
-                                <handelsetyp>ANSÖKAN</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="434978" checksum="60">
-                                        <typ>ANS</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>8902.pdf</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586443" checksum="-1243540383">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434979" checksum="60">
-                                        <typ>SITU</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>situationsplan Ritning1.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586444" checksum="-1933202738">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434980" checksum="61">
-                                        <typ>SEK2</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>sektionsritning Ritning3.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586445" checksum="1718795407">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434981" checksum="61">
-                                        <typ>RITNING</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>ritning Ritning3.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586446" checksum="-1268635663">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434982" checksum="61">
-                                        <typ>PLA2</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>planritning Ritning2.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586447" checksum="-1189009869">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434983" checksum="61">
-                                        <typ>NYKA</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>nybyggnadskarta Ritning1.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586448" checksum="-908427253">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434984" checksum="62">
-                                        <typ>FÖRK</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>kontrollplan Kontrollplan.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586449" checksum="702710784">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434985" checksum="62">
-                                        <typ>UKON</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>konstruktionsritning Ritning2.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586450" checksum="1772255952">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434986" checksum="62">
-                                        <typ>UKON</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>konstruktionshandling Ritning1.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586451" checksum="2070134623">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434987" checksum="62">
-                                        <typ>UKON</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>konstruktionshandling Fullmakt.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586452" checksum="-1379204737">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434988" checksum="62">
-                                        <typ>ANMÄ</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>kauppgifter KA uppgifter.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586453" checksum="-59093652">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434989" checksum="63">
-                                        <typ>FUM</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>fullmakt Fullmakt.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586454" checksum="-485473024">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434990" checksum="63">
-                                        <typ>FAS2</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>fasadritning Fasad väst.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586455" checksum="677502436">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="434991" checksum="63">
-                                        <typ>FAS2</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>fasadritning Fasad ost.docx</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586456" checksum="-77536153">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="SYSTEM"/>
-                            </handelse>
-                            <handelse handelseId="362924" checksum="63">
-                                <riktning>In</riktning>
-                                <rubrik>Manuell hantering</rubrik>
-                                <startDatum>2021-12-16T08:16:00+01:00</startDatum>
-                                <anteckning>Det finns uppgifter om kontrollansvarig i handlingen "Ansökan om bygglov".
-                                    Du måste registrera denna typ av intressenter manuellt.
-                                </anteckning>
-                                <handelseslag>MANHANT</handelseslag>
-                                <handelsetyp>STATUS</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista/>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="SYSTEM"/>
-                            </handelse>
-                        </handelseLista>
-                        <projektnr xmlns="www.tekis.se/arende">TEST 1:9</projektnr>
-                        <objektLista xmlns="www.tekis.se/arende">
-                            <abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="56360" arHuvudObjekt="true"
-                                                  checksum="1|">
-                                <fastighet checksum="-137380678|" fnr="22044360">
-                                    <trakt>TEST</trakt>
-                                    <fbetNr>1:9</fbetNr>
-                                </fastighet>
-                            </abstractArendeObjekt>
-                        </objektLista>
-                    </arende>
-                    <arende arendeId="51828" dnr="BYGG 2020-001012" diarieprefix="BYGG" kommun="Sundsvall" enhet="SBK"
-                            enhetkod="" arendegrupp="LOV" arendetyp="ANM" arendeslag="C" arendeklass="EB" namndkod="SBN"
-                            kalla="1">
-                        <status xmlns="www.tekis.se/arende">Pågående</status>
-                        <beskrivning xmlns="www.tekis.se/arende">Anmälan för installation av eldstad och rökkanal
-                            enbostadshus
-                        </beskrivning>
-                        <ankomstDatum xmlns="www.tekis.se/arende">2020-07-02</ankomstDatum>
-                        <uppdateradDatum xmlns="www.tekis.se/arende">2021-12-16</uppdateradDatum>
-                        <registreradDatum xmlns="www.tekis.se/arende">2020-07-10</registreradDatum>
-                        <handlaggare handlaggareId="1602" signatur="maj27nym" xmlns="www.tekis.se/arende">
-                            <fornamn>Test</fornamn>
-                            <fornamn>Testorsson</fornamn>
-                        </handlaggare>
-                        <intressentLista xmlns="www.tekis.se/arende">
-                            <intressent intressentId="27055" attentionId="10277"
-                                        arForetag="true" intressentVersionId="38853">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress/>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn/>
-                                <efternamn/>
-                                <attention>Kontakt</attention>
-                                <rollLista>
-                                    <roll>KPER</roll>
-                                </rollLista>
-                            </intressent>
-                            <intressent intressentId="14743" attentionId="0"
-                                        intressentVersionId="53487">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress/>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn>Test</fornamn>
-                                <fornamn>Testorsson</fornamn>
-                                <attention/>
-                                <rollLista>
-                                    <roll>FAG</roll>
-                                    <roll>SOK</roll>
-                                </rollLista>
-                            </intressent>
-                        </intressentLista>
-                        <handelseLista xmlns="www.tekis.se/arende">
-                            <handelse handelseId="344948" checksum="15">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Fastställd kontrollplan</rubrik>
-                                <startDatum>2020-08-14T11:29:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>GBCA</handelseslag>
-                                <handelsetyp>BESLUT</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <beslut arHuvudbeslut="false">
-                                    <beslutstext/>
-                                    <delegatHandlaggare signatur="hel07sah">
-                                        <fornamn>Test</fornamn>
-                                        <fornamn>Testorsson</fornamn>
-                                    </delegatHandlaggare>
-                                    <instanstyp>DelgINSP</instanstyp>
-                                </beslut>
-                                <handlingLista>
-                                    <handling handlingId="415644" checksum="2">
-                                        <typ>FAST</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-08-14</handlingDatum>
-                                        <uuid>5e2b482f-b342-454c-be51-ab80beac050f</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="567085" checksum="1827264204">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Fastställd kontrollplan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="344780" checksum="36">
-                                <riktning>Ut</riktning>
-                                <rubrik>Ärende komplett</rubrik>
-                                <startDatum>2020-08-13T13:34:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>Komplett</handelseslag>
-                                <handelsetyp>STATUS</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista/>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="sus11ost"/>
-                            </handelse>
-                            <handelse handelseId="344946" checksum="45">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Startbesked</rubrik>
-                                <startDatum>2020-08-14T11:23:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>GAAC</handelseslag>
-                                <handelsetyp>BESLUT</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <beslut beslutNr="IN 2020-000833" arHuvudbeslut="true">
-                                    <beslutstext/>
-                                    <delegatHandlaggare signatur="hel07sah">
-                                        <fornamn>Test</fornamn>
-                                        <fornamn>Testorsson</fornamn>
-                                    </delegatHandlaggare>
-                                    <instanstyp>DelgINSP</instanstyp>
-                                </beslut>
-                                <handlingLista>
-                                    <handling handlingId="413207" checksum="55">
-                                        <typ>ANM</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-07-02</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="564552" checksum="-196680004">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Anmälan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415497" checksum="56">
-                                        <typ>FAS</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-08-13</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566936" checksum="-565850922">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415500" checksum="57">
-                                        <typ>PLA</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-08-13</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566939" checksum="880137261">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415501" checksum="57">
-                                        <typ>PRES</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-08-13</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566940" checksum="1475912738">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415643" checksum="2">
-                                        <typ>STAB</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-08-14</handlingDatum>
-                                        <uuid>4b06e108-571b-4354-b300-f4bc0ad7ae80</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="567084" checksum="-188279055">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Startbesked</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="sus11ost"/>
-                            </handelse>
-                            <handelse handelseId="348409" checksum="41">
-                                <riktning>Ut</riktning>
-                                <rubrik>Slutbesked</rubrik>
-                                <startDatum>2020-09-22T09:54:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>SLU</handelseslag>
-                                <handelsetyp>BESLUT</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <beslut arHuvudbeslut="false">
-                                    <beslutstext/>
-                                    <delegatHandlaggare signatur="mik23kal">
-                                        <fornamn>Test</fornamn>
-                                        <fornamn>Testorsson</fornamn>
-                                    </delegatHandlaggare>
-                                    <instanstyp>DelgINSP</instanstyp>
-                                </beslut>
-                                <handlingLista>
-                                    <handling handlingId="419506" checksum="41">
-                                        <typ>SBES</typ>
-                                        <status>Arbetsmtrl</status>
-                                        <handlingDatum>2020-09-22</handlingDatum>
-                                        <uuid>72e9455e-147c-4960-a6d8-b47d86fa1af8</uuid>
-                                        <arkivStatus>Arkiveras</arkivStatus>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="571054" checksum="-1342627291">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Slutbesked</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="342498" checksum="41">
-                                <riktning>In</riktning>
-                                <rubrik>Eldstad/Rökkanal</rubrik>
-                                <startDatum>2020-07-02T00:00:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>ELD</handelseslag>
-                                <handelsetyp>ANM</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="413207" checksum="55">
-                                        <typ>ANM</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-07-02</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="564552" checksum="-196680004">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Anmälan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="sus11ost"/>
-                            </handelse>
-                            <handelse handelseId="342542" checksum="50">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Bekräftelse skickad</rubrik>
-                                <startDatum>2020-07-10T17:03:00+02:00</startDatum>
-                                <anteckning>Mottagargrupp:
-                                    Kontakt:
-                                    Skickade e-post till info@eldstaden.com - Utskick Kontakt 1.eml
+	<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	>
+		<GetUpdatedArendenResponse xmlns="www.tekis.se/ServiceContract">
+			<GetUpdatedArendenResult>
+				<BatchStart>2021-12-16T07:16:56</BatchStart>
+				<BatchEnd>2021-12-17T14:14:35</BatchEnd>
+				<Arenden>
+					<arende arendeId="55522" dnr="BYGG 2021-000771" diarieprefix="BYGG"
+							kommun="Sundsvall" enhet="SBK"
+							enhetkod="" arendegrupp="LOV" arendetyp="BL" arendeslag="A"
+							arendeklass="LB" namndkod="SBN"
+							kalla="3">
+						<status xmlns="www.tekis.se/arende">Pågående</status>
+						<beskrivning xmlns="www.tekis.se/arende">Bygglov för nybyggnad av
+							lagerbyggnad, parkering &amp;
+							småbåtshamn
+						</beskrivning>
+						<ankomstDatum xmlns="www.tekis.se/arende">2021-12-16</ankomstDatum>
+						<uppdateradDatum xmlns="www.tekis.se/arende">2021-12-16</uppdateradDatum>
+						<registreradDatum xmlns="www.tekis.se/arende">2021-12-16</registreradDatum>
+						<handlaggare handlaggareId="-1" signatur="" xmlns="www.tekis.se/arende">
+							<fornamn/>
+							<efternamn/>
+						</handlaggare>
+						<intressentLista xmlns="www.tekis.se/arende">
+							<intressent intressentId="36552" attentionId="11858"
+										arForetag="true" intressentVersionId="56522">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress>co adress</coAdress>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn/>
+								<efternamn/>
+								<attention>attention</attention>
+								<rollLista>
+									<roll>SOK</roll>
+								</rollLista>
+							</intressent>
+							<intressent intressentId="36540" attentionId="0"
+										intressentVersionId="56524">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress>annan kontakt co</coAdress>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn/>
+								<efternamn/>
+								<attention/>
+								<rollLista>
+									<roll>BETA</roll>
+								</rollLista>
+							</intressent>
+							<intressent intressentId="36535" attentionId="0"
+										intressentVersionId="56523">
+								<namn>Test Testorsson</namn>
+								<adress/>
+								<coAdress/>
+								<postNr/>
+								<ort/>
+								<land/>
+								<fornamn/>
+								<efternamn/>
+								<attention/>
+								<rollLista>
+									<roll>KPER</roll>
+								</rollLista>
+							</intressent>
+						</intressentLista>
+						<handelseLista xmlns="www.tekis.se/arende">
+							<handelse handelseId="362923" checksum="60">
+								<riktning>In</riktning>
+								<rubrik>Bygglov</rubrik>
+								<startDatum>2021-12-16T08:16:00+01:00</startDatum>
+								<anteckning/>
+								<handelseslag>Bygglov</handelseslag>
+								<handelsetyp>ANSÖKAN</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="434978" checksum="60">
+										<typ>ANS</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>8902.pdf</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586443" checksum="-1243540383">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434979" checksum="60">
+										<typ>SITU</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>situationsplan Ritning1.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586444" checksum="-1933202738">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434980" checksum="61">
+										<typ>SEK2</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>sektionsritning Ritning3.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586445" checksum="1718795407">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434981" checksum="61">
+										<typ>RITNING</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>ritning Ritning3.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586446" checksum="-1268635663">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434982" checksum="61">
+										<typ>PLA2</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>planritning Ritning2.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586447" checksum="-1189009869">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434983" checksum="61">
+										<typ>NYKA</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>nybyggnadskarta Ritning1.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586448" checksum="-908427253">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434984" checksum="62">
+										<typ>FÖRK</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>kontrollplan Kontrollplan.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586449" checksum="702710784">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434985" checksum="62">
+										<typ>UKON</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>konstruktionsritning Ritning2.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586450" checksum="1772255952">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434986" checksum="62">
+										<typ>UKON</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>konstruktionshandling Ritning1.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586451" checksum="2070134623">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434987" checksum="62">
+										<typ>UKON</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>konstruktionshandling Fullmakt.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586452" checksum="-1379204737">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434988" checksum="62">
+										<typ>ANMÄ</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>kauppgifter KA uppgifter.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586453" checksum="-59093652">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434989" checksum="63">
+										<typ>FUM</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>fullmakt Fullmakt.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586454" checksum="-485473024">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434990" checksum="63">
+										<typ>FAS2</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>fasadritning Fasad väst.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586455" checksum="677502436">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="434991" checksum="63">
+										<typ>FAS2</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>fasadritning Fasad ost.docx</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586456" checksum="-77536153">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="SYSTEM"/>
+							</handelse>
+							<handelse handelseId="362924" checksum="63">
+								<riktning>In</riktning>
+								<rubrik>Manuell hantering</rubrik>
+								<startDatum>2021-12-16T08:16:00+01:00</startDatum>
+								<anteckning>Det finns uppgifter om kontrollansvarig i handlingen
+									"Ansökan om bygglov".
+									Du måste registrera denna typ av intressenter manuellt.
+								</anteckning>
+								<handelseslag>MANHANT</handelseslag>
+								<handelsetyp>STATUS</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista/>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="SYSTEM"/>
+							</handelse>
+						</handelseLista>
+						<projektnr xmlns="www.tekis.se/arende">TEST 1:9</projektnr>
+						<objektLista xmlns="www.tekis.se/arende">
+							<abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="56360"
+												  arHuvudObjekt="true"
+												  checksum="1|">
+								<fastighet checksum="-137380678|" fnr="22044360">
+									<trakt>TEST</trakt>
+									<fbetNr>1:9</fbetNr>
+								</fastighet>
+							</abstractArendeObjekt>
+						</objektLista>
+					</arende>
+					<arende arendeId="51828" dnr="BYGG 2020-001012" diarieprefix="BYGG"
+							kommun="Sundsvall" enhet="SBK"
+							enhetkod="" arendegrupp="LOV" arendetyp="ANM" arendeslag="C"
+							arendeklass="EB" namndkod="SBN"
+							kalla="1">
+						<status xmlns="www.tekis.se/arende">Pågående</status>
+						<beskrivning xmlns="www.tekis.se/arende">Anmälan för installation av eldstad
+							och rökkanal
+							enbostadshus
+						</beskrivning>
+						<ankomstDatum xmlns="www.tekis.se/arende">2020-07-02</ankomstDatum>
+						<uppdateradDatum xmlns="www.tekis.se/arende">2021-12-16</uppdateradDatum>
+						<registreradDatum xmlns="www.tekis.se/arende">2020-07-10</registreradDatum>
+						<handlaggare handlaggareId="1602" signatur="maj27nym"
+									 xmlns="www.tekis.se/arende">
+							<fornamn>Test</fornamn>
+							<fornamn>Testorsson</fornamn>
+						</handlaggare>
+						<intressentLista xmlns="www.tekis.se/arende">
+							<intressent intressentId="27055" attentionId="10277"
+										arForetag="true" intressentVersionId="38853">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress/>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn/>
+								<efternamn/>
+								<attention>Kontakt</attention>
+								<rollLista>
+									<roll>KPER</roll>
+								</rollLista>
+							</intressent>
+							<intressent intressentId="14743" attentionId="0"
+										intressentVersionId="53487">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress/>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn>Test</fornamn>
+								<fornamn>Testorsson</fornamn>
+								<attention/>
+								<rollLista>
+									<roll>FAG</roll>
+									<roll>SOK</roll>
+								</rollLista>
+							</intressent>
+						</intressentLista>
+						<handelseLista xmlns="www.tekis.se/arende">
+							<handelse handelseId="344948" checksum="15">
+								<riktning>Okänd</riktning>
+								<rubrik>Fastställd kontrollplan</rubrik>
+								<startDatum>2020-08-14T11:29:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>GBCA</handelseslag>
+								<handelsetyp>BESLUT</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<beslut arHuvudbeslut="false">
+									<beslutstext/>
+									<delegatHandlaggare signatur="hel07sah">
+										<fornamn>Test</fornamn>
+										<fornamn>Testorsson</fornamn>
+									</delegatHandlaggare>
+									<instanstyp>DelgINSP</instanstyp>
+								</beslut>
+								<handlingLista>
+									<handling handlingId="415644" checksum="2">
+										<typ>FAST</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-08-14</handlingDatum>
+										<uuid>5e2b482f-b342-454c-be51-ab80beac050f</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="567085" checksum="1827264204">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Fastställd kontrollplan</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="344780" checksum="36">
+								<riktning>Ut</riktning>
+								<rubrik>Ärende komplett</rubrik>
+								<startDatum>2020-08-13T13:34:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>Komplett</handelseslag>
+								<handelsetyp>STATUS</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista/>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="sus11ost"/>
+							</handelse>
+							<handelse handelseId="344946" checksum="45">
+								<riktning>Okänd</riktning>
+								<rubrik>Startbesked</rubrik>
+								<startDatum>2020-08-14T11:23:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>GAAC</handelseslag>
+								<handelsetyp>BESLUT</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<beslut beslutNr="IN 2020-000833" arHuvudbeslut="true">
+									<beslutstext/>
+									<delegatHandlaggare signatur="hel07sah">
+										<fornamn>Test</fornamn>
+										<fornamn>Testorsson</fornamn>
+									</delegatHandlaggare>
+									<instanstyp>DelgINSP</instanstyp>
+								</beslut>
+								<handlingLista>
+									<handling handlingId="413207" checksum="55">
+										<typ>ANM</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-07-02</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="564552" checksum="-196680004">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Anmälan</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="415497" checksum="56">
+										<typ>FAS</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-08-13</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="566936" checksum="-565850922">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="415500" checksum="57">
+										<typ>PLA</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-08-13</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="566939" checksum="880137261">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="415501" checksum="57">
+										<typ>PRES</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-08-13</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="566940" checksum="1475912738">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="415643" checksum="2">
+										<typ>STAB</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-08-14</handlingDatum>
+										<uuid>4b06e108-571b-4354-b300-f4bc0ad7ae80</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="567084" checksum="-188279055">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Startbesked</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="sus11ost"/>
+							</handelse>
+							<handelse handelseId="348409" checksum="41">
+								<riktning>Ut</riktning>
+								<rubrik>Slutbesked</rubrik>
+								<startDatum>2020-09-22T09:54:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>SLU</handelseslag>
+								<handelsetyp>BESLUT</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<beslut arHuvudbeslut="false">
+									<beslutstext/>
+									<delegatHandlaggare signatur="mik23kal">
+										<fornamn>Test</fornamn>
+										<fornamn>Testorsson</fornamn>
+									</delegatHandlaggare>
+									<instanstyp>DelgINSP</instanstyp>
+								</beslut>
+								<handlingLista>
+									<handling handlingId="419506" checksum="41">
+										<typ>SBES</typ>
+										<status>Arbetsmtrl</status>
+										<handlingDatum>2020-09-22</handlingDatum>
+										<uuid>72e9455e-147c-4960-a6d8-b47d86fa1af8</uuid>
+										<arkivStatus>Arkiveras</arkivStatus>
+										<makulerad>false</makulerad>
+										<dokument dokId="571054" checksum="-1342627291">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Slutbesked</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="342498" checksum="41">
+								<riktning>In</riktning>
+								<rubrik>Eldstad/Rökkanal</rubrik>
+								<startDatum>2020-07-02T00:00:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>ELD</handelseslag>
+								<handelsetyp>ANM</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="413207" checksum="55">
+										<typ>ANM</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-07-02</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="564552" checksum="-196680004">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Anmälan</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="sus11ost"/>
+							</handelse>
+							<handelse handelseId="342542" checksum="50">
+								<riktning>Okänd</riktning>
+								<rubrik>Bekräftelse skickad</rubrik>
+								<startDatum>2020-07-10T17:03:00+02:00</startDatum>
+								<anteckning>Mottagargrupp:
+									Kontakt:
+									Skickade e-post till info@eldstaden.com - Utskick Kontakt 1.eml
 
-                                    Olof Näsman:
-                                    Skickade e-post till ollenasman@yahoo.se - Utskick Olof Näsman 1.eml
-
-
-                                </anteckning>
-                                <handelseslag>Kv</handelseslag>
-                                <handelsetyp>Atom</handelsetyp>
-                                <handelseutfall>Kv4</handelseutfall>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista/>
-                                <arbetsmaterial>true</arbetsmaterial>
-                                <handlaggare signatur="Atom"/>
-                            </handelse>
-                            <handelse handelseId="344254" checksum="8">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Kompletteringsföreläggande - skickat</rubrik>
-                                <startDatum>2020-08-07T17:07:00+02:00</startDatum>
-                                <anteckning>Mottagargrupp:
-                                    Kontakt:
-                                    Skickade e-post till info@eldstaden.com - Utskick Kontakt 1.eml
-
-                                    Olof Näsman:
-                                    Skickade e-post till ollenasman@yahoo.se - Utskick Olof Näsman 1.eml
+									Olof Näsman:
+									Skickade e-post till ollenasman@yahoo.se - Utskick Olof Näsman
+									1.eml
 
 
-                                    Ärendebevakning SvarKompl skapades för ärende BYGG 2020-001012 kopplad till
-                                    handläggare Atom
-                                </anteckning>
-                                <handelseslag>Kv</handelseslag>
-                                <handelsetyp>Atom</handelsetyp>
-                                <handelseutfall>Kv11</handelseutfall>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista/>
-                                <arbetsmaterial>true</arbetsmaterial>
-                                <handlaggare signatur="Atom"/>
-                            </handelse>
-                            <handelse handelseId="344950" checksum="47">
-                                <riktning>Ut</riktning>
-                                <rubrik>Anmälan</rubrik>
-                                <startDatum>2020-08-14T11:31:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>ANM</handelseslag>
-                                <handelsetyp>DEBIT</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista/>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="344951" checksum="12">
-                                <riktning>Ut</riktning>
-                                <rubrik>Digitalt utskick av beslut</rubrik>
-                                <startDatum>2020-08-14T11:31:00+02:00</startDatum>
-                                <anteckning>Hej,
+								</anteckning>
+								<handelseslag>Kv</handelseslag>
+								<handelsetyp>Atom</handelsetyp>
+								<handelseutfall>Kv4</handelseutfall>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista/>
+								<arbetsmaterial>true</arbetsmaterial>
+								<handlaggare signatur="Atom"/>
+							</handelse>
+							<handelse handelseId="344254" checksum="8">
+								<riktning>Okänd</riktning>
+								<rubrik>Kompletteringsföreläggande - skickat</rubrik>
+								<startDatum>2020-08-07T17:07:00+02:00</startDatum>
+								<anteckning>Mottagargrupp:
+									Kontakt:
+									Skickade e-post till info@eldstaden.com - Utskick Kontakt 1.eml
 
-                                    Här kommer ditt beslut.
+									Olof Näsman:
+									Skickade e-post till ollenasman@yahoo.se - Utskick Olof Näsman
+									1.eml
 
-                                    Med vänlig hälsning
 
-                                    Sundsvalls Kommun
-                                    Stadsbyggnadskontoret
-                                    Bygglovavdelningen
-                                </anteckning>
-                                <handelseslag>DIGI</handelseslag>
-                                <handelsetyp>DIG</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="415643" checksum="2">
-                                        <typ>STAB</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-08-14</handlingDatum>
-                                        <uuid>4b06e108-571b-4354-b300-f4bc0ad7ae80</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="567084" checksum="-188279055">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Startbesked</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415644" checksum="2">
-                                        <typ>FAST</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-08-14</handlingDatum>
-                                        <uuid>5e2b482f-b342-454c-be51-ab80beac050f</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="567085" checksum="1827264204">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Fastställd kontrollplan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="362912" checksum="43">
-                                <riktning>Ut</riktning>
-                                <rubrik>Arkiveras i Formpipe</rubrik>
-                                <startDatum>2020-09-22T09:55:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>FORMPIPE</handelseslag>
-                                <handelsetyp>ARKIV</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="413207" checksum="55">
-                                        <typ>ANM</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-07-02</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="564552" checksum="-196680004">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Anmälan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415643" checksum="2">
-                                        <typ>STAB</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-08-14</handlingDatum>
-                                        <uuid>4b06e108-571b-4354-b300-f4bc0ad7ae80</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="567084" checksum="-188279055">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Startbesked</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415644" checksum="2">
-                                        <typ>FAST</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-08-14</handlingDatum>
-                                        <uuid>5e2b482f-b342-454c-be51-ab80beac050f</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="567085" checksum="1827264204">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Fastställd kontrollplan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="419505" checksum="37">
-                                        <typ>SKP</typ>
-                                        <status>Arbetsmtrl</status>
-                                        <handlingDatum>2020-09-22</handlingDatum>
-                                        <uuid>5ae0c901-1684-41ad-a2db-a765bf3c3167</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="571053" checksum="821951314">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Signerad kontrollplan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="maj27nym"/>
-                            </handelse>
-                            <handelse handelseId="362913" checksum="3">
-                                <riktning>Ut</riktning>
-                                <rubrik>Arkiveras i Formpipe</rubrik>
-                                <startDatum>2021-12-15T09:26:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>FORMPIPE</handelseslag>
-                                <handelsetyp>ARKIV</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="419506" checksum="41">
-                                        <typ>SBES</typ>
-                                        <status>Arbetsmtrl</status>
-                                        <handlingDatum>2020-09-22</handlingDatum>
-                                        <uuid>72e9455e-147c-4960-a6d8-b47d86fa1af8</uuid>
-                                        <arkivStatus>Arkiveras</arkivStatus>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="571054" checksum="-1342627291">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Slutbesked</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>true</arbetsmaterial>
-                                <handlaggare signatur="maj27nym"/>
-                            </handelse>
-                            <handelse handelseId="344776" checksum="42">
-                                <riktning>In</riktning>
-                                <rubrik>Kompletterande handlingar</rubrik>
-                                <startDatum>2020-08-13T13:20:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>KOMPL</handelseslag>
-                                <handelsetyp>HANDLING</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="415497" checksum="56">
-                                        <typ>FAS</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-08-13</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566936" checksum="-565850922">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415498" checksum="30">
-                                        <typ>SEKT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-08-13</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566937" checksum="898288383">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415499" checksum="30">
-                                        <typ>SEKT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-08-13</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566938" checksum="1642120141">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="415500" checksum="57">
-                                        <typ>PLA</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-08-13</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566939" checksum="880137261">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="sus11ost"/>
-                            </handelse>
-                            <handelse handelseId="344779" checksum="3">
-                                <riktning>In</riktning>
-                                <rubrik>Kompletterande handlingar</rubrik>
-                                <startDatum>2020-08-13T13:34:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>KOMPL</handelseslag>
-                                <handelsetyp>HANDLING</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="415501" checksum="57">
-                                        <typ>PRES</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-08-13</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566940" checksum="1475912738">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="sus11ost"/>
-                            </handelse>
-                            <handelse handelseId="344208" checksum="39">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Beslut</rubrik>
-                                <startDatum>2020-08-07T12:29:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>Beslut</handelseslag>
-                                <handelsetyp>KOMP</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="414947" checksum="49">
-                                        <typ>KOMP</typ>
-                                        <status>Arbetsmtrl</status>
-                                        <handlingDatum>2020-08-07</handlingDatum>
-                                        <uuid>dd1e8090-7eed-4f06-b3cd-d7a398020287</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="566369" checksum="491027443">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Kompletteringsföreläggande</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="sus11ost"/>
-                            </handelse>
-                            <handelse handelseId="348408" checksum="62">
-                                <riktning>In</riktning>
-                                <rubrik>Signerad kontrollplan</rubrik>
-                                <startDatum>2020-09-22T09:52:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelsetyp>HANDLING</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="419505" checksum="37">
-                                        <typ>SKP</typ>
-                                        <status>Arbetsmtrl</status>
-                                        <handlingDatum>2020-09-22</handlingDatum>
-                                        <uuid>5ae0c901-1684-41ad-a2db-a765bf3c3167</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="571053" checksum="821951314">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Signerad kontrollplan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                        </handelseLista>
-                        <projektnr xmlns="www.tekis.se/arende">TEST 1:9</projektnr>
-                        <objektLista xmlns="www.tekis.se/arende">
-                            <abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="52508" arHuvudObjekt="true"
-                                                  checksum="1|">
-                                <belAdressList>
-                                    <arendeBelagenhetAdress arendeObjektId="52508">
-                                        <belAdress>
-                                             <adressOmrade>TEST</adressOmrade>
-                                            <adressPlatsNr>130</adressPlatsNr>
-                                        </belAdress>
-                                    </arendeBelagenhetAdress>
-                                </belAdressList>
-                                <fastighet checksum="191337564|" fnr="22047085">
-                                    <trakt>TEST</trakt>
-                                    <fbetNr>3:31</fbetNr>
-                                </fastighet>
-                            </abstractArendeObjekt>
-                        </objektLista>
-                    </arende>
-                    <arende arendeId="55523" dnr="BYGG 2021-000772" diarieprefix="BYGG" kommun="Sundsvall" enhet="SBK"
-                            enhetkod="" arendegrupp="LOV" arendetyp="BL" arendeslag="A" arendeklass="ÅTER"
-                            namndkod="SBN" kalla="3">
-                        <status xmlns="www.tekis.se/arende">Pågående</status>
-                        <beskrivning xmlns="www.tekis.se/arende">Bygglov för nybyggnad av återvinningsstation &amp;
-                            förråd
-                        </beskrivning>
-                        <ankomstDatum xmlns="www.tekis.se/arende">2021-12-16</ankomstDatum>
-                        <uppdateradDatum xmlns="www.tekis.se/arende">2021-12-16</uppdateradDatum>
-                        <registreradDatum xmlns="www.tekis.se/arende">2021-12-16</registreradDatum>
-                        <handlaggare handlaggareId="-1" signatur="" xmlns="www.tekis.se/arende">
-                            <fornamn/>
-                            <efternamn/>
-                        </handlaggare>
-                        <intressentLista xmlns="www.tekis.se/arende">
-                            <intressent intressentId="36533" attentionId="0"
-                                        intressentVersionId="56180">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress>Ett namn</coAdress>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land>Sverige</land>
-                                <fornamn/>
-                                <efternamn/>
-                                <attention/>
-                                <rollLista>
-                                    <roll>BETA</roll>
-                                    <roll>FAG</roll>
-                                    <roll>SOK</roll>
-                                </rollLista>
-                            </intressent>
-                        </intressentLista>
-                        <handelseLista xmlns="www.tekis.se/arende">
-                            <handelse handelseId="362927" checksum="7">
-                                <riktning>In</riktning>
-                                <rubrik>Bygglov</rubrik>
-                                <startDatum>2021-12-16T14:03:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>Bygglov</handelseslag>
-                                <handelsetyp>ANSÖKAN</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="434992" checksum="6">
-                                        <typ>ANS</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2021-12-16</handlingDatum>
-                                        <anteckning>Namn på dokumentet</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="586457" checksum="-603027619">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="SYSTEM"/>
-                            </handelse>
-                            <handelse handelseId="362928" checksum="6">
-                                <riktning>In</riktning>
-                                <rubrik>Manuell hantering</rubrik>
-                                <startDatum>2021-12-16T14:03:00+01:00</startDatum>
-                                <anteckning>Det finns uppgifter om kontrollansvarig i handlingen "Ansökan om bygglov".
-                                    Du måste registrera denna typ av intressenter manuellt.
-                                </anteckning>
-                                <handelseslag>MANHANT</handelseslag>
-                                <handelsetyp>STATUS</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista/>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="SYSTEM"/>
-                            </handelse>
-                        </handelseLista>
-                        <projektnr xmlns="www.tekis.se/arende">TEST 1:9</projektnr>
-                        <objektLista xmlns="www.tekis.se/arende">
-                            <abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="56361"
-                                                  arHuvudObjekt="false" checksum="0|">
-                                <fastighet checksum="872748661|" fnr="22045607">
-                                    <trakt>TEST</trakt>
-                                    <fbetNr>36:14</fbetNr>
-                                </fastighet>
-                            </abstractArendeObjekt>
-                            <abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="56362" arHuvudObjekt="true"
-                                                  checksum="1|">
-                                <fastighet checksum="-1426320077|" fnr="22047538">
-                                    <trakt>TEST</trakt>
-                                    <fbetNr>1:5</fbetNr>
-                                </fastighet>
-                            </abstractArendeObjekt>
-                        </objektLista>
-                    </arende>
-                    <arende arendeId="51221" dnr="BYGG 2020-000602" diarieprefix="BYGG" kommun="Sundsvall" enhet="SBK"
-                            enhetkod="" arendegrupp="HISS" arendetyp="HISS" arendeslag="Tillsyn" arendeklass=""
-                            namndkod="SBN" kalla="1">
-                        <status xmlns="www.tekis.se/arende">Pågående</status>
-                        <beskrivning xmlns="www.tekis.se/arende">Hiss/port Tillsyn</beskrivning>
-                        <ankomstDatum xmlns="www.tekis.se/arende">2020-05-20</ankomstDatum>
-                        <slutDatum xmlns="www.tekis.se/arende">2020-09-16</slutDatum>
-                        <uppdateradDatum xmlns="www.tekis.se/arende">2021-12-17</uppdateradDatum>
-                        <registreradDatum xmlns="www.tekis.se/arende">2020-05-07</registreradDatum>
-                        <handlaggare handlaggareId="1602" signatur="maj27nym" xmlns="www.tekis.se/arende">
-                            <fornamn>Test</fornamn>
-                            <fornamn>Testorsson</fornamn>
-                        </handlaggare>
-                        <intressentLista xmlns="www.tekis.se/arende">
-                            <intressent intressentId="32593" attentionId="0"
-                                        intressentVersionId="48818">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress/>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn/>
-                                <efternamn/>
-                                <attention/>
-                                <rollLista>
-                                    <roll>FAG</roll>
-                                </rollLista>
-                            </intressent>
-                        </intressentLista>
-                        <handelseLista xmlns="www.tekis.se/arende">
-                            <handelse handelseId="333418" checksum="6">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Åtgärdsföreläggande</rubrik>
-                                <startDatum>2020-05-07T10:06:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>ÅTG</handelseslag>
-                                <handelsetyp>BESLUT</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <beslut arHuvudbeslut="true">
-                                    <beslutstext/>
-                                    <delegatHandlaggare signatur="hel07sah">
-                                        <fornamn>Test</fornamn>
-                                        <fornamn>Testorsson</fornamn>
-                                    </delegatHandlaggare>
-                                    <instanstyp>DelgINSP</instanstyp>
-                                </beslut>
-                                <handlingLista>
-                                    <handling handlingId="404098" checksum="49">
-                                        <typ>ÅTG</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-05-07</handlingDatum>
-                                        <uuid>d95329ba-1240-4673-91c0-dd77e3b298b6</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="555274" checksum="1959960674">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Åtgärdsföreläggande</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="343426" checksum="53">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Åtgärdsföreläggande Påminnelse</rubrik>
-                                <startDatum>2020-07-24T13:12:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>ÅTG1</handelseslag>
-                                <handelsetyp>BESLUT</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <beslut arHuvudbeslut="false">
-                                    <beslutstext/>
-                                    <delegatHandlaggare signatur="mik23kal">
-                                        <fornamn>Test</fornamn>
-                                        <fornamn>Testorsson</fornamn>
-                                    </delegatHandlaggare>
-                                    <instanstyp>DelgINSP</instanstyp>
-                                </beslut>
-                                <handlingLista>
-                                    <handling handlingId="414096" checksum="55">
-                                        <typ>ÅTG</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-07-24</handlingDatum>
-                                        <uuid>c7ca17e5-51ba-4e7c-a0ea-b88b6686c915</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="565459" checksum="-955246044">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Åtgärdsföreläggande</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="346646" checksum="57">
-                                <riktning>In</riktning>
-                                <rubrik>Hissityg med brist som inte utgör omedelbar betydelse för säkerhet och hälsa
-                                    (Inkom 2020-09-03)
-                                </rubrik>
-                                <startDatum>2020-05-20T13:17:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>KOMPL</handelseslag>
-                                <handelsetyp>HANDLING</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="417690" checksum="44">
-                                        <typ>HISSINT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-05-20</handlingDatum>
-                                        <anteckning>S407656, med brist som INTE utgör omedelbar betydelse för säkerhet
-                                            och hälsa.
-                                        </anteckning>
-                                        <uuid>9d9526ea-6730-4ec6-bee3-09f716330f87</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="569175" checksum="1878325693">
-                                            <namn>SKIFU-2020-00019-3 Intyg ombesiktning Personhiss Sköle
-                                                1003829_1_1.pdf
-                                            </namn>
-                                            <beskrivning>Hissintyg</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="333417" checksum="20">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Tillsyn</rubrik>
-                                <startDatum>2020-03-11T00:00:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>TILL</handelseslag>
-                                <handelsetyp>ANM</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="404096" checksum="21">
-                                        <typ>HISSINT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-03-11</handlingDatum>
-                                        <anteckning>S407656</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="555272" checksum="-1741504962">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Hissintyg</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                        </handelseLista>
-                        <projektnr xmlns="www.tekis.se/arende">TEST 1:9</projektnr>
-                        <objektLista xmlns="www.tekis.se/arende">
-                            <abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="51885" arHuvudObjekt="true"
-                                                  checksum="1|">
-                                <belAdressList>
-                                    <arendeBelagenhetAdress arendeObjektId="51885">
-                                        <belAdress>
-                                             <adressOmrade>TEST</adressOmrade>
-                                            <adressPlatsNr>2</adressPlatsNr>
-                                        </belAdress>
-                                    </arendeBelagenhetAdress>
-                                </belAdressList>
-                                <fastighet checksum="2064711193|" fnr="22075202">
-                                    <trakt>TEST</trakt>
-                                    <fbetNr>1:81</fbetNr>
-                                </fastighet>
-                            </abstractArendeObjekt>
-                        </objektLista>
-                    </arende>
-                    <arende arendeId="51234" dnr="BYGG 2020-000615" diarieprefix="BYGG" kommun="Sundsvall" enhet="SBK"
-                            enhetkod="" arendegrupp="HISS" arendetyp="HISS" arendeslag="Tillsyn" arendeklass=""
-                            namndkod="SBN" kalla="1">
-                        <status xmlns="www.tekis.se/arende">Avslutat</status>
-                        <beskrivning xmlns="www.tekis.se/arende">Hiss/port Tillsyn</beskrivning>
-                        <ankomstDatum xmlns="www.tekis.se/arende">2020-03-11</ankomstDatum>
-                        <slutDatum xmlns="www.tekis.se/arende">2020-07-02</slutDatum>
-                        <uppdateradDatum xmlns="www.tekis.se/arende">2021-12-17</uppdateradDatum>
-                        <registreradDatum xmlns="www.tekis.se/arende">2020-05-07</registreradDatum>
-                        <handlaggare handlaggareId="822" signatur="hel07sah" xmlns="www.tekis.se/arende">
-                            <fornamn>Test</fornamn>
-                            <fornamn>Testorsson</fornamn>
-                        </handlaggare>
-                        <intressentLista xmlns="www.tekis.se/arende">
-                            <intressent intressentId="28514" attentionId="0"
-                                        intressentVersionId="41520">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress/>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn/>
-                                <efternamn/>
-                                <attention/>
-                                <rollLista>
-                                    <roll>FAG</roll>
-                                </rollLista>
-                            </intressent>
-                        </intressentLista>
-                        <handelseLista xmlns="www.tekis.se/arende">
-                            <handelse handelseId="362929" checksum="9">
-                                <riktning>Ut</riktning>
-                                <rubrik>Arkiveras i Formpipe</rubrik>
-                                <startDatum>2020-07-02T15:09:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>FORMPIPE</handelseslag>
-                                <handelsetyp>ARKIV</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista/>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="maj27nym"/>
-                            </handelse>
-                            <handelse handelseId="333490" checksum="36">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Åtgärdsföreläggande L0360859</rubrik>
-                                <startDatum>2020-05-07T13:05:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>ÅTG</handelseslag>
-                                <handelsetyp>BESLUT</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <beslut arHuvudbeslut="true">
-                                    <beslutstext/>
-                                    <delegatHandlaggare signatur="hel07sah">
-                                        <fornamn>Test</fornamn>
-                                        <fornamn>Testorsson</fornamn>
-                                    </delegatHandlaggare>
-                                    <instanstyp>DelgINSP</instanstyp>
-                                </beslut>
-                                <handlingLista>
-                                    <handling handlingId="404186" checksum="13">
-                                        <typ>ÅTG</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-05-07</handlingDatum>
-                                        <anteckning>L0360859</anteckning>
-                                        <uuid>c02499eb-9ac3-447f-bba4-fb8793a93565</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="555363" checksum="-1067989268">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Åtgärdsföreläggande</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="333492" checksum="37">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Åtgärdsföreläggande L0360842</rubrik>
-                                <startDatum>2020-05-07T13:08:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>ÅTG</handelseslag>
-                                <handelsetyp>BESLUT</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <beslut arHuvudbeslut="false">
-                                    <beslutstext/>
-                                    <delegatHandlaggare signatur="hel07sah">
-                                        <fornamn>Test</fornamn>
-                                        <fornamn>Testorsson</fornamn>
-                                    </delegatHandlaggare>
-                                    <instanstyp>DelgINSP</instanstyp>
-                                </beslut>
-                                <handlingLista>
-                                    <handling handlingId="404188" checksum="34">
-                                        <typ>ÅTG</typ>
-                                        <status>Expedierad</status>
-                                        <handlingDatum>2020-05-07</handlingDatum>
-                                        <anteckning>L0360842</anteckning>
-                                        <uuid>a0281162-c389-4e4a-ab14-264b5dab1fdb</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="555365" checksum="-1067989268">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Åtgärdsföreläggande</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="333489" checksum="25">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Tillsyn</rubrik>
-                                <startDatum>2020-03-11T00:00:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>TILL</handelseslag>
-                                <handelsetyp>ANM</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="404184" checksum="11">
-                                        <typ>HISSINT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-03-11</handlingDatum>
-                                        <anteckning>L0360842</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="555361" checksum="-856731286">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Hissintyg</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="404185" checksum="26">
-                                        <typ>HISSINT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-03-11</handlingDatum>
-                                        <anteckning>L0360859</anteckning>
-                                        <uuid>6bce494d-8a59-4622-b8c3-7f7d422ff066</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="555362" checksum="-136794136">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Hissintyg</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="341457" checksum="34">
-                                <riktning>In</riktning>
-                                <rubrik>Godkända hissintyg</rubrik>
-                                <startDatum>2020-07-02T13:00:00+02:00</startDatum>
-                                <anteckning/>
-                                <handelsetyp>HANDLING</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="412175" checksum="3">
-                                        <typ>HISSINT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-07-02</handlingDatum>
-                                        <anteckning>Godkänd, L0360859</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="563509" checksum="444883367">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="412176" checksum="2">
-                                        <typ>HISSINT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2020-07-02</handlingDatum>
-                                        <anteckning>Godkänd, L0360842</anteckning>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="563510" checksum="-454090230">
-                                            <namn>Test Testorsson</namn>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                        </handelseLista>
-                        <objektLista xmlns="www.tekis.se/arende">
-                            <abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="51898" arHuvudObjekt="true"
-                                                  checksum="1|">
-                                <belAdressList>
-                                    <arendeBelagenhetAdress arendeObjektId="51898">
-                                        <belAdress>
-                                             <adressOmrade>TEST</adressOmrade>
-                                            <adressPlatsNr>530</adressPlatsNr>
-                                        </belAdress>
-                                    </arendeBelagenhetAdress>
-                                </belAdressList>
-                                <fastighet checksum="-1069093451|" fnr="22041266">
-                                    <trakt>TEST</trakt>
-                                    <fbetNr>1:41</fbetNr>
-                                </fastighet>
-                            </abstractArendeObjekt>
-                        </objektLista>
-                    </arende>
-                    <arende arendeId="42736" dnr="BYGG 2018-000026" diarieprefix="BYGG" kommun="Sundsvall" enhet="SBK"
-                            enhetkod="" arendegrupp="LOV" arendetyp="BL" arendeslag="A" arendeklass="FRI" namndkod="SBN"
-                            kalla="1">
-                        <status xmlns="www.tekis.se/arende">Avslutat</status>
-                        <beskrivning xmlns="www.tekis.se/arende">Bygglov Nybyggnad fritidshus AVSKRIVET</beskrivning>
-                        <ankomstDatum xmlns="www.tekis.se/arende">2018-01-15</ankomstDatum>
-                        <slutDatum xmlns="www.tekis.se/arende">2018-01-30</slutDatum>
-                        <uppdateradDatum xmlns="www.tekis.se/arende">2021-12-17</uppdateradDatum>
-                        <registreradDatum xmlns="www.tekis.se/arende">2018-01-15</registreradDatum>
-                        <handlaggare handlaggareId="822" signatur="hel07sah" xmlns="www.tekis.se/arende">
-                            <fornamn>Test</fornamn>
-                            <fornamn>Testorsson</fornamn>
-                        </handlaggare>
-                        <intressentLista xmlns="www.tekis.se/arende">
-                            <intressent intressentId="22231" attentionId="0"
-                                        intressentVersionId="29301">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress/>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn>Test</fornamn>
-                                <fornamn>Testorsson</fornamn>
-                                <attention/>
-                                <rollLista>
-                                    <roll>FAG</roll>
-                                </rollLista>
-                            </intressent>
-                            <intressent intressentId="22232" attentionId="0"
-                                        intressentVersionId="39187">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress/>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn>Test</fornamn>
-                                <fornamn>Testorsson</fornamn>
-                                <attention/>
-                                <rollLista>
-                                    <roll>SOK</roll>
-                                </rollLista>
-                            </intressent>
-                            <intressent intressentId="22230" attentionId="0"
-                                        intressentVersionId="29300">
-                                <namn>Test Testorsson</namn>
-                                <adress>Fiktiva Gatan 12</adress>
-                                <coAdress/>
-                                <postNr>123 45</postNr>
-                                <ort>TEST</ort>
-                                <land/>
-                                <fornamn>Test</fornamn>
-                                <fornamn>Testorsson</fornamn>
-                                <attention/>
-                                <rollLista>
-                                    <roll>FAG</roll>
-                                </rollLista>
-                            </intressent>
-                        </intressentLista>
-                        <handelseLista xmlns="www.tekis.se/arende">
-                            <handelse handelseId="276911" checksum="25">
-                                <riktning>In</riktning>
-                                <rubrik>Bygglov</rubrik>
-                                <startDatum>2018-01-15T08:51:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>Bygglov</handelseslag>
-                                <handelsetyp>ANSÖKAN</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="328921" checksum="62">
-                                        <typ>ANS</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2018-01-15</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="431169" checksum="-427559378">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Ansökan om bygglov</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="328922" checksum="46">
-                                        <typ>FAPL</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2018-01-15</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="431174" checksum="-507595760">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Fasad plan sektion</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="328923" checksum="12">
-                                        <typ>FPSS</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2018-01-15</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="431173" checksum="1955768040">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Fasad plan sektion situationsplan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="328924" checksum="49">
-                                        <typ>UKON</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2018-01-15</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="431175" checksum="-1965431634">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Konstruktionshandlingar</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="328925" checksum="14">
-                                        <typ>SEKT</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2018-01-15</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="431171" checksum="14858542">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Sektioner</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="328926" checksum="30">
-                                        <typ>SITU</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2018-01-15</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="431170" checksum="2076100622">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Situationsplan</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="328928" checksum="36">
-                                        <typ>FÖLJ</typ>
-                                        <status>Arbetsmtrl</status>
-                                        <handlingDatum>2018-01-15</handlingDatum>
-                                        <anteckning>Ärendeblad</anteckning>
-                                        <uuid>72cfb195-0b91-42b1-bb22-1f971c91f816</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="431176" checksum="233089522">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Följebrev</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="277833" checksum="54">
-                                <riktning>Okänd</riktning>
-                                <rubrik>Avskrivning, Avslutas</rubrik>
-                                <startDatum>2018-01-30T12:23:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>UAB</handelseslag>
-                                <handelsetyp>BESLUT</handelsetyp>
-                                <handelseutfall>AVSL</handelseutfall>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <beslut arHuvudbeslut="true">
-                                    <beslutstext/>
-                                    <delegatHandlaggare signatur="ann31jer">
-                                        <fornamn>Test</fornamn>
-                                        <fornamn>Testorsson</fornamn>
-                                    </delegatHandlaggare>
-                                    <instanstyp>DelgSTA</instanstyp>
-                                </beslut>
-                                <handlingLista>
-                                    <handling handlingId="330161" checksum="52">
-                                        <typ>@BESLUT</typ>
-                                        <status>Arbetsmtrl</status>
-                                        <handlingDatum>2018-01-30</handlingDatum>
-                                        <uuid>5415483d-007a-4ef6-93c2-8e59caab09e5</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="433467" checksum="-1465822860">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Beslut</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>true</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                            <handelse handelseId="362930" checksum="0">
-                                <riktning>Ut</riktning>
-                                <rubrik>Arkiveras i Formpipe</rubrik>
-                                <startDatum>2018-01-30T15:14:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelseslag>FORMPIPE</handelseslag>
-                                <handelsetyp>ARKIV</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="328921" checksum="62">
-                                        <typ>ANS</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2018-01-15</handlingDatum>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="431169" checksum="-427559378">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Ansökan om bygglov</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                    <handling handlingId="330161" checksum="52">
-                                        <typ>@BESLUT</typ>
-                                        <status>Arbetsmtrl</status>
-                                        <handlingDatum>2018-01-30</handlingDatum>
-                                        <uuid>5415483d-007a-4ef6-93c2-8e59caab09e5</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="433467" checksum="-1465822860">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Beslut</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>false</arbetsmaterial>
-                                <handlaggare signatur="maj27nym"/>
-                            </handelse>
-                            <handelse handelseId="277834" checksum="57">
-                                <riktning>Ut</riktning>
-                                <rubrik>Skrivelse från sökande</rubrik>
-                                <startDatum>2018-01-23T12:31:00+01:00</startDatum>
-                                <anteckning/>
-                                <handelsetyp>HANDLING</handelsetyp>
-                                <sekretess>false</sekretess>
-                                <makulerad>false</makulerad>
-                                <handlingLista>
-                                    <handling handlingId="330162" checksum="5">
-                                        <typ>SKR</typ>
-                                        <status>Inkommen</status>
-                                        <handlingDatum>2018-01-23</handlingDatum>
-                                        <uuid>8d0eb5cf-79a1-416f-a9db-feed99d7b26c</uuid>
-                                        <makulerad>false</makulerad>
-                                        <dokument dokId="433468" checksum="1840526893">
-                                            <namn>Test Testorsson</namn>
-                                            <beskrivning>Skrivelse</beskrivning>
-                                        </dokument>
-                                    </handling>
-                                </handlingLista>
-                                <arbetsmaterial>true</arbetsmaterial>
-                                <handlaggare signatur="hel07sah"/>
-                            </handelse>
-                        </handelseLista>
-                        <objektLista xmlns="www.tekis.se/arende">
-                            <abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="43397" arHuvudObjekt="true"
-                                                  checksum="1|">
-                                <fastighet checksum="1294563468|" fnr="22047495">
-                                    <trakt>TEST</trakt>
-                                    <fbetNr>3:6</fbetNr>
-                                </fastighet>
-                            </abstractArendeObjekt>
-                        </objektLista>
-                    </arende>
-                </Arenden>
-            </GetUpdatedArendenResult>
-        </GetUpdatedArendenResponse>
-    </s:Body>
+									Ärendebevakning SvarKompl skapades för ärende BYGG 2020-001012
+									kopplad till
+									handläggare Atom
+								</anteckning>
+								<handelseslag>Kv</handelseslag>
+								<handelsetyp>Atom</handelsetyp>
+								<handelseutfall>Kv11</handelseutfall>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista/>
+								<arbetsmaterial>true</arbetsmaterial>
+								<handlaggare signatur="Atom"/>
+							</handelse>
+							<handelse handelseId="344950" checksum="47">
+								<riktning>Ut</riktning>
+								<rubrik>Anmälan</rubrik>
+								<startDatum>2020-08-14T11:31:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>ANM</handelseslag>
+								<handelsetyp>DEBIT</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista/>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="344951" checksum="12">
+								<riktning>Ut</riktning>
+								<rubrik>Digitalt utskick av beslut</rubrik>
+								<startDatum>2020-08-14T11:31:00+02:00</startDatum>
+								<anteckning>Hej,
+
+									Här kommer ditt beslut.
+
+									Med vänlig hälsning
+
+									Sundsvalls Kommun
+									Stadsbyggnadskontoret
+									Bygglovavdelningen
+								</anteckning>
+								<handelseslag>DIGI</handelseslag>
+								<handelsetyp>DIG</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="415643" checksum="2">
+										<typ>STAB</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-08-14</handlingDatum>
+										<uuid>4b06e108-571b-4354-b300-f4bc0ad7ae80</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="567084" checksum="-188279055">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Startbesked</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="415644" checksum="2">
+										<typ>FAST</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-08-14</handlingDatum>
+										<uuid>5e2b482f-b342-454c-be51-ab80beac050f</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="567085" checksum="1827264204">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Fastställd kontrollplan</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="362912" checksum="43">
+								<riktning>Ut</riktning>
+								<rubrik>Arkiveras i Formpipe</rubrik>
+								<startDatum>2020-09-22T09:55:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>FORMPIPE</handelseslag>
+								<handelsetyp>ARKIV</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="413207" checksum="55">
+										<typ>ANM</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-07-02</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="564552" checksum="-196680004">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Anmälan</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="415643" checksum="2">
+										<typ>STAB</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-08-14</handlingDatum>
+										<uuid>4b06e108-571b-4354-b300-f4bc0ad7ae80</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="567084" checksum="-188279055">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Startbesked</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="415644" checksum="2">
+										<typ>FAST</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-08-14</handlingDatum>
+										<uuid>5e2b482f-b342-454c-be51-ab80beac050f</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="567085" checksum="1827264204">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Fastställd kontrollplan</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="419505" checksum="37">
+										<typ>SKP</typ>
+										<status>Arbetsmtrl</status>
+										<handlingDatum>2020-09-22</handlingDatum>
+										<uuid>5ae0c901-1684-41ad-a2db-a765bf3c3167</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="571053" checksum="821951314">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Signerad kontrollplan</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="maj27nym"/>
+							</handelse>
+							<handelse handelseId="362913" checksum="3">
+								<riktning>Ut</riktning>
+								<rubrik>Arkiveras i Formpipe</rubrik>
+								<startDatum>2021-12-15T09:26:00+01:00</startDatum>
+								<anteckning/>
+								<handelseslag>FORMPIPE</handelseslag>
+								<handelsetyp>ARKIV</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="419506" checksum="41">
+										<typ>SBES</typ>
+										<status>Arbetsmtrl</status>
+										<handlingDatum>2020-09-22</handlingDatum>
+										<uuid>72e9455e-147c-4960-a6d8-b47d86fa1af8</uuid>
+										<arkivStatus>Arkiveras</arkivStatus>
+										<makulerad>false</makulerad>
+										<dokument dokId="571054" checksum="-1342627291">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Slutbesked</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>true</arbetsmaterial>
+								<handlaggare signatur="maj27nym"/>
+							</handelse>
+							<handelse handelseId="344776" checksum="42">
+								<riktning>In</riktning>
+								<rubrik>Kompletterande handlingar</rubrik>
+								<startDatum>2020-08-13T13:20:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>KOMPL</handelseslag>
+								<handelsetyp>HANDLING</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="415497" checksum="56">
+										<typ>FAS</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-08-13</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="566936" checksum="-565850922">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="415498" checksum="30">
+										<typ>SEKT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-08-13</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="566937" checksum="898288383">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="415499" checksum="30">
+										<typ>SEKT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-08-13</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="566938" checksum="1642120141">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="415500" checksum="57">
+										<typ>PLA</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-08-13</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="566939" checksum="880137261">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="sus11ost"/>
+							</handelse>
+							<handelse handelseId="344779" checksum="3">
+								<riktning>In</riktning>
+								<rubrik>Kompletterande handlingar</rubrik>
+								<startDatum>2020-08-13T13:34:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>KOMPL</handelseslag>
+								<handelsetyp>HANDLING</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="415501" checksum="57">
+										<typ>PRES</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-08-13</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="566940" checksum="1475912738">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="sus11ost"/>
+							</handelse>
+							<handelse handelseId="344208" checksum="39">
+								<riktning>Okänd</riktning>
+								<rubrik>Beslut</rubrik>
+								<startDatum>2020-08-07T12:29:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>Beslut</handelseslag>
+								<handelsetyp>KOMP</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="414947" checksum="49">
+										<typ>KOMP</typ>
+										<status>Arbetsmtrl</status>
+										<handlingDatum>2020-08-07</handlingDatum>
+										<uuid>dd1e8090-7eed-4f06-b3cd-d7a398020287</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="566369" checksum="491027443">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Kompletteringsföreläggande</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="sus11ost"/>
+							</handelse>
+							<handelse handelseId="348408" checksum="62">
+								<riktning>In</riktning>
+								<rubrik>Signerad kontrollplan</rubrik>
+								<startDatum>2020-09-22T09:52:00+02:00</startDatum>
+								<anteckning/>
+								<handelsetyp>HANDLING</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="419505" checksum="37">
+										<typ>SKP</typ>
+										<status>Arbetsmtrl</status>
+										<handlingDatum>2020-09-22</handlingDatum>
+										<uuid>5ae0c901-1684-41ad-a2db-a765bf3c3167</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="571053" checksum="821951314">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Signerad kontrollplan</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+						</handelseLista>
+						<projektnr xmlns="www.tekis.se/arende">TEST 1:9</projektnr>
+						<objektLista xmlns="www.tekis.se/arende">
+							<abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="52508"
+												  arHuvudObjekt="true"
+												  checksum="1|">
+								<belAdressList>
+									<arendeBelagenhetAdress arendeObjektId="52508">
+										<belAdress>
+											<adressOmrade>TEST</adressOmrade>
+											<adressPlatsNr>130</adressPlatsNr>
+										</belAdress>
+									</arendeBelagenhetAdress>
+								</belAdressList>
+								<fastighet checksum="191337564|" fnr="22047085">
+									<trakt>TEST</trakt>
+									<fbetNr>3:31</fbetNr>
+								</fastighet>
+							</abstractArendeObjekt>
+						</objektLista>
+					</arende>
+					<arende arendeId="55523" dnr="BYGG 2021-000772" diarieprefix="BYGG"
+							kommun="Sundsvall" enhet="SBK"
+							enhetkod="" arendegrupp="LOV" arendetyp="BL" arendeslag="A"
+							arendeklass="ÅTER"
+							namndkod="SBN" kalla="3">
+						<status xmlns="www.tekis.se/arende">Pågående</status>
+						<beskrivning xmlns="www.tekis.se/arende">Bygglov för nybyggnad av
+							återvinningsstation &amp;
+							förråd
+						</beskrivning>
+						<ankomstDatum xmlns="www.tekis.se/arende">2021-12-16</ankomstDatum>
+						<uppdateradDatum xmlns="www.tekis.se/arende">2021-12-16</uppdateradDatum>
+						<registreradDatum xmlns="www.tekis.se/arende">2021-12-16</registreradDatum>
+						<handlaggare handlaggareId="-1" signatur="" xmlns="www.tekis.se/arende">
+							<fornamn/>
+							<efternamn/>
+						</handlaggare>
+						<intressentLista xmlns="www.tekis.se/arende">
+							<intressent intressentId="36533" attentionId="0"
+										intressentVersionId="56180">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress>Ett namn</coAdress>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land>Sverige</land>
+								<fornamn/>
+								<efternamn/>
+								<attention/>
+								<rollLista>
+									<roll>BETA</roll>
+									<roll>FAG</roll>
+									<roll>SOK</roll>
+								</rollLista>
+							</intressent>
+						</intressentLista>
+						<handelseLista xmlns="www.tekis.se/arende">
+							<handelse handelseId="362927" checksum="7">
+								<riktning>In</riktning>
+								<rubrik>Bygglov</rubrik>
+								<startDatum>2021-12-16T14:03:00+01:00</startDatum>
+								<anteckning/>
+								<handelseslag>Bygglov</handelseslag>
+								<handelsetyp>ANSÖKAN</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="434992" checksum="6">
+										<typ>ANS</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2021-12-16</handlingDatum>
+										<anteckning>Namn på dokumentet</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="586457" checksum="-603027619">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="SYSTEM"/>
+							</handelse>
+							<handelse handelseId="362928" checksum="6">
+								<riktning>In</riktning>
+								<rubrik>Manuell hantering</rubrik>
+								<startDatum>2021-12-16T14:03:00+01:00</startDatum>
+								<anteckning>Det finns uppgifter om kontrollansvarig i handlingen
+									"Ansökan om bygglov".
+									Du måste registrera denna typ av intressenter manuellt.
+								</anteckning>
+								<handelseslag>MANHANT</handelseslag>
+								<handelsetyp>STATUS</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista/>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="SYSTEM"/>
+							</handelse>
+						</handelseLista>
+						<projektnr xmlns="www.tekis.se/arende">TEST 1:9</projektnr>
+						<objektLista xmlns="www.tekis.se/arende">
+							<abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="56361"
+												  arHuvudObjekt="false" checksum="0|">
+								<fastighet checksum="872748661|" fnr="22045607">
+									<trakt>TEST</trakt>
+									<fbetNr>36:14</fbetNr>
+								</fastighet>
+							</abstractArendeObjekt>
+							<abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="56362"
+												  arHuvudObjekt="true"
+												  checksum="1|">
+								<fastighet checksum="-1426320077|" fnr="22047538">
+									<trakt>TEST</trakt>
+									<fbetNr>1:5</fbetNr>
+								</fastighet>
+							</abstractArendeObjekt>
+						</objektLista>
+					</arende>
+					<arende arendeId="51221" dnr="BYGG 2020-000602" diarieprefix="BYGG"
+							kommun="Sundsvall" enhet="SBK"
+							enhetkod="" arendegrupp="HISS" arendetyp="HISS" arendeslag="Tillsyn"
+							arendeklass=""
+							namndkod="SBN" kalla="1">
+						<status xmlns="www.tekis.se/arende">Pågående</status>
+						<beskrivning xmlns="www.tekis.se/arende">Hiss/port Tillsyn</beskrivning>
+						<ankomstDatum xmlns="www.tekis.se/arende">2020-05-20</ankomstDatum>
+						<slutDatum xmlns="www.tekis.se/arende">2020-09-16</slutDatum>
+						<uppdateradDatum xmlns="www.tekis.se/arende">2021-12-17</uppdateradDatum>
+						<registreradDatum xmlns="www.tekis.se/arende">2020-05-07</registreradDatum>
+						<handlaggare handlaggareId="1602" signatur="maj27nym"
+									 xmlns="www.tekis.se/arende">
+							<fornamn>Test</fornamn>
+							<fornamn>Testorsson</fornamn>
+						</handlaggare>
+						<intressentLista xmlns="www.tekis.se/arende">
+							<intressent intressentId="32593" attentionId="0"
+										intressentVersionId="48818">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress/>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn/>
+								<efternamn/>
+								<attention/>
+								<rollLista>
+									<roll>FAG</roll>
+								</rollLista>
+							</intressent>
+						</intressentLista>
+						<handelseLista xmlns="www.tekis.se/arende">
+							<handelse handelseId="333418" checksum="6">
+								<riktning>Okänd</riktning>
+								<rubrik>Åtgärdsföreläggande</rubrik>
+								<startDatum>2020-05-07T10:06:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>ÅTG</handelseslag>
+								<handelsetyp>BESLUT</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<beslut arHuvudbeslut="true">
+									<beslutstext/>
+									<delegatHandlaggare signatur="hel07sah">
+										<fornamn>Test</fornamn>
+										<fornamn>Testorsson</fornamn>
+									</delegatHandlaggare>
+									<instanstyp>DelgINSP</instanstyp>
+								</beslut>
+								<handlingLista>
+									<handling handlingId="404098" checksum="49">
+										<typ>ÅTG</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-05-07</handlingDatum>
+										<uuid>d95329ba-1240-4673-91c0-dd77e3b298b6</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="555274" checksum="1959960674">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Åtgärdsföreläggande</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="343426" checksum="53">
+								<riktning>Okänd</riktning>
+								<rubrik>Åtgärdsföreläggande Påminnelse</rubrik>
+								<startDatum>2020-07-24T13:12:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>ÅTG1</handelseslag>
+								<handelsetyp>BESLUT</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<beslut arHuvudbeslut="false">
+									<beslutstext/>
+									<delegatHandlaggare signatur="mik23kal">
+										<fornamn>Test</fornamn>
+										<fornamn>Testorsson</fornamn>
+									</delegatHandlaggare>
+									<instanstyp>DelgINSP</instanstyp>
+								</beslut>
+								<handlingLista>
+									<handling handlingId="414096" checksum="55">
+										<typ>ÅTG</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-07-24</handlingDatum>
+										<uuid>c7ca17e5-51ba-4e7c-a0ea-b88b6686c915</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="565459" checksum="-955246044">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Åtgärdsföreläggande</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="346646" checksum="57">
+								<riktning>In</riktning>
+								<rubrik>Hissityg med brist som inte utgör omedelbar betydelse för
+									säkerhet och hälsa
+									(Inkom 2020-09-03)
+								</rubrik>
+								<startDatum>2020-05-20T13:17:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>KOMPL</handelseslag>
+								<handelsetyp>HANDLING</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="417690" checksum="44">
+										<typ>HISSINT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-05-20</handlingDatum>
+										<anteckning>S407656, med brist som INTE utgör omedelbar
+											betydelse för säkerhet
+											och hälsa.
+										</anteckning>
+										<uuid>9d9526ea-6730-4ec6-bee3-09f716330f87</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="569175" checksum="1878325693">
+											<namn>SKIFU-2020-00019-3 Intyg ombesiktning Personhiss
+												Sköle
+												1003829_1_1.pdf
+											</namn>
+											<beskrivning>Hissintyg</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="333417" checksum="20">
+								<riktning>Okänd</riktning>
+								<rubrik>Tillsyn</rubrik>
+								<startDatum>2020-03-11T00:00:00+01:00</startDatum>
+								<anteckning/>
+								<handelseslag>TILL</handelseslag>
+								<handelsetyp>ANM</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="404096" checksum="21">
+										<typ>HISSINT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-03-11</handlingDatum>
+										<anteckning>S407656</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="555272" checksum="-1741504962">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Hissintyg</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+						</handelseLista>
+						<projektnr xmlns="www.tekis.se/arende">TEST 1:9</projektnr>
+						<objektLista xmlns="www.tekis.se/arende">
+							<abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="51885"
+												  arHuvudObjekt="true"
+												  checksum="1|">
+								<belAdressList>
+									<arendeBelagenhetAdress arendeObjektId="51885">
+										<belAdress>
+											<adressOmrade>TEST</adressOmrade>
+											<adressPlatsNr>2</adressPlatsNr>
+										</belAdress>
+									</arendeBelagenhetAdress>
+								</belAdressList>
+								<fastighet checksum="2064711193|" fnr="22075202">
+									<trakt>TEST</trakt>
+									<fbetNr>1:81</fbetNr>
+								</fastighet>
+							</abstractArendeObjekt>
+						</objektLista>
+					</arende>
+					<arende arendeId="51234" dnr="BYGG 2020-000615" diarieprefix="BYGG"
+							kommun="Sundsvall" enhet="SBK"
+							enhetkod="" arendegrupp="HISS" arendetyp="HISS" arendeslag="Tillsyn"
+							arendeklass=""
+							namndkod="SBN" kalla="1">
+						<status xmlns="www.tekis.se/arende">Avslutat</status>
+						<beskrivning xmlns="www.tekis.se/arende">Hiss/port Tillsyn</beskrivning>
+						<ankomstDatum xmlns="www.tekis.se/arende">2020-03-11</ankomstDatum>
+						<slutDatum xmlns="www.tekis.se/arende">2020-07-02</slutDatum>
+						<uppdateradDatum xmlns="www.tekis.se/arende">2021-12-17</uppdateradDatum>
+						<registreradDatum xmlns="www.tekis.se/arende">2020-05-07</registreradDatum>
+						<handlaggare handlaggareId="822" signatur="hel07sah"
+									 xmlns="www.tekis.se/arende">
+							<fornamn>Test</fornamn>
+							<fornamn>Testorsson</fornamn>
+						</handlaggare>
+						<intressentLista xmlns="www.tekis.se/arende">
+							<intressent intressentId="28514" attentionId="0"
+										intressentVersionId="41520">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress/>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn/>
+								<efternamn/>
+								<attention/>
+								<rollLista>
+									<roll>FAG</roll>
+								</rollLista>
+							</intressent>
+						</intressentLista>
+						<handelseLista xmlns="www.tekis.se/arende">
+							<handelse handelseId="362929" checksum="9">
+								<riktning>Ut</riktning>
+								<rubrik>Arkiveras i Formpipe</rubrik>
+								<startDatum>2020-07-02T15:09:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>FORMPIPE</handelseslag>
+								<handelsetyp>ARKIV</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista/>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="maj27nym"/>
+							</handelse>
+							<handelse handelseId="333490" checksum="36">
+								<riktning>Okänd</riktning>
+								<rubrik>Åtgärdsföreläggande L0360859</rubrik>
+								<startDatum>2020-05-07T13:05:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>ÅTG</handelseslag>
+								<handelsetyp>BESLUT</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<beslut arHuvudbeslut="true">
+									<beslutstext/>
+									<delegatHandlaggare signatur="hel07sah">
+										<fornamn>Test</fornamn>
+										<fornamn>Testorsson</fornamn>
+									</delegatHandlaggare>
+									<instanstyp>DelgINSP</instanstyp>
+								</beslut>
+								<handlingLista>
+									<handling handlingId="404186" checksum="13">
+										<typ>ÅTG</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-05-07</handlingDatum>
+										<anteckning>L0360859</anteckning>
+										<uuid>c02499eb-9ac3-447f-bba4-fb8793a93565</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="555363" checksum="-1067989268">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Åtgärdsföreläggande</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="333492" checksum="37">
+								<riktning>Okänd</riktning>
+								<rubrik>Åtgärdsföreläggande L0360842</rubrik>
+								<startDatum>2020-05-07T13:08:00+02:00</startDatum>
+								<anteckning/>
+								<handelseslag>ÅTG</handelseslag>
+								<handelsetyp>BESLUT</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<beslut arHuvudbeslut="false">
+									<beslutstext/>
+									<delegatHandlaggare signatur="hel07sah">
+										<fornamn>Test</fornamn>
+										<fornamn>Testorsson</fornamn>
+									</delegatHandlaggare>
+									<instanstyp>DelgINSP</instanstyp>
+								</beslut>
+								<handlingLista>
+									<handling handlingId="404188" checksum="34">
+										<typ>ÅTG</typ>
+										<status>Expedierad</status>
+										<handlingDatum>2020-05-07</handlingDatum>
+										<anteckning>L0360842</anteckning>
+										<uuid>a0281162-c389-4e4a-ab14-264b5dab1fdb</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="555365" checksum="-1067989268">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Åtgärdsföreläggande</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="333489" checksum="25">
+								<riktning>Okänd</riktning>
+								<rubrik>Tillsyn</rubrik>
+								<startDatum>2020-03-11T00:00:00+01:00</startDatum>
+								<anteckning/>
+								<handelseslag>TILL</handelseslag>
+								<handelsetyp>ANM</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="404184" checksum="11">
+										<typ>HISSINT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-03-11</handlingDatum>
+										<anteckning>L0360842</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="555361" checksum="-856731286">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Hissintyg</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="404185" checksum="26">
+										<typ>HISSINT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-03-11</handlingDatum>
+										<anteckning>L0360859</anteckning>
+										<uuid>6bce494d-8a59-4622-b8c3-7f7d422ff066</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="555362" checksum="-136794136">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Hissintyg</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="341457" checksum="34">
+								<riktning>In</riktning>
+								<rubrik>Godkända hissintyg</rubrik>
+								<startDatum>2020-07-02T13:00:00+02:00</startDatum>
+								<anteckning/>
+								<handelsetyp>HANDLING</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="412175" checksum="3">
+										<typ>HISSINT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-07-02</handlingDatum>
+										<anteckning>Godkänd, L0360859</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="563509" checksum="444883367">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+									<handling handlingId="412176" checksum="2">
+										<typ>HISSINT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2020-07-02</handlingDatum>
+										<anteckning>Godkänd, L0360842</anteckning>
+										<makulerad>false</makulerad>
+										<dokument dokId="563510" checksum="-454090230">
+											<namn>Test Testorsson</namn>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+						</handelseLista>
+						<objektLista xmlns="www.tekis.se/arende">
+							<abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="51898"
+												  arHuvudObjekt="true"
+												  checksum="1|">
+								<belAdressList>
+									<arendeBelagenhetAdress arendeObjektId="51898">
+										<belAdress>
+											<adressOmrade>TEST</adressOmrade>
+											<adressPlatsNr>530</adressPlatsNr>
+										</belAdress>
+									</arendeBelagenhetAdress>
+								</belAdressList>
+								<fastighet checksum="-1069093451|" fnr="22041266">
+									<trakt>TEST</trakt>
+									<fbetNr>1:41</fbetNr>
+								</fastighet>
+							</abstractArendeObjekt>
+						</objektLista>
+					</arende>
+					<arende arendeId="42736" dnr="BYGG 2018-000026" diarieprefix="BYGG"
+							kommun="Sundsvall" enhet="SBK"
+							enhetkod="" arendegrupp="LOV" arendetyp="BL" arendeslag="A"
+							arendeklass="FRI" namndkod="SBN"
+							kalla="1">
+						<status xmlns="www.tekis.se/arende">Avslutat</status>
+						<beskrivning xmlns="www.tekis.se/arende">Bygglov Nybyggnad fritidshus
+							AVSKRIVET
+						</beskrivning>
+						<ankomstDatum xmlns="www.tekis.se/arende">2018-01-15</ankomstDatum>
+						<slutDatum xmlns="www.tekis.se/arende">2018-01-30</slutDatum>
+						<uppdateradDatum xmlns="www.tekis.se/arende">2021-12-17</uppdateradDatum>
+						<registreradDatum xmlns="www.tekis.se/arende">2018-01-15</registreradDatum>
+						<handlaggare handlaggareId="822" signatur="hel07sah"
+									 xmlns="www.tekis.se/arende">
+							<fornamn>Test</fornamn>
+							<fornamn>Testorsson</fornamn>
+						</handlaggare>
+						<intressentLista xmlns="www.tekis.se/arende">
+							<intressent intressentId="22231" attentionId="0"
+										intressentVersionId="29301">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress/>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn>Test</fornamn>
+								<fornamn>Testorsson</fornamn>
+								<attention/>
+								<rollLista>
+									<roll>FAG</roll>
+								</rollLista>
+							</intressent>
+							<intressent intressentId="22232" attentionId="0"
+										intressentVersionId="39187">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress/>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn>Test</fornamn>
+								<fornamn>Testorsson</fornamn>
+								<attention/>
+								<rollLista>
+									<roll>SOK</roll>
+								</rollLista>
+							</intressent>
+							<intressent intressentId="22230" attentionId="0"
+										intressentVersionId="29300">
+								<namn>Test Testorsson</namn>
+								<adress>Fiktiva Gatan 12</adress>
+								<coAdress/>
+								<postNr>123 45</postNr>
+								<ort>TEST</ort>
+								<land/>
+								<fornamn>Test</fornamn>
+								<fornamn>Testorsson</fornamn>
+								<attention/>
+								<rollLista>
+									<roll>FAG</roll>
+								</rollLista>
+							</intressent>
+						</intressentLista>
+						<handelseLista xmlns="www.tekis.se/arende">
+							<handelse handelseId="276911" checksum="25">
+								<riktning>In</riktning>
+								<rubrik>Bygglov</rubrik>
+								<startDatum>2018-01-15T08:51:00+01:00</startDatum>
+								<anteckning/>
+								<handelseslag>Bygglov</handelseslag>
+								<handelsetyp>ANSÖKAN</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="328921" checksum="62">
+										<typ>ANS</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2018-01-15</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="431169" checksum="-427559378">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Ansökan om bygglov</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="328922" checksum="46">
+										<typ>FAPL</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2018-01-15</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="431174" checksum="-507595760">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Fasad plan sektion</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="328923" checksum="12">
+										<typ>FPSS</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2018-01-15</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="431173" checksum="1955768040">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Fasad plan sektion situationsplan
+											</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="328924" checksum="49">
+										<typ>UKON</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2018-01-15</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="431175" checksum="-1965431634">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Konstruktionshandlingar</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="328925" checksum="14">
+										<typ>SEKT</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2018-01-15</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="431171" checksum="14858542">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Sektioner</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="328926" checksum="30">
+										<typ>SITU</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2018-01-15</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="431170" checksum="2076100622">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Situationsplan</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="328928" checksum="36">
+										<typ>FÖLJ</typ>
+										<status>Arbetsmtrl</status>
+										<handlingDatum>2018-01-15</handlingDatum>
+										<anteckning>Ärendeblad</anteckning>
+										<uuid>72cfb195-0b91-42b1-bb22-1f971c91f816</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="431176" checksum="233089522">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Följebrev</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="277833" checksum="54">
+								<riktning>Okänd</riktning>
+								<rubrik>Avskrivning, Avslutas</rubrik>
+								<startDatum>2018-01-30T12:23:00+01:00</startDatum>
+								<anteckning/>
+								<handelseslag>UAB</handelseslag>
+								<handelsetyp>BESLUT</handelsetyp>
+								<handelseutfall>AVSL</handelseutfall>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<beslut arHuvudbeslut="true">
+									<beslutstext/>
+									<delegatHandlaggare signatur="ann31jer">
+										<fornamn>Test</fornamn>
+										<fornamn>Testorsson</fornamn>
+									</delegatHandlaggare>
+									<instanstyp>DelgSTA</instanstyp>
+								</beslut>
+								<handlingLista>
+									<handling handlingId="330161" checksum="52">
+										<typ>@BESLUT</typ>
+										<status>Arbetsmtrl</status>
+										<handlingDatum>2018-01-30</handlingDatum>
+										<uuid>5415483d-007a-4ef6-93c2-8e59caab09e5</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="433467" checksum="-1465822860">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Beslut</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>true</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+							<handelse handelseId="362930" checksum="0">
+								<riktning>Ut</riktning>
+								<rubrik>Arkiveras i Formpipe</rubrik>
+								<startDatum>2018-01-30T15:14:00+01:00</startDatum>
+								<anteckning/>
+								<handelseslag>FORMPIPE</handelseslag>
+								<handelsetyp>ARKIV</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="328921" checksum="62">
+										<typ>ANS</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2018-01-15</handlingDatum>
+										<makulerad>false</makulerad>
+										<dokument dokId="431169" checksum="-427559378">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Ansökan om bygglov</beskrivning>
+										</dokument>
+									</handling>
+									<handling handlingId="330161" checksum="52">
+										<typ>@BESLUT</typ>
+										<status>Arbetsmtrl</status>
+										<handlingDatum>2018-01-30</handlingDatum>
+										<uuid>5415483d-007a-4ef6-93c2-8e59caab09e5</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="433467" checksum="-1465822860">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Beslut</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>false</arbetsmaterial>
+								<handlaggare signatur="maj27nym"/>
+							</handelse>
+							<handelse handelseId="277834" checksum="57">
+								<riktning>Ut</riktning>
+								<rubrik>Skrivelse från sökande</rubrik>
+								<startDatum>2018-01-23T12:31:00+01:00</startDatum>
+								<anteckning/>
+								<handelsetyp>HANDLING</handelsetyp>
+								<sekretess>false</sekretess>
+								<makulerad>false</makulerad>
+								<handlingLista>
+									<handling handlingId="330162" checksum="5">
+										<typ>SKR</typ>
+										<status>Inkommen</status>
+										<handlingDatum>2018-01-23</handlingDatum>
+										<uuid>8d0eb5cf-79a1-416f-a9db-feed99d7b26c</uuid>
+										<makulerad>false</makulerad>
+										<dokument dokId="433468" checksum="1840526893">
+											<namn>Test Testorsson</namn>
+											<beskrivning>Skrivelse</beskrivning>
+										</dokument>
+									</handling>
+								</handlingLista>
+								<arbetsmaterial>true</arbetsmaterial>
+								<handlaggare signatur="hel07sah"/>
+							</handelse>
+						</handelseLista>
+						<objektLista xmlns="www.tekis.se/arende">
+							<abstractArendeObjekt xsi:type="arendeFastighet" arendeObjektId="43397"
+												  arHuvudObjekt="true"
+												  checksum="1|">
+								<fastighet checksum="1294563468|" fnr="22047495">
+									<trakt>TEST</trakt>
+									<fbetNr>3:6</fbetNr>
+								</fastighet>
+							</abstractArendeObjekt>
+						</objektLista>
+					</arende>
+				</Arenden>
+			</GetUpdatedArendenResult>
+		</GetUpdatedArendenResponse>
+	</s:Body>
 </s:Envelope>

@@ -7,23 +7,24 @@ import generated.se.sundsvall.archive.ByggRArchiveRequest;
 
 public class ArchiveMessageAttachmentMatcher implements ArgumentMatcher<ByggRArchiveRequest> {
 
-    private final ByggRArchiveRequest left;
+	private final ByggRArchiveRequest left;
 
-    public ArchiveMessageAttachmentMatcher(final ByggRArchiveRequest left) {
-        this.left = left;
-    }
+	public ArchiveMessageAttachmentMatcher(final ByggRArchiveRequest left) {
+		this.left = left;
+	}
 
-    @Override
-    public boolean matches(ByggRArchiveRequest right) {
-        Attachment aLeft = left.getAttachment();
-        Attachment aRight = right.getAttachment();
+	@Override
+	public boolean matches(ByggRArchiveRequest right) {
+		Attachment aLeft = left.getAttachment();
+		Attachment aRight = right.getAttachment();
 
-        if (aLeft.equals(aRight)) {
-            return true;
-        }
+		if (aLeft.equals(aRight)) {
+			return true;
+		}
 
-        return aLeft.getName().equals(aRight.getName())
-            && aLeft.getExtension().equals(aRight.getExtension())
-            && aLeft.getFile().equals(aRight.getFile());
-    }
+		return aLeft.getName().equals(aRight.getName())
+			&& aLeft.getExtension().equals(aRight.getExtension())
+			&& aLeft.getFile().equals(aRight.getFile());
+	}
+
 }

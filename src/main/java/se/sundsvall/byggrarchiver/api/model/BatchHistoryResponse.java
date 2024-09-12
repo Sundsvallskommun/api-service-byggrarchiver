@@ -16,10 +16,16 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BatchHistoryResponse {
 
-    private Long id;
-    private LocalDate start;
-    private LocalDate end;
-    private ArchiveStatus archiveStatus;
-    private BatchTrigger batchTrigger;
-    private LocalDateTime timestamp;
+	private Long id;
+
+	private LocalDate start;
+
+	private LocalDate end;
+
+	private ArchiveStatus archiveStatus;
+
+	private BatchTrigger batchTrigger;
+
+	private LocalDateTime timestamp;
+
 }

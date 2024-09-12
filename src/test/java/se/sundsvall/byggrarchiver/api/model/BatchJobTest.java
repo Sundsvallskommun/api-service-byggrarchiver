@@ -17,18 +17,19 @@ import org.junit.jupiter.api.Test;
 
 class BatchJobTest {
 
-    @BeforeAll
-    static void setup() {
-        registerValueGenerator(() -> LocalDate.now().plusDays(randomInt()), LocalDate.class);
-    }
+	@BeforeAll
+	static void setup() {
+		registerValueGenerator(() -> LocalDate.now().plusDays(randomInt()), LocalDate.class);
+	}
 
-    @Test
-    void testBean() {
-        assertThat(BatchJob.class, allOf(
-            hasValidBeanConstructor(),
-            hasValidGettersAndSetters(),
-            hasValidBeanHashCode(),
-            hasValidBeanEquals(),
-            hasValidBeanToString()));
-    }
+	@Test
+	void testBean() {
+		assertThat(BatchJob.class, allOf(
+			hasValidBeanConstructor(),
+			hasValidGettersAndSetters(),
+			hasValidBeanHashCode(),
+			hasValidBeanEquals(),
+			hasValidBeanToString()));
+	}
+
 }

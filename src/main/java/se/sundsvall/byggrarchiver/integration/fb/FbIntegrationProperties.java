@@ -9,14 +9,16 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "integration.fb")
 record FbIntegrationProperties(
 
-    @NotBlank
-    String url,
+	@NotBlank
+	String url,
 
-    @NotBlank
-    String username,
+	@NotBlank
+	String username,
 
-    @NotBlank
-    String password,
+	@NotBlank
+	String password,
 
-    @NotBlank
-    String database) { }
+	@NotBlank
+	String database) {
+
+}

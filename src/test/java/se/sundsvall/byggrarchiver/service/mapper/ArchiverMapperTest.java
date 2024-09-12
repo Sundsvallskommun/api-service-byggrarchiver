@@ -1,5 +1,24 @@
 package se.sundsvall.byggrarchiver.service.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.BIL;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FAS;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
+import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createBatchHistory;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+
 import generated.se.sundsvall.arendeexport.AbstractArendeObjekt;
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.ArendeFastighet;
@@ -13,23 +32,6 @@ import generated.se.sundsvall.bygglov.ArkivobjektListaHandlingarTyp;
 import generated.se.sundsvall.bygglov.BilagaTyp;
 import generated.se.sundsvall.bygglov.ExtraID;
 import generated.se.sundsvall.bygglov.StatusArande;
-import org.junit.jupiter.api.Test;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.BIL;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FAS;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
-import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createBatchHistory;
 
 class ArchiverMapperTest {
 
@@ -38,7 +40,7 @@ class ArchiverMapperTest {
 		final var handling = new Handling()
 			.withHandlingDatum(LocalDate.of(2023, 1, 1))
 			.withAnteckning("anteckning")
-			.withDokument(new Dokument().withDokId("dokId").withNamn("namn").withFil(new DokumentFil().withFilBuffer(new byte[] { 1, 2, 3 }).withFilAndelse("pdf")));
+			.withDokument(new Dokument().withDokId("dokId").withNamn("namn").withFil(new DokumentFil().withFilBuffer(new byte[]{1, 2, 3}).withFilAndelse("pdf")));
 
 		final var batchHistory = createBatchHistory(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 1), SCHEDULED, COMPLETED);
 
@@ -68,7 +70,7 @@ class ArchiverMapperTest {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("namn")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[] { 1, 2, 3 })
+				.withFilBuffer(new byte[]{1, 2, 3})
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 
@@ -85,7 +87,7 @@ class ArchiverMapperTest {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("1_NameWithExtension.docx")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[] { 1, 2, 3 })
+				.withFilBuffer(new byte[]{1, 2, 3})
 				.withFilAndelse("notUsed"))
 			.withBeskrivning("beskrivning");
 
@@ -121,7 +123,7 @@ class ArchiverMapperTest {
 				.withFilBuffer(Files.readAllBytes(Paths.get("src/test/resources/Error_File_Without_Extension"))))
 			.withBeskrivning("beskrivning");
 
-		final var exception = assertThrows(ApplicationException.class, ()  -> ArchiverMapper.toBilaga(dokument));
+		final var exception = assertThrows(ApplicationException.class, () -> ArchiverMapper.toBilaga(dokument));
 
 		assertThat(exception.getMessage()).isEqualTo("Could not guess extension from bytearray");
 	}
@@ -131,7 +133,7 @@ class ArchiverMapperTest {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("namn.pdf")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[] { 1, 2, 3 })
+				.withFilBuffer(new byte[]{1, 2, 3})
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 
@@ -146,8 +148,8 @@ class ArchiverMapperTest {
 	@Test
 	void testToArendeFastighetList() {
 		final List<AbstractArendeObjekt> abstractArendeObjektList = List.of(
-				new ArendeFastighet().withArendeObjektId(1),
-				new ArendePrelFastighet().withArendeObjektId(2));
+			new ArendeFastighet().withArendeObjektId(1),
+			new ArendePrelFastighet().withArendeObjektId(2));
 
 		final var arendeFastighetList = ArchiverMapper.toArendeFastighetList(abstractArendeObjektList);
 
@@ -247,13 +249,13 @@ class ArchiverMapperTest {
 			.withTyp("handlingstyp")
 			.withDokument(new Dokument().withDokId("dokId")
 				.withNamn("namn")
-				.withFil(new DokumentFil().withFilBuffer(new byte[] { 1, 2, 3 })
+				.withFil(new DokumentFil().withFilBuffer(new byte[]{1, 2, 3})
 					.withFilAndelse("pdf")));
 
 		final var document = new Dokument().withDokId("dokId")
 			.withNamn("namn")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[] { 1, 2, 3 })
+				.withFilBuffer(new byte[]{1, 2, 3})
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 
@@ -292,7 +294,7 @@ class ArchiverMapperTest {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("namn")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[] { 1, 2, 3 })
+				.withFilBuffer(new byte[]{1, 2, 3})
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 

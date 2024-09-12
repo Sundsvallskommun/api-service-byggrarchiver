@@ -18,21 +18,22 @@ import org.junit.jupiter.api.Test;
 
 class BatchHistoryTest {
 
-    private static final String[] excludedFields = {"id", "timestamp"};
+	private static final String[] excludedFields = {"id", "timestamp"};
 
-    @BeforeAll
-    static void setup() {
-        registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
-        registerValueGenerator(() -> LocalDate.now().plusDays(randomInt()), LocalDate.class);
-    }
+	@BeforeAll
+	static void setup() {
+		registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
+		registerValueGenerator(() -> LocalDate.now().plusDays(randomInt()), LocalDate.class);
+	}
 
-    @Test
-    void testBean() {
-        assertThat(BatchHistory.class, allOf(
-            hasValidBeanConstructor(),
-            hasValidGettersAndSetters(),
-            hasValidBeanHashCodeExcluding(excludedFields),
-            hasValidBeanEqualsExcluding(excludedFields),
-            hasValidBeanToString()));
-    }
+	@Test
+	void testBean() {
+		assertThat(BatchHistory.class, allOf(
+			hasValidBeanConstructor(),
+			hasValidGettersAndSetters(),
+			hasValidBeanHashCodeExcluding(excludedFields),
+			hasValidBeanEqualsExcluding(excludedFields),
+			hasValidBeanToString()));
+	}
+
 }

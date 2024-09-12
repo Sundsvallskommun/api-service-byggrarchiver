@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://xml.ra.se/e-arkiv/FGS-ERMS" targetNamespace="http://xml.ra.se/e-arkiv/FGS-ERMS" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://xml.ra.se/e-arkiv/FGS-ERMS"
+		   targetNamespace="http://xml.ra.se/e-arkiv/FGS-ERMS" elementFormDefault="qualified">
 	<!-- Lagt till Fastighetsbeteckning, redacted, 2021-11-08 -->
 	<!-- Ändrat dokumentationen -->
 	<!-- Kardinalitet ändrad på ett antal element, ett element tillags, dokumentationen förfinad, Version 1.0. redacted -->
@@ -11,7 +12,9 @@
 	<!-- Första version, redacted, 2012-11-20 -->
 	<xs:element name="Leveransobjekt" type="LeveransobjektTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Detta är huvudelementet för ärendehanteringinformationen.</xs:documentation>
+			<xs:documentation xml:lang="se">Detta är huvudelementet för
+				ärendehanteringinformationen.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<!-- LeveransobjektTyp -->
@@ -26,10 +29,13 @@
 			</xs:element>
 			<xs:element ref="Informationsklass" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kan användas för att ange informationsklassning utifrån informationssäkerhet.</xs:documentation>
+					<xs:documentation xml:lang="se">Kan användas för att ange informationsklassning
+						utifrån informationssäkerhet.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element minOccurs="0" name="VerksamhetsbaseradArkivredovisning" type="VerksamhetsbaseradArkivredovisningTyp">
+			<xs:element minOccurs="0" name="VerksamhetsbaseradArkivredovisning"
+						type="VerksamhetsbaseradArkivredovisningTyp">
 				<xs:annotation>
 					<xs:documentation xml:lang="se">Användning rekommenderas ej.</xs:documentation>
 				</xs:annotation>
@@ -38,23 +44,35 @@
 			</xs:element>
 			<xs:element ref="EgnaElement" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade element som kompletterar de fördefinierade elementen.</xs:documentation>
+					<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade
+						element som kompletterar de fördefinierade elementen.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="TillkommandeXMLdata" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Eventuellt tillkommande metadata i valfritt XML-format.</xs:documentation>
+					<xs:documentation xml:lang="se">Eventuellt tillkommande metadata i valfritt
+						XML-format.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:choice>
-				<xs:element name="ArkivobjektListaArenden" type="ArkivobjektListaArendenTyp" minOccurs="0">
+				<xs:element name="ArkivobjektListaArenden" type="ArkivobjektListaArendenTyp"
+							minOccurs="0">
 					<xs:annotation>
-						<xs:documentation xml:lang="se">Elementet kan användas för att gruppera de ärenden som ingår i en överföring. En gruppering kan innehålla ett eller flera element av typen ”ArkivobjektArende”.</xs:documentation>
+						<xs:documentation xml:lang="se">Elementet kan användas för att gruppera de
+							ärenden som ingår i en överföring. En gruppering kan innehålla ett eller
+							flera element av typen ”ArkivobjektArende”.
+						</xs:documentation>
 					</xs:annotation>
 				</xs:element>
-				<xs:element name="ArkivobjektListaHandlingar" type="ArkivobjektListaHandlingarTyp" minOccurs="0">
+				<xs:element name="ArkivobjektListaHandlingar" type="ArkivobjektListaHandlingarTyp"
+							minOccurs="0">
 					<xs:annotation>
-						<xs:documentation xml:lang="se">Elementet kan användas för att gruppera de handlingar som ingår i en överföring. En gruppering kan innehålla ett eller flera element av typen ”ArkivobjektHandling”.</xs:documentation>
+						<xs:documentation xml:lang="se">Elementet kan användas för att gruppera de
+							handlingar som ingår i en överföring. En gruppering kan innehålla ett
+							eller flera element av typen ”ArkivobjektHandling”.
+						</xs:documentation>
 					</xs:annotation>
 				</xs:element>
 			</xs:choice>
@@ -94,12 +112,14 @@
 		<xs:sequence>
 			<xs:element name="ArkivReferens" type="xs:string">
 				<xs:annotation>
-					<xs:documentation>Identitetskod för arkivet som informationen tillhör.</xs:documentation>
+					<xs:documentation>Identitetskod för arkivet som informationen tillhör.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="KlassificeringsstrukturNamn" type="xs:string">
 				<xs:annotation>
-					<xs:documentation>Namn på den klassificeringsstruktur som använts.</xs:documentation>
+					<xs:documentation>Namn på den klassificeringsstruktur som använts.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:group ref="VerksamhetsbaseradArkivredovisningGrupp"/>
@@ -129,29 +149,39 @@
 			<xs:element ref="Beskrivning" minOccurs="0"/>
 			<xs:element ref="Beslutat" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2018-12-06
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Forvaringsplats" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2018-12-06
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Gallring" minOccurs="0"/>
 			<xs:element ref="Agent" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2013-06-18</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2013-06-18
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Klass" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2018-12-06
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Restriktion" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="Motpart" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2018-12-06
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Notering" minOccurs="0"/>
@@ -159,14 +189,17 @@
 			<xs:element ref="SistaAnvandandetidpunkt" minOccurs="0"/>
 			<xs:element ref="Skapad" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2018-12-06
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Inkommen" minOccurs="0"/>
 			<xs:element ref="StatusArande" minOccurs="0"/>
 			<xs:element ref="Upprattad" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Tidpunkt då ärendet initierades internt.</xs:documentation>
+					<xs:documentation xml:lang="se">Tidpunkt då ärendet initierades internt.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Expedierad" minOccurs="0"/>
@@ -174,34 +207,47 @@
 			<xs:element ref="Arendemening"/>
 			<xs:element ref="Bilaga" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Innehåller referenser till bilagda filer.</xs:documentation>
+					<xs:documentation xml:lang="se">Innehåller referenser till bilagda filer.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="EgnaElement" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade element om ärendet som kompletterar de fördefinierade elementen.</xs:documentation>
+					<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade
+						element om ärendet som kompletterar de fördefinierade elementen.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="TillkommandeXMLdata" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ett element som kapslar in metadata enligt ett annat XML-schema. Ger möjlighet att tillföra ytterligare metadata om ett ärende.</xs:documentation>
+					<xs:documentation xml:lang="se">Ett element som kapslar in metadata enligt ett
+						annat XML-schema. Ger möjlighet att tillföra ytterligare metadata om ett
+						ärende.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Fastighet" minOccurs="0" maxOccurs="unbounded" type="FastighetTyp">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Information om fastigheter i ärendet.</xs:documentation>
+					<xs:documentation xml:lang="se">Information om fastigheter i ärendet.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="ArkivobjektListaHandlingar" minOccurs="0" type="ArkivobjektListaHandlingarTyp">
+			<xs:element name="ArkivobjektListaHandlingar" minOccurs="0"
+						type="ArkivobjektListaHandlingarTyp">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ett element som används för att gruppera de handlingar som ingår i ärendet. En gruppering kan innehålla ett eller flera element av typen ”ArkivobjektHandling”.</xs:documentation>
+					<xs:documentation xml:lang="se">Ett element som används för att gruppera de
+						handlingar som ingår i ärendet. En gruppering kan innehålla ett eller flera
+						element av typen ”ArkivobjektHandling”.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
 		<!-- Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-05 -->
 		<xs:attribute name="Systemidentifierare" type="xs:string" use="optional">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">En identifierare av typen UUID som senast vid överföringen sätts på varje ärendepost.</xs:documentation>
+				<xs:documentation xml:lang="se">En identifierare av typen UUID som senast vid
+					överföringen sätts på varje ärendepost.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
@@ -210,7 +256,8 @@
 	<xs:element name="ArkivobjektListaHandlingar" type="ArkivobjektListaHandlingarTyp"/>
 	<xs:complexType name="ArkivobjektListaHandlingarTyp">
 		<xs:sequence>
-			<xs:element name="ArkivobjektHandling" maxOccurs="unbounded" type="ArkivobjektHandlingTyp"/>
+			<xs:element name="ArkivobjektHandling" maxOccurs="unbounded"
+						type="ArkivobjektHandlingTyp"/>
 		</xs:sequence>
 	</xs:complexType>
 	<!-- ArkivobjektListaHandlingar och ArkivobjektListaHandlingarTyp Slut-->
@@ -225,28 +272,35 @@
 			<xs:element ref="Avsandare" minOccurs="0"/>
 			<xs:element ref="Beskrivning" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Obligatorisk om rubrik saknas.</xs:documentation>
+					<xs:documentation xml:lang="se">Obligatorisk om rubrik saknas.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Expedierad" minOccurs="0"/>
 			<xs:element ref="Gallring" minOccurs="0"/>
 			<xs:element ref="Agent" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2013-06-18</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2013-06-18
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Inkommen" minOccurs="0"/>
 			<xs:element ref="Lopnummer" minOccurs="0"/>
 			<xs:element ref="Mottagare" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2018-12-06
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Notering" minOccurs="0"/>
 			<xs:element ref="HandlingRelation" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="Rubrik" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2013-06-18</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2013-06-18
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Skapad" minOccurs="0"/>
@@ -254,37 +308,50 @@
 			<xs:element ref="StatusHandling" minOccurs="0"/>
 			<xs:element ref="Upprattad" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Tidpunkt för när handlingen upprättades.</xs:documentation>
+					<xs:documentation xml:lang="se">Tidpunkt för när handlingen upprättades.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Atkomst" minOccurs="0"/>
 			<xs:element ref="Forvaringsplats" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Element tillagt så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
+					<xs:documentation xml:lang="se">Element tillagt så det överensstämmer med FGS.
+						redacted, 2018-12-06
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Restriktion" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element ref="Bilaga" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Innehåller referenser till bilagda filer.</xs:documentation>
+					<xs:documentation xml:lang="se">Innehåller referenser till bilagda filer.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="EgnaElement" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade element om handlingen som kompletterar de fördefinierade elementen.</xs:documentation>
+					<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade
+						element om handlingen som kompletterar de fördefinierade elementen.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="TillkommandeXMLdata" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ett element som kapslar in metadata enligt ett annat XML-schema. Ger möjlighet att tillföra ytterligare metadata om en handling.</xs:documentation>
+					<xs:documentation xml:lang="se">Ett element som kapslar in metadata enligt ett
+						annat XML-schema. Ger möjlighet att tillföra ytterligare metadata om en
+						handling.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element ref="Skannad" minOccurs="0" />		
-			</xs:sequence>
+			<xs:element ref="Skannad" minOccurs="0"/>
+		</xs:sequence>
 		<xs:attribute name="Systemidentifierare" type="xs:string" use="optional">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">En identifierare av typen UUID som senast vid överföring sätts på varje handlingspost.</xs:documentation>
-				<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-06</xs:documentation>
+				<xs:documentation xml:lang="se">En identifierare av typen UUID som senast vid
+					överföring sätts på varje handlingspost.
+				</xs:documentation>
+				<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS.
+					redacted, 2018-12-06
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
@@ -292,7 +359,8 @@
 	<!-- Fastighet, FastighetTyp -->
 	<xs:element name="Fastighet" type="FastighetTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Information om fastigheten som ärendet berör.</xs:documentation>
+			<xs:documentation xml:lang="se">Information om fastigheten som ärendet berör.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:complexType name="FastighetTyp">
@@ -302,17 +370,23 @@
 		<xs:sequence>
 			<xs:element ref="Fastighetsbeteckning" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Det unika namnet för en fastighet. En fastighet betyder i detta fall en tomt, en bit mark, där det kan stå byggnader, men inte nödvändigtvis behöver göra det.</xs:documentation>
+					<xs:documentation xml:lang="se">Det unika namnet för en fastighet. En fastighet
+						betyder i detta fall en tomt, en bit mark, där det kan stå byggnader, men
+						inte nödvändigtvis behöver göra det.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Objektidentitet" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Global unik identitet (UUID) för fastigheten/samfälligheten.</xs:documentation>
+					<xs:documentation xml:lang="se">Global unik identitet (UUID) för
+						fastigheten/samfälligheten.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Kommundel" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Namn på kommunen där fastigheten är belägen.</xs:documentation>
+					<xs:documentation xml:lang="se">Namn på kommunen där fastigheten är belägen.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Trakt" minOccurs="0">
@@ -327,7 +401,8 @@
 			</xs:element>
 			<xs:element ref="Geonummer" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ärendenummer för vid geologisk undersökning§.</xs:documentation>
+					<xs:documentation xml:lang="se">Ärendenummer för vid geologisk undersökning§.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -342,18 +417,25 @@
 	<!-- Agent och AgentTyp samt dess element-->
 	<xs:element name="Agent" type="AgentTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Aktörer som tillfört ärendet uppgifter eller handlagt ärendet.</xs:documentation>
-			<xs:documentation xml:lang="se">Aktörer som skapat eller bearbetat handlingen.</xs:documentation>
+			<xs:documentation xml:lang="se">Aktörer som tillfört ärendet uppgifter eller handlagt
+				ärendet.
+			</xs:documentation>
+			<xs:documentation xml:lang="se">Aktörer som skapat eller bearbetat handlingen.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:complexType name="AgentTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Aktörer som tillfört ärendet uppgifter eller handlagt ärendet.</xs:documentation>
+			<xs:documentation xml:lang="se">Aktörer som tillfört ärendet uppgifter eller handlagt
+				ärendet.
+			</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
 			<xs:element ref="Roll">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">En beskrivning av aktörens roll i handläggning av ärenden eller hantering av handlingar.</xs:documentation>
+					<xs:documentation xml:lang="se">En beskrivning av aktörens roll i handläggning
+						av ärenden eller hantering av handlingar.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Namn" minOccurs="0">
@@ -363,12 +445,15 @@
 			</xs:element>
 			<xs:element ref="Organisationsnamn" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Namn på organisationen som aktören tillhör.</xs:documentation>
+					<xs:documentation xml:lang="se">Namn på organisationen som aktören tillhör.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="Enhetsnamn" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Namn på den organisationsenhet som aktören tillhör.</xs:documentation>
+					<xs:documentation xml:lang="se">Namn på den organisationsenhet som aktören
+						tillhör.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -388,19 +473,24 @@
 	<!-- Bilaga och BilagaTyp -->
 	<xs:element name="Bilaga" type="BilagaTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Innehåller referenser till bilagda filer.</xs:documentation>
+			<xs:documentation xml:lang="se">Innehåller referenser till bilagda filer.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:complexType name="BilagaTyp">
 		<xs:sequence>
 			<xs:element minOccurs="0" name="Bevaras" type="xs:boolean">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Om bilagan ska bevaras används värdet true, om den är gallringsbar används värdet false.</xs:documentation>
+					<xs:documentation xml:lang="se">Om bilagan ska bevaras används värdet true, om
+						den är gallringsbar används värdet false.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element ref="EgnaElement" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade element om bilagan som kompletterar de fördefinierade elementen.</xs:documentation>
+					<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade
+						element om bilagan som kompletterar de fördefinierade elementen.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -412,12 +502,15 @@
 		<xs:attribute name="Beskrivning" type="xs:string" use="optional">
 			<xs:annotation>
 				<xs:documentation xml:lang="se">Beskriver bilagans innehåll.</xs:documentation>
-				<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2013-08-21</xs:documentation>
+				<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS.
+					redacted, 2013-08-21
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="Lank" type="xs:anyURI" use="required">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Filens namn inklusive sökväg och filändelse.</xs:documentation>
+				<xs:documentation xml:lang="se">Filens namn inklusive sökväg och filändelse.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="Storlek" type="xs:int" use="optional">
@@ -427,34 +520,45 @@
 		</xs:attribute>
 		<xs:attribute name="CharacterSet" type="xs:string" use="optional">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Anger vilken teckenuppsättning som använts.</xs:documentation>
+				<xs:documentation xml:lang="se">Anger vilken teckenuppsättning som använts.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="Mimetyp" type="xs:string" use="optional">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Ett sätt att beskriva filens typ. T.ex. ”text/plain” för en textfil.</xs:documentation>
+				<xs:documentation xml:lang="se">Ett sätt att beskriva filens typ. T.ex. ”text/plain”
+					för en textfil.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="Checksumma" type="xs:string" use="optional">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">En summa som räknats ut och som är unik för just denna fil.</xs:documentation>
+				<xs:documentation xml:lang="se">En summa som räknats ut och som är unik för just
+					denna fil.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="ChecksummaMetod" type="xs:string" use="optional">
 			<xs:annotation>
 				<xs:documentation>
-					<xs:documentation xml:lang="se">Används för att ange den algoritm som använts för att generera checksumman.</xs:documentation>
+					<xs:documentation xml:lang="se">Används för att ange den algoritm som använts
+						för att generera checksumman.
+					</xs:documentation>
 				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="SchemaURI" type="xs:string" use="optional">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">En pekare till XML-schemat i leveransen som används för att beskriva XML-strukturen.</xs:documentation>
+				<xs:documentation xml:lang="se">En pekare till XML-schemat i leveransen som används
+					för att beskriva XML-strukturen.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="Esignatur" type="ESignaturTyp" use="optional">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Certifikaten tas bort före arkivering. Detta är markören för att handlingen har varit elektroniskt signerad.</xs:documentation>
+				<xs:documentation xml:lang="se">Certifikaten tas bort före arkivering. Detta är
+					markören för att handlingen har varit elektroniskt signerad.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
@@ -468,12 +572,17 @@
 			<xs:sequence>
 				<xs:element name="EgnaElementBeskrivning" minOccurs="0" type="xs:string">
 					<xs:annotation>
-						<xs:documentation xml:lang="se">En kort förklarande text om vad de egna elementen beskriver.</xs:documentation>
+						<xs:documentation xml:lang="se">En kort förklarande text om vad de egna
+							elementen beskriver.
+						</xs:documentation>
 					</xs:annotation>
 				</xs:element>
-				<xs:element name="EgetElement" type="EgetElementTyp" minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="EgetElement" type="EgetElementTyp" minOccurs="0"
+							maxOccurs="unbounded">
 					<xs:annotation>
-						<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade element som kompletterar de fördefinierade elementen.</xs:documentation>
+						<xs:documentation xml:lang="se">Ger möjlighet att lägga till egendefinierade
+							element som kompletterar de fördefinierade elementen.
+						</xs:documentation>
 					</xs:annotation>
 				</xs:element>
 			</xs:sequence>
@@ -486,21 +595,25 @@
 		<xs:sequence>
 			<xs:element ref="Varde" minOccurs="0"/>
 			<xs:element ref="Egenskaper" minOccurs="0"/>
-			<xs:element name="EgetElement" type="EgetElementTyp" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="EgetElement" type="EgetElementTyp" minOccurs="0"
+						maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="Namn" use="required" type="xs:string">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Namn på det egendefinierade elementet.</xs:documentation>
+				<xs:documentation xml:lang="se">Namn på det egendefinierade elementet.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="DataTyp" type="xs:string">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Datatyp för det egendefinierade elementet.</xs:documentation>
+				<xs:documentation xml:lang="se">Datatyp för det egendefinierade elementet.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="Format" type="xs:string">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Format för det egendefinierade elementet.</xs:documentation>
+				<xs:documentation xml:lang="se">Format för det egendefinierade elementet.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
@@ -513,12 +626,15 @@
 	</xs:element>
 	<xs:element name="Varde" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Värdet i det egendefinierade elementet.</xs:documentation>
+			<xs:documentation xml:lang="se">Värdet i det egendefinierade elementet.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Egenskap">
 		<xs:annotation>
-			<xs:documentation xml:lang="sv">Ytterligare egenskaper för det egendefinierade elementet.</xs:documentation>
+			<xs:documentation xml:lang="sv">Ytterligare egenskaper för det egendefinierade
+				elementet.
+			</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
@@ -527,17 +643,20 @@
 			</xs:sequence>
 			<xs:attribute name="Namn" type="xs:string" use="required">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Namn på det egendefinierade elementet.</xs:documentation>
+					<xs:documentation xml:lang="se">Namn på det egendefinierade elementet.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="DataTyp" type="xs:string">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Datatyp för det egendefinierade elementet.</xs:documentation>
+					<xs:documentation xml:lang="se">Datatyp för det egendefinierade elementet.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="Format" type="xs:string">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Format för det egendefinierade elementet.</xs:documentation>
+					<xs:documentation xml:lang="se">Format för det egendefinierade elementet.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
@@ -546,30 +665,39 @@
 	<!-- Gallring och GallringsTyp -->
 	<xs:element name="Gallring" type="GallringsTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Information om bevarande och gallring.</xs:documentation>
+			<xs:documentation xml:lang="se">Information om bevarande och gallring.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:complexType name="GallringsTyp">
 		<xs:sequence>
 			<xs:element name="GallringsFrist" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Värde för när informationen kan gallras.</xs:documentation>
+					<xs:documentation xml:lang="se">Värde för när informationen kan gallras.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="GallringsForklaring" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Författning eller beslut som reglerar gallringen av uppgifterna.</xs:documentation>
+					<xs:documentation xml:lang="se">Författning eller beslut som reglerar gallringen
+						av uppgifterna.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="GallringsPeriodSlut" type="EgetTidDatum" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Tidpunkt för när gallring av uppgifterna tidigast får utföras.</xs:documentation>
+					<xs:documentation xml:lang="se">Tidpunkt för när gallring av uppgifterna
+						tidigast får utföras.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
 		<xs:attribute name="Gallras" type="xs:boolean" use="required">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Attribut som anger om uppgifterna ska bevaras eller om de kan gallras. Om uppgifterna är gallringsbara anges värdet true, om uppgifterna ska bevaras anges värdet false.</xs:documentation>
+				<xs:documentation xml:lang="se">Attribut som anger om uppgifterna ska bevaras eller
+					om de kan gallras. Om uppgifterna är gallringsbara anges värdet true, om
+					uppgifterna ska bevaras anges värdet false.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
@@ -579,54 +707,65 @@
 		<xs:sequence>
 			<xs:element ref="Namn">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Namn på person eller organisation.</xs:documentation>
+					<xs:documentation xml:lang="se">Namn på person eller organisation.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Organisation" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Namn på organisation som personen tillhör.</xs:documentation>
+					<xs:documentation xml:lang="se">Namn på organisation som personen tillhör.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Postadress" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Postadress till person eller organisation.</xs:documentation>
+					<xs:documentation xml:lang="se">Postadress till person eller organisation.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Postnummer" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Postnummer till person eller organisation.</xs:documentation>
+					<xs:documentation xml:lang="se">Postnummer till person eller organisation.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Postort" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Postort till person eller organisation.</xs:documentation>
+					<xs:documentation xml:lang="se">Postort till person eller organisation.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Land" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Land till person eller organisation.</xs:documentation>
+					<xs:documentation xml:lang="se">Land till person eller organisation.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="IDnummer" type="IDnummerTyp" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">ID-nummer för person eller organisation. Värdet anges utan bindestreck, plustecken etc.
-						Ett personnummer skall också alltid anges med inledande sekelsiffra utan efterföljande mellanslag.
+					<xs:documentation xml:lang="se">ID-nummer för person eller organisation. Värdet
+						anges utan bindestreck, plustecken etc.
+						Ett personnummer skall också alltid anges med inledande sekelsiffra utan
+						efterföljande mellanslag.
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Telefon" type="xs:string" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Telefon till person eller organisation.</xs:documentation>
+					<xs:documentation xml:lang="se">Telefon till person eller organisation.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Fax" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Fax till person eller organisation.</xs:documentation>
+					<xs:documentation xml:lang="se">Fax till person eller organisation.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="EPost" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">E-Postadress till person eller organisation.</xs:documentation>
+					<xs:documentation xml:lang="se">E-Postadress till person eller organisation.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="SkyddadIdentitet" type="xs:boolean" minOccurs="0">
@@ -647,17 +786,23 @@
 		<xs:sequence>
 			<xs:element name="ForklarandeText" minOccurs="0" type="xs:string">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Ett fält där uppgift om begränsning kan anges i klartext.</xs:documentation>
+					<xs:documentation xml:lang="se">Ett fält där uppgift om begränsning kan anges i
+						klartext.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Lagrum" type="xs:string" minOccurs="0">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Uppgifter om vilka lagrum som är eller kan bli tillämpliga.</xs:documentation>
+					<xs:documentation xml:lang="se">Uppgifter om vilka lagrum som är eller kan bli
+						tillämpliga.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="RestriktionsDatum" minOccurs="0" type="EgetTidDatum">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Tidpunkt för när begränsningen upphör att gälla.</xs:documentation>
+					<xs:documentation xml:lang="se">Tidpunkt för när begränsningen upphör att
+						gälla.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -685,13 +830,19 @@
 	<!-- TillkommandeXMLdata och UtokandeKomplexTyp -->
 	<xs:element name="TillkommandeXMLdata" type="UtokandeKomplexTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Ett element som kapslar in metadata enligt ett annat XML-schema.</xs:documentation>
+			<xs:documentation xml:lang="se">Ett element som kapslar in metadata enligt ett annat
+				XML-schema.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:complexType name="UtokandeKomplexTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Det kan ibland finnas behov av att infoga XML-data från ett annat schema exempelvis då man behöver komplettera FGS:en med ett stort antal egna element.
-				Detta kan göras med hjälp av elementet &lt;TillkommandeXMLdata&gt;. Elementet kan bara innehålla information som följer ett annat XML-schema.</xs:documentation>
+			<xs:documentation xml:lang="se">Det kan ibland finnas behov av att infoga XML-data från
+				ett annat schema exempelvis då man behöver komplettera FGS:en med ett stort antal
+				egna element.
+				Detta kan göras med hjälp av elementet &lt;TillkommandeXMLdata&gt;. Elementet kan
+				bara innehålla information som följer ett annat XML-schema.
+			</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
 			<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
@@ -716,8 +867,11 @@
 		</xs:annotation>
 		<xs:attribute name="Typ" use="optional" default="1">
 			<xs:annotation>
-				<xs:documentation xml:lang="se">Attribut som innehåller den del som talar om vilken typ av personid detta är. </xs:documentation>
-				<xs:documentation xml:lang="se">Värdemängden är 1, 2 , 3, 4, 5 eller 6. Betydelsen av värdemängden är enligt följande:
+				<xs:documentation xml:lang="se">Attribut som innehåller den del som talar om vilken
+					typ av personid detta är.
+				</xs:documentation>
+				<xs:documentation xml:lang="se">Värdemängden är 1, 2 , 3, 4, 5 eller 6. Betydelsen
+					av värdemängden är enligt följande:
 					1 = Personnummer/Organisationsnummer
 					2 = Samordningsnummer
 					3 = Regionalt Reservnummer
@@ -742,7 +896,9 @@
 	<!-- ESignaturTyp -->
 	<xs:simpleType name="ESignaturTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Certifikaten tas bort före arkivering. Detta är markören för att handlingen har varit elektroniskt signerad.</xs:documentation>
+			<xs:documentation xml:lang="se">Certifikaten tas bort före arkivering. Detta är markören
+				för att handlingen har varit elektroniskt signerad.
+			</xs:documentation>
 		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Ja"/>
@@ -756,19 +912,25 @@
 			<xs:element name="KlassReferens" type="xs:string" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation xml:lang="se">Användning rekommenderas ej.</xs:documentation>
-					<xs:documentation xml:lang="se">Referens till en specifik strukturenhet</xs:documentation>
+					<xs:documentation xml:lang="se">Referens till en specifik strukturenhet
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="HandlingstypsReferens" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="HandlingstypsReferens" type="xs:string" minOccurs="0"
+						maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation xml:lang="se">Användning rekommenderas ej.</xs:documentation>
-					<xs:documentation xml:lang="se">Referens till den handlingstyp i arkivredovisningen som arkivobjektet tillhör</xs:documentation>
+					<xs:documentation xml:lang="se">Referens till den handlingstyp i
+						arkivredovisningen som arkivobjektet tillhör
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="ForvaringsenhetsReferens" type="xs:string" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation xml:lang="se">Användning rekommenderas ej.</xs:documentation>
-					<xs:documentation xml:lang="se">Referens till den förvaringsenhet som objektet tillhör</xs:documentation>
+					<xs:documentation xml:lang="se">Referens till den förvaringsenhet som objektet
+						tillhör
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 		</xs:sequence>
@@ -782,20 +944,25 @@
 	</xs:element>
 	<xs:simpleType name="EgetTidDatum">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Anges enligt format YYYY eller YYYY-MM eller YYYY-MM-DD eller YYYY-MM-DDThh:mm:ss.</xs:documentation>
+			<xs:documentation xml:lang="se">Anges enligt format YYYY eller YYYY-MM eller YYYY-MM-DD
+				eller YYYY-MM-DDThh:mm:ss.
+			</xs:documentation>
 		</xs:annotation>
 		<xs:restriction base="xs:string">
-			<xs:pattern value="[\d]{4}\-[\d]{2}\-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}|[\d]{4}\-[\d]{2}\-[\d]{2}|[\d]{4}\-[\d]{2}|[\d]{4}"/>
+			<xs:pattern
+					value="[\d]{4}\-[\d]{2}\-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}|[\d]{4}\-[\d]{2}\-[\d]{2}|[\d]{4}\-[\d]{2}|[\d]{4}"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:element name="ArkivobjektID" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Unik beteckning för ärendet eller handlingen.</xs:documentation>
+			<xs:documentation xml:lang="se">Unik beteckning för ärendet eller handlingen.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Arendemening" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Beskriver i en mening vad ärendet handlar om.</xs:documentation>
+			<xs:documentation xml:lang="se">Beskriver i en mening vad ärendet handlar om.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="ArendeRelation">
@@ -805,7 +972,8 @@
 		<xs:complexType mixed="true">
 			<xs:attribute name="Typ" use="optional">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Beskriver typen av relation. När värdet ”Egen relationsdefinition” är valt används även attributet ”AnnanTyp”.
+					<xs:documentation xml:lang="se">Beskriver typen av relation. När värdet ”Egen
+						relationsdefinition” är valt används även attributet ”AnnanTyp”.
 					</xs:documentation>
 				</xs:annotation>
 				<xs:simpleType>
@@ -820,7 +988,10 @@
 			</xs:attribute>
 			<xs:attribute name="AnnanTyp" type="xs:string" use="optional">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">När värdet ”Egen relationsdefinition” har valts i elementet ”Typ” används detta attribut för att ange en egen definition av relationen.</xs:documentation>
+					<xs:documentation xml:lang="se">När värdet ”Egen relationsdefinition” har valts
+						i elementet ”Typ” används detta attribut för att ange en egen definition av
+						relationen.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
@@ -832,7 +1003,9 @@
 	</xs:element>
 	<xs:element name="Atkomst" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Används för att ange hur man kommer åt ärendet eller handligen.</xs:documentation>
+			<xs:documentation xml:lang="se">Används för att ange hur man kommer åt ärendet eller
+				handligen.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Avslutat" type="EgetTidDatum">
@@ -842,50 +1015,65 @@
 	</xs:element>
 	<xs:element name="Avsandare" type="PersonOrganisationTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Används för att ange avsändare för en inkommen handling.</xs:documentation>
+			<xs:documentation xml:lang="se">Används för att ange avsändare för en inkommen
+				handling.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Beskrivning" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Kort beskrivning av ärendet eller handlingen.</xs:documentation>
+			<xs:documentation xml:lang="se">Kort beskrivning av ärendet eller handlingen.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Beslutat" type="EgetTidDatum">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Tidpunkt för när beslut fattats i ärendet.</xs:documentation>
+			<xs:documentation xml:lang="se">Tidpunkt för när beslut fattats i ärendet.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Expedierad" type="EgetTidDatum">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Tidpunkt för när handlingen expedierades.</xs:documentation>
+			<xs:documentation xml:lang="se">Tidpunkt för när handlingen expedierades.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="ExtraID">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Alternativ beteckning för ärendet eller handlingen. Typ av alternativ beteckning anges i elementets attribut ”ExtraIDTyp”.</xs:documentation>
+			<xs:documentation xml:lang="se">Alternativ beteckning för ärendet eller handlingen. Typ
+				av alternativ beteckning anges i elementets attribut ”ExtraIDTyp”.
+			</xs:documentation>
 		</xs:annotation>
 		<xs:complexType mixed="true">
 			<xs:attribute name="ExtraIDTyp" use="optional">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Attributet används för att ange typ av alternativ beteckning. Till exempel "motpartens diarienummmer".</xs:documentation>
-					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med FGS. redacted, 2018-12-05</xs:documentation>
+					<xs:documentation xml:lang="se">Attributet används för att ange typ av
+						alternativ beteckning. Till exempel "motpartens diarienummmer".
+					</xs:documentation>
+					<xs:documentation xml:lang="se">Kardinalitet ändrad så det överensstämmer med
+						FGS. redacted, 2018-12-05
+					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="Forvaringsplats" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Fysisk eller logisk placering av ärendet eller handlingen.</xs:documentation>
+			<xs:documentation xml:lang="se">Fysisk eller logisk placering av ärendet eller
+				handlingen.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="HandlingRelation">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Referens till en eller flera handlingar.</xs:documentation>
+			<xs:documentation xml:lang="se">Referens till en eller flera handlingar.
+			</xs:documentation>
 		</xs:annotation>
 		<xs:complexType mixed="true">
 			<xs:attribute name="Typ" use="required">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">Beskriver typen av relation. När värdet ”Egen relationsdefinition” är valt används även attributet ”AnnanTyp”.
+					<xs:documentation xml:lang="se">Beskriver typen av relation. När värdet ”Egen
+						relationsdefinition” är valt används även attributet ”AnnanTyp”.
 					</xs:documentation>
 				</xs:annotation>
 				<xs:simpleType>
@@ -910,7 +1098,10 @@
 			</xs:attribute>
 			<xs:attribute name="AnnanTyp" type="xs:string" use="optional">
 				<xs:annotation>
-					<xs:documentation xml:lang="se">När värdet ”Egen relationsdefinition” har valts i elementet ”Typ” används detta attribut för att ange en egen definition av relationen.</xs:documentation>
+					<xs:documentation xml:lang="se">När värdet ”Egen relationsdefinition” har valts
+						i elementet ”Typ” används detta attribut för att ange en egen definition av
+						relationen.
+					</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
@@ -922,32 +1113,41 @@
 	</xs:element>
 	<xs:element name="Informationsklass" type="xs:string">
 		<xs:annotation>
-			<xs:documentation>Kan användas för att ange informationsklassning utifrån informationssäkerhet.</xs:documentation>
+			<xs:documentation>Kan användas för att ange informationsklassning utifrån
+				informationssäkerhet.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Inkommen" type="EgetTidDatum">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Datum och tid då handlingen inkom till organisationen.</xs:documentation>
+			<xs:documentation xml:lang="se">Datum och tid då handlingen inkom till organisationen.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Klass" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Används för att ange en klassificering av ärendet.</xs:documentation>
+			<xs:documentation xml:lang="se">Används för att ange en klassificering av ärendet.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Lopnummer" type="xs:int">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Nummer som anger handlingarnas ordning.</xs:documentation>
+			<xs:documentation xml:lang="se">Nummer som anger handlingarnas ordning.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="MinaArendeoversikterKlassificering" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Element för ärendets klassificering i förhållande till E-tjänsten ”mina ärendeöversikter”.</xs:documentation>
+			<xs:documentation xml:lang="se">Element för ärendets klassificering i förhållande till
+				E-tjänsten ”mina ärendeöversikter”.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="MinaArendeoversikterStatus" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Element för ärendets archiveStatus i förhållande till E-tjänsten ”mina ärendeöversikter”.</xs:documentation>
+			<xs:documentation xml:lang="se">Element för ärendets archiveStatus i förhållande till
+				E-tjänsten ”mina ärendeöversikter”.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Motpart" type="PersonOrganisationTyp">
@@ -957,7 +1157,8 @@
 	</xs:element>
 	<xs:element name="Mottagare" type="PersonOrganisationTyp">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Mottagare för den expedierade handlingen.</xs:documentation>
+			<xs:documentation xml:lang="se">Mottagare för den expedierade handlingen.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Namn" type="xs:string"/>
@@ -968,22 +1169,29 @@
 	</xs:element>
 	<xs:element name="Rubrik" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Används för att ange handlingens namn.</xs:documentation>
+			<xs:documentation xml:lang="se">Används för att ange handlingens namn.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="SistaAnvandandetidpunkt" type="EgetTidDatum">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Tidpunkt för sista ändring av ärende eller handlingsposten. Detta element uppdateras normalt inte av användarna utan sätts automatiskt av systemet.</xs:documentation>
+			<xs:documentation xml:lang="se">Tidpunkt för sista ändring av ärende eller
+				handlingsposten. Detta element uppdateras normalt inte av användarna utan sätts
+				automatiskt av systemet.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Skannad" type="xs:date">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Tidpunkt då pappershandlingen skannades in.</xs:documentation>
+			<xs:documentation xml:lang="se">Tidpunkt då pappershandlingen skannades in.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="Skapad" type="EgetTidDatum">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Tidpunkt då ärendet eller handlingen lades upp eller registrerades i systemet.</xs:documentation>
+			<xs:documentation xml:lang="se">Tidpunkt då ärendet eller handlingen lades upp eller
+				registrerades i systemet.
+			</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="StatusArande">
@@ -1008,7 +1216,8 @@
 	</xs:element>
 	<xs:element name="StatusHandling">
 		<xs:annotation>
-			<xs:documentation xml:lang="se">Anger om handlingen är inkommen, upprättad m.m.</xs:documentation>
+			<xs:documentation xml:lang="se">Anger om handlingen är inkommen, upprättad m.m.
+			</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:simpleContent>

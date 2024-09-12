@@ -30,78 +30,79 @@ import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
 @ExtendWith(MockitoExtension.class)
 class FbIntegrationTest {
 
-    @Mock
-    private FbClient mockFbClient;
+	@Mock
+	private FbClient mockFbClient;
 
-    @InjectMocks
-    private FbIntegration fbIntegration;
+	@InjectMocks
+	private FbIntegration fbIntegration;
 
-    @Test
-    void getPropertyInfoByFnr() throws ApplicationException {
-        var fastighetDto = new FastighetDto()
-            .uuid(UUID.randomUUID())
-            .fnr(randomInt());
-        var responseDto = new ResponseDtoIEnumerableFastighetDto()
-            .data(List.of(fastighetDto));
+	@Test
+	void getPropertyInfoByFnr() throws ApplicationException {
+		var fastighetDto = new FastighetDto()
+			.uuid(UUID.randomUUID())
+			.fnr(randomInt());
+		var responseDto = new ResponseDtoIEnumerableFastighetDto()
+			.data(List.of(fastighetDto));
 
-        when(mockFbClient.getPropertyInfoByFnr(anyList())).thenReturn(responseDto);
+		when(mockFbClient.getPropertyInfoByFnr(anyList())).thenReturn(responseDto);
 
-        var result = fbIntegration.getPropertyInfoByFnr(12345);
+		var result = fbIntegration.getPropertyInfoByFnr(12345);
 
-        assertThat(result).isEqualTo(fastighetDto);
+		assertThat(result).isEqualTo(fastighetDto);
 
-        verify(mockFbClient, times(1)).getPropertyInfoByFnr(anyList());
-        verifyNoMoreInteractions(mockFbClient);
-    }
+		verify(mockFbClient, times(1)).getPropertyInfoByFnr(anyList());
+		verifyNoMoreInteractions(mockFbClient);
+	}
 
-    @Test
-    void getPropertyInfoByFnr_Empty() throws ApplicationException {
-        when(mockFbClient.getPropertyInfoByFnr(anyList()))
-            .thenReturn(new ResponseDtoIEnumerableFastighetDto().data(List.of()));
+	@Test
+	void getPropertyInfoByFnr_Empty() throws ApplicationException {
+		when(mockFbClient.getPropertyInfoByFnr(anyList()))
+			.thenReturn(new ResponseDtoIEnumerableFastighetDto().data(List.of()));
 
-        var result = fbIntegration.getPropertyInfoByFnr(45678);
+		var result = fbIntegration.getPropertyInfoByFnr(45678);
 
-        assertThat(result).isNull();
+		assertThat(result).isNull();
 
-        verify(mockFbClient, times(1)).getPropertyInfoByFnr(anyList());
-        verifyNoMoreInteractions(mockFbClient);
-    }
+		verify(mockFbClient, times(1)).getPropertyInfoByFnr(anyList());
+		verifyNoMoreInteractions(mockFbClient);
+	}
 
-    @Test
-    void getPropertyInfoByFnr_MoreThanOne() {
-        var dto1 = new FastighetDto();
-        dto1.setUuid(UUID.randomUUID());
-        dto1.setFnr(randomInt());
+	@Test
+	void getPropertyInfoByFnr_MoreThanOne() {
+		var dto1 = new FastighetDto();
+		dto1.setUuid(UUID.randomUUID());
+		dto1.setFnr(randomInt());
 
-        var dto2 = new FastighetDto();
-        dto2.setUuid(UUID.randomUUID());
-        dto2.setFnr(randomInt());
+		var dto2 = new FastighetDto();
+		dto2.setUuid(UUID.randomUUID());
+		dto2.setFnr(randomInt());
 
-        when(mockFbClient.getPropertyInfoByFnr(anyList()))
-            .thenReturn(new ResponseDtoIEnumerableFastighetDto().data(List.of(dto1, dto2)));
+		when(mockFbClient.getPropertyInfoByFnr(anyList()))
+			.thenReturn(new ResponseDtoIEnumerableFastighetDto().data(List.of(dto1, dto2)));
 
-        assertThatExceptionOfType(ApplicationException.class)
-            .isThrownBy(() -> fbIntegration.getPropertyInfoByFnr(15151));
+		assertThatExceptionOfType(ApplicationException.class)
+			.isThrownBy(() -> fbIntegration.getPropertyInfoByFnr(15151));
 
-        verify(mockFbClient, times(1)).getPropertyInfoByFnr(anyList());
-        verifyNoMoreInteractions(mockFbClient);
-    }
+		verify(mockFbClient, times(1)).getPropertyInfoByFnr(anyList());
+		verifyNoMoreInteractions(mockFbClient);
+	}
 
-    @Test
-    void getPropertyInfoByFnr_ClientError() {
-        when(mockFbClient.getPropertyInfoByFnr(anyList()))
-            .thenThrow(Problem.valueOf(Status.INTERNAL_SERVER_ERROR));
+	@Test
+	void getPropertyInfoByFnr_ClientError() {
+		when(mockFbClient.getPropertyInfoByFnr(anyList()))
+			.thenThrow(Problem.valueOf(Status.INTERNAL_SERVER_ERROR));
 
-        int fnr = randomInt();
+		int fnr = randomInt();
 
-        assertThatExceptionOfType(ThrowableProblem.class)
-            .isThrownBy(() ->  fbIntegration.getPropertyInfoByFnr(fnr))
-            .satisfies(throwableProblem -> {
-                assertThat(throwableProblem.getStatus()).isEqualTo(SERVICE_UNAVAILABLE);
-                assertThat(throwableProblem.getDetail()).isEqualTo("Request to fbService.getPropertyInfoByFnr(" + fnr + ") failed.");
-            });
+		assertThatExceptionOfType(ThrowableProblem.class)
+			.isThrownBy(() -> fbIntegration.getPropertyInfoByFnr(fnr))
+			.satisfies(throwableProblem -> {
+				assertThat(throwableProblem.getStatus()).isEqualTo(SERVICE_UNAVAILABLE);
+				assertThat(throwableProblem.getDetail()).isEqualTo("Request to fbService.getPropertyInfoByFnr(" + fnr + ") failed.");
+			});
 
-        verify(mockFbClient, times(1)).getPropertyInfoByFnr(anyList());
-        verifyNoMoreInteractions(mockFbClient);
-    }
+		verify(mockFbClient, times(1)).getPropertyInfoByFnr(anyList());
+		verifyNoMoreInteractions(mockFbClient);
+	}
+
 }

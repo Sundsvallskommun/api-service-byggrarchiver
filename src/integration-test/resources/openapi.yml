@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: ByggR Archiver
   description: 'Application that archives documents from Byggr'
-  contact: {}
+  contact: { }
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT
@@ -455,4 +455,4 @@ components:
           format: date-time
         batchHistory:
           $ref: '#/components/schemas/BatchHistoryResponse'
-  securitySchemes: {}
+  securitySchemes: { }

@@ -14,13 +14,22 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ArchiveHistoryResponse {
 
-    private String documentId;
-    private String caseId;
-    private String documentName;
-    private String documentType;
-    private String archiveId;
-    private String archiveUrl;
-    private ArchiveStatus archiveStatus;
-    private LocalDateTime timestamp;
-    private BatchHistoryResponse batchHistory;
+	private String documentId;
+
+	private String caseId;
+
+	private String documentName;
+
+	private String documentType;
+
+	private String archiveId;
+
+	private String archiveUrl;
+
+	private ArchiveStatus archiveStatus;
+
+	private LocalDateTime timestamp;
+
+	private BatchHistoryResponse batchHistory;
+
 }

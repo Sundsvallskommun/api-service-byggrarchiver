@@ -14,10 +14,11 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.openfeign.FeignBuilderCustomizer;
 
+import se.sundsvall.dept44.configuration.feign.FeignMultiCustomizer;
+
 import feign.soap.SOAPDecoder;
 import feign.soap.SOAPEncoder;
 import feign.soap.SOAPErrorDecoder;
-import se.sundsvall.dept44.configuration.feign.FeignMultiCustomizer;
 
 @ExtendWith(MockitoExtension.class)
 class ArendeExportConfigurationTest {

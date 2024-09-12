@@ -8,15 +8,16 @@ import generated.se.sundsvall.archive.ByggRArchiveRequest;
 @Component
 public class ArchiveIntegration {
 
-    static final String INTEGRATION_NAME = "archive";
+	static final String INTEGRATION_NAME = "archive";
 
-    private final ArchiveClient archiveClient;
+	private final ArchiveClient archiveClient;
 
-    public ArchiveIntegration(final ArchiveClient archiveClient) {
-        this.archiveClient = archiveClient;
-    }
+	public ArchiveIntegration(final ArchiveClient archiveClient) {
+		this.archiveClient = archiveClient;
+	}
 
-    public ArchiveResponse archive(final ByggRArchiveRequest archiveRequest) {
-        return archiveClient.postArchive(archiveRequest);
-    }
+	public ArchiveResponse archive(final ByggRArchiveRequest archiveRequest) {
+		return archiveClient.postArchive(archiveRequest);
+	}
+
 }

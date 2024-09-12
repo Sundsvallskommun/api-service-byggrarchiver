@@ -38,59 +38,63 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class ArchiveHistory {
-    @Id
-    private String documentId;
 
-    @Id
-    private String caseId;
+	@Id
+	private String documentId;
 
-    private String documentName;
+	@Id
+	private String caseId;
 
-    private String documentType;
+	private String documentName;
 
-    private String archiveId;
+	private String documentType;
 
-    private String archiveUrl;
+	private String archiveId;
 
-    @Column(nullable = false, columnDefinition = "varchar(255)")
-    @Enumerated(EnumType.STRING)
-    private ArchiveStatus archiveStatus;
+	private String archiveUrl;
 
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
-    @Column(nullable = false)
-    private LocalDateTime timestamp;
+	@Column(nullable = false, columnDefinition = "varchar(255)")
+	@Enumerated(EnumType.STRING)
+	private ArchiveStatus archiveStatus;
 
-    @NotNull
-    @ManyToOne
-    private BatchHistory batchHistory;
+	@Schema(accessMode = Schema.AccessMode.READ_ONLY)
+	@Column(nullable = false)
+	private LocalDateTime timestamp;
 
-    @PrePersist
-    @PreUpdate
-    protected void onPersist() {
-        timestamp = LocalDateTime.now(ZoneId.systemDefault()).truncatedTo(ChronoUnit.MICROS);
-    }
+	@NotNull
+	@ManyToOne
+	private BatchHistory batchHistory;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ArchiveHistory that = (ArchiveHistory) o;
-        return Objects.equals(documentId, that.documentId) && Objects.equals(caseId, that.caseId) && Objects.equals(documentName, that.documentName) && Objects.equals(documentType, that.documentType) && Objects.equals(archiveId, that.archiveId) && Objects.equals(archiveUrl, that.archiveUrl) && archiveStatus == that.archiveStatus && Objects.equals(timestamp, that.timestamp) && Objects.equals(batchHistory, that.batchHistory);
-    }
+	@PrePersist
+	@PreUpdate
+	protected void onPersist() {
+		timestamp = LocalDateTime.now(ZoneId.systemDefault()).truncatedTo(ChronoUnit.MICROS);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(documentId, caseId, documentName, documentType, archiveId, archiveUrl, archiveStatus, timestamp, batchHistory);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		ArchiveHistory that = (ArchiveHistory) o;
+		return Objects.equals(documentId, that.documentId) && Objects.equals(caseId, that.caseId) && Objects.equals(documentName, that.documentName) && Objects.equals(documentType, that.documentType) && Objects.equals(archiveId, that.archiveId) && Objects.equals(archiveUrl, that.archiveUrl) && archiveStatus == that.archiveStatus && Objects.equals(timestamp, that.timestamp) && Objects.equals(batchHistory, that.batchHistory);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(documentId, caseId, documentName, documentType, archiveId, archiveUrl, archiveStatus, timestamp, batchHistory);
+	}
+
 }
 
 @Embeddable
 class IdPk implements Serializable {
 
-    private String documentId;
-    private String caseId;
+	private String documentId;
+
+	private String caseId;
+
 }

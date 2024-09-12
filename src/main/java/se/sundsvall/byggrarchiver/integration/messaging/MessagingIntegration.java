@@ -1,7 +1,17 @@
 package se.sundsvall.byggrarchiver.integration.messaging;
 
-import generated.se.sundsvall.messaging.EmailRequest;
-import generated.se.sundsvall.messaging.EmailSender;
+import static generated.se.sundsvall.messaging.MessageStatus.SENT;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Optional.ofNullable;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.integration.messaging.MessagingMapper.toEmailRequest;
+import static se.sundsvall.dept44.util.ResourceUtils.asString;
+
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -14,18 +24,7 @@ import org.springframework.stereotype.Component;
 import se.sundsvall.byggrarchiver.configuration.EmailProperties;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static generated.se.sundsvall.messaging.MessageStatus.SENT;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Optional.ofNullable;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.integration.messaging.MessagingMapper.toEmailRequest;
-import static se.sundsvall.dept44.util.ResourceUtils.asString;
+import generated.se.sundsvall.messaging.EmailRequest;
 
 @Component
 @EnableConfigurationProperties(MessagingIntegrationProperties.class)

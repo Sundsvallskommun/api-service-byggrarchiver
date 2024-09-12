@@ -23,4 +23,5 @@ public class ArendeExportIntegration {
 	public GetDocumentResponse getDocument(final GetDocument request) {
 		return arendeExportClient.getDocument(request);
 	}
+
 }

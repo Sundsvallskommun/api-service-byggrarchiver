@@ -12,13 +12,14 @@ import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
 import io.github.resilience4j.retry.annotation.Retry;
 
 @FeignClient(
-    name = FbIntegrationConfiguration.INTEGRATION_NAME,
-    url = "${integration.fb.url}",
-    configuration = FbIntegrationConfiguration.class
+	name = FbIntegrationConfiguration.INTEGRATION_NAME,
+	url = "${integration.fb.url}",
+	configuration = FbIntegrationConfiguration.class
 )
 interface FbClient {
 
-    @Retry(name = FbIntegrationConfiguration.INTEGRATION_NAME)
-    @PostMapping(path = "Fastighet/info/fnr", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    ResponseDtoIEnumerableFastighetDto getPropertyInfoByFnr(@RequestBody List<Integer> fnrList);
+	@Retry(name = FbIntegrationConfiguration.INTEGRATION_NAME)
+	@PostMapping(path = "Fastighet/info/fnr", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+	ResponseDtoIEnumerableFastighetDto getPropertyInfoByFnr(@RequestBody List<Integer> fnrList);
+
 }

@@ -1,49 +1,49 @@
 email:
-    extension-error:
-        recipient: junit-recipient@test.se
-        sender: junit-sender@test.se
-    lantmateriet:
-        recipient: junit-recipient@test.se
-        sender: junit-sender@test.se
-    status:
-        recipient: junit-recipient@test.se
-        sender: junit-sender@test.se
+  extension-error:
+    recipient: junit-recipient@test.se
+    sender: junit-sender@test.se
+  lantmateriet:
+    recipient: junit-recipient@test.se
+    sender: junit-sender@test.se
+  status:
+    recipient: junit-recipient@test.se
+    sender: junit-sender@test.se
 integration:
-    archive:
-        oauth2:
-            clientId: client-id
-            clientSecret: client-secret
-            tokenUrl: ${sundsvall.token-uri}
-        url: http://localhost:${wiremock.server.port}/archive/1.0
-    arendeexport:
-        url: http://localhost:${wiremock.server.port}/TekisArende/ArendeExportWS.svc
-    fb:
-        database: database
-        password: password
-        url: http://localhost:${wiremock.server.port}/fbservice
-        username: username
-    messaging:
-        oauth2:
-            clientId: client-id
-            clientSecret: client-secret
-            tokenUrl: ${sundsvall.token-uri}
-        url: http://localhost:${wiremock.server.port}/messaging
+  archive:
+    oauth2:
+      clientId: client-id
+      clientSecret: client-secret
+      tokenUrl: ${sundsvall.token-uri}
+    url: http://localhost:${wiremock.server.port}/archive/1.0
+  arendeexport:
+    url: http://localhost:${wiremock.server.port}/TekisArende/ArendeExportWS.svc
+  fb:
+    database: database
+    password: password
+    url: http://localhost:${wiremock.server.port}/fbservice
+    username: username
+  messaging:
+    oauth2:
+      clientId: client-id
+      clientSecret: client-secret
+      tokenUrl: ${sundsvall.token-uri}
+    url: http://localhost:${wiremock.server.port}/messaging
 long-term-archive:
-    url: http://sundsvall-junit-test.se
+  url: http://sundsvall-junit-test.se
 spring:
-    cache:
-        type: none
-    datasource:
-        driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-        url: jdbc:tc:mariadb:10.6.14:///
-    flyway:
-        enabled: true
-    jpa:
-        properties:
-            jakarta:
-                persistence:
-                    schema-generation:
-                        database:
-                            action: update
+  cache:
+    type: none
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:mariadb:10.6.14:///
+  flyway:
+    enabled: true
+  jpa:
+    properties:
+      jakarta:
+        persistence:
+          schema-generation:
+            database:
+              action: update
 sundsvall:
-    token-uri: http://localhost:${wiremock.server.port}/token
+  token-uri: http://localhost:${wiremock.server.port}/token

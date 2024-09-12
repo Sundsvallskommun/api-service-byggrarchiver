@@ -1,7 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.messaging;
 
-import java.util.Map;
-
 import generated.se.sundsvall.messaging.EmailRequest;
 import generated.se.sundsvall.messaging.EmailSender;
 

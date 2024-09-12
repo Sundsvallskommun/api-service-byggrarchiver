@@ -1,9 +1,9 @@
 {
   "request": {
     "headers": {
-        "Authorization": {
-            "equalTo": "Bearer 0000000000000000AAAAAAAAAAAAAAAA"
-        }
+      "Authorization": {
+        "equalTo": "Bearer 0000000000000000AAAAAAAAAAAAAAAA"
+      }
     },
     "method": "POST",
     "urlPath": "/archive/1.0/archive/byggr"

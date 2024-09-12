@@ -6,5 +6,5 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties({LongTermArchiveProperties.class, EmailProperties.class})
 class PropertiesConfiguration {
-    
+
 }

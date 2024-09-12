@@ -21,4 +21,5 @@ class ArendeExportPropertiesTest {
 		assertThat(properties.connectTimeout()).isEqualTo(1);
 		assertThat(properties.readTimeout()).isEqualTo(2);
 	}
+
 }

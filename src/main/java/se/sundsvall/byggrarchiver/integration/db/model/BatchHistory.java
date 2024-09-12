@@ -36,49 +36,51 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class BatchHistory {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
-    @Column(nullable = false)
-    private Long id;
 
-    @Column(nullable = false)
-    private LocalDate start;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Schema(accessMode = Schema.AccessMode.READ_ONLY)
+	@Column(nullable = false)
+	private Long id;
 
-    @Column(nullable = false)
-    private LocalDate end;
+	@Column(nullable = false)
+	private LocalDate start;
 
-    @Column(nullable = false, columnDefinition = "varchar(255)")
-    @Enumerated(EnumType.STRING)
-    private ArchiveStatus archiveStatus;
+	@Column(nullable = false)
+	private LocalDate end;
 
-    @Column(nullable = false, columnDefinition = "varchar(255)")
-    @Enumerated(EnumType.STRING)
-    private BatchTrigger batchTrigger;
+	@Column(nullable = false, columnDefinition = "varchar(255)")
+	@Enumerated(EnumType.STRING)
+	private ArchiveStatus archiveStatus;
 
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
-    @Column(nullable = false)
-    private LocalDateTime timestamp;
+	@Column(nullable = false, columnDefinition = "varchar(255)")
+	@Enumerated(EnumType.STRING)
+	private BatchTrigger batchTrigger;
 
-    @PrePersist
-    @PreUpdate
-    protected void onPersist() {
-        timestamp = LocalDateTime.now(ZoneId.systemDefault()).truncatedTo(ChronoUnit.MICROS);
-    }
+	@Schema(accessMode = Schema.AccessMode.READ_ONLY)
+	@Column(nullable = false)
+	private LocalDateTime timestamp;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof BatchHistory that)) {
-            return false;
-        }
-        return Objects.equals(start, that.start) && Objects.equals(end, that.end) && archiveStatus == that.archiveStatus && batchTrigger == that.batchTrigger;
-    }
+	@PrePersist
+	@PreUpdate
+	protected void onPersist() {
+		timestamp = LocalDateTime.now(ZoneId.systemDefault()).truncatedTo(ChronoUnit.MICROS);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(start, end, archiveStatus, batchTrigger);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof BatchHistory that)) {
+			return false;
+		}
+		return Objects.equals(start, that.start) && Objects.equals(end, that.end) && archiveStatus == that.archiveStatus && batchTrigger == that.batchTrigger;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(start, end, archiveStatus, batchTrigger);
+	}
+
 }

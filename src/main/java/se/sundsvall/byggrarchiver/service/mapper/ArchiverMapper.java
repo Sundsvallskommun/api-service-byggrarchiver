@@ -1,5 +1,24 @@
 package se.sundsvall.byggrarchiver.service.mapper;
 
+import static java.time.format.DateTimeFormatter.ISO_DATE;
+import static java.util.Optional.ofNullable;
+import static se.sundsvall.byggrarchiver.service.Constants.BYGGNADSNAMNDEN;
+import static se.sundsvall.byggrarchiver.service.Constants.STADSBYGGNADSNAMNDEN;
+import static se.sundsvall.byggrarchiver.service.Constants.STANGT;
+import static se.sundsvall.byggrarchiver.service.Constants.SUNDSVALLS_KOMMUN;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
+import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+import se.sundsvall.byggrarchiver.util.Util;
+
 import generated.se.sundsvall.archive.Attachment;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 import generated.se.sundsvall.arendeexport.AbstractArendeObjekt;
@@ -15,24 +34,6 @@ import generated.se.sundsvall.bygglov.ArkivobjektListaHandlingarTyp;
 import generated.se.sundsvall.bygglov.BilagaTyp;
 import generated.se.sundsvall.bygglov.ExtraID;
 import generated.se.sundsvall.bygglov.StatusArande;
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-import se.sundsvall.byggrarchiver.util.Util;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static java.time.format.DateTimeFormatter.ISO_DATE;
-import static java.util.Optional.ofNullable;
-import static se.sundsvall.byggrarchiver.service.Constants.BYGGNADSNAMNDEN;
-import static se.sundsvall.byggrarchiver.service.Constants.STADSBYGGNADSNAMNDEN;
-import static se.sundsvall.byggrarchiver.service.Constants.STANGT;
-import static se.sundsvall.byggrarchiver.service.Constants.SUNDSVALLS_KOMMUN;
 
 public class ArchiverMapper {
 
@@ -115,7 +116,7 @@ public class ArchiverMapper {
 		var statusArande = new StatusArande();
 		statusArande.setValue(STANGT);
 
-		var arkivobjektArende =  new ArkivobjektArendeTyp();
+		var arkivobjektArende = new ArkivobjektArendeTyp();
 		arkivobjektArende.setArkivobjektID(arende.getDnr());
 		arkivobjektArende.getExtraID().add(extraId);
 		arkivobjektArende.setArendemening(arende.getBeskrivning());
@@ -199,4 +200,5 @@ public class ArchiverMapper {
 	private static String getAttachmentCategoryDescription(AttachmentCategory attachmentCategory) {
 		return ofNullable(attachmentCategory).isPresent() ? attachmentCategory.getDescription() : null;
 	}
+
 }

@@ -11,12 +11,13 @@ import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 
 @FeignClient(
-    name = INTEGRATION_NAME,
-    url = "${integration.archive.url}",
-    configuration = ArchiveConfiguration.class
+	name = INTEGRATION_NAME,
+	url = "${integration.archive.url}",
+	configuration = ArchiveConfiguration.class
 )
 interface ArchiveClient {
 
-    @PostMapping(path = "/archive/byggr", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    ArchiveResponse postArchive(@RequestBody ByggRArchiveRequest archiveMessage);
+	@PostMapping(path = "/archive/byggr", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+	ArchiveResponse postArchive(@RequestBody ByggRArchiveRequest archiveMessage);
+
 }

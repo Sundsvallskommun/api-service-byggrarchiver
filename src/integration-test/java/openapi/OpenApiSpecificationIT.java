@@ -4,6 +4,8 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,12 +16,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-
-import net.javacrumbs.jsonunit.core.Option;
 import se.sundsvall.byggrarchiver.Application;
 import se.sundsvall.dept44.util.ResourceUtils;
+
+import net.javacrumbs.jsonunit.core.Option;
 
 @ActiveProfiles("junit")
 @SpringBootTest(
@@ -72,8 +72,8 @@ class OpenApiSpecificationIT {
 	/**
 	 * Attempts to convert the given YAML (no YAML-check...) to JSON.
 	 *
-	 * @param  yaml the YAML to convert
-	 * @return      a JSON string
+	 * @param yaml the YAML to convert
+	 * @return a JSON string
 	 */
 	private String toJson(final String yaml) {
 		try {
@@ -82,4 +82,5 @@ class OpenApiSpecificationIT {
 			throw new IllegalStateException("Unable to convert YAML to JSON", e);
 		}
 	}
+
 }

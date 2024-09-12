@@ -13,9 +13,11 @@ import se.sundsvall.byggrarchiver.integration.OAuth2;
 @ConfigurationProperties(prefix = "integration.archive")
 record ArchiveProperties(
 
-    @NotBlank
-    String url,
+	@NotBlank
+	String url,
 
-    @NotNull
-    @Valid
-    OAuth2 oauth2) { }
+	@NotNull
+	@Valid
+	OAuth2 oauth2) {
+
+}

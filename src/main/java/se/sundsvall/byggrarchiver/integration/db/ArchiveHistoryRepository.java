@@ -14,12 +14,13 @@ import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 @Transactional
 public interface ArchiveHistoryRepository extends JpaRepository<ArchiveHistory, Long> {
 
-    Optional<ArchiveHistory> getArchiveHistoryByDocumentIdAndCaseId(String documentId, String caseId);
+	Optional<ArchiveHistory> getArchiveHistoryByDocumentIdAndCaseId(String documentId, String caseId);
 
-    List<ArchiveHistory> getArchiveHistoriesByBatchHistoryId(Long batchHistoryId);
+	List<ArchiveHistory> getArchiveHistoriesByBatchHistoryId(Long batchHistoryId);
 
-    @Query("select a from ArchiveHistory a where (:archiveStatus is null or a.archiveStatus = :archiveStatus) and (:batchHistoryId is null or a.batchHistory.id = :batchHistoryId) ")
-    List<ArchiveHistory> getArchiveHistoriesByArchiveStatusAndBatchHistoryId(@Param("archiveStatus") ArchiveStatus archiveStatus, @Param("batchHistoryId") Long batchHistoryId);
+	@Query("select a from ArchiveHistory a where (:archiveStatus is null or a.archiveStatus = :archiveStatus) and (:batchHistoryId is null or a.batchHistory.id = :batchHistoryId) ")
+	List<ArchiveHistory> getArchiveHistoriesByArchiveStatusAndBatchHistoryId(@Param("archiveStatus") ArchiveStatus archiveStatus, @Param("batchHistoryId") Long batchHistoryId);
 
-    void deleteArchiveHistoriesByCaseIdAndArchiveStatus(String caseId, ArchiveStatus archiveStatus);
+	void deleteArchiveHistoriesByCaseIdAndArchiveStatus(String caseId, ArchiveStatus archiveStatus);
+
 }

@@ -11,7 +11,9 @@
   "response": {
     "status": 200,
     "bodyFileName": "common/response/arendeexport.GetDocument.200.xml",
-    "transformers": ["get-document-transformer"],
+    "transformers": [
+      "get-document-transformer"
+    ],
     "headers": {
       "Content-Type": "text/xml; charset=utf-8",
       "Vary": "Accept-Encoding",

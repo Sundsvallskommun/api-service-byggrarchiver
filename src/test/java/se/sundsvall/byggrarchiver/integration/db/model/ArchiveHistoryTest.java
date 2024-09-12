@@ -17,18 +17,19 @@ import org.junit.jupiter.api.Test;
 
 class ArchiveHistoryTest {
 
-    @BeforeAll
-    static void setup() {
-        registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
-    }
+	@BeforeAll
+	static void setup() {
+		registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
+	}
 
-    @Test
-    void testBean() {
-        assertThat(ArchiveHistory.class, allOf(
-            hasValidBeanConstructor(),
-            hasValidGettersAndSetters(),
-            hasValidBeanHashCode(),
-            hasValidBeanEquals(),
-            hasValidBeanToString()));
-    }
+	@Test
+	void testBean() {
+		assertThat(ArchiveHistory.class, allOf(
+			hasValidBeanConstructor(),
+			hasValidGettersAndSetters(),
+			hasValidBeanHashCode(),
+			hasValidBeanEquals(),
+			hasValidBeanToString()));
+	}
+
 }

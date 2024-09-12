@@ -17,10 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import generated.se.sundsvall.arendeexport.Arende2;
-import generated.se.sundsvall.arendeexport.ArendeBatch;
-import generated.se.sundsvall.arendeexport.BatchFilter;
-import generated.se.sundsvall.arendeexport.HandelseHandling;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
@@ -29,8 +25,15 @@ import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
+import generated.se.sundsvall.arendeexport.Arende2;
+import generated.se.sundsvall.arendeexport.ArendeBatch;
+import generated.se.sundsvall.arendeexport.BatchFilter;
+import generated.se.sundsvall.arendeexport.HandelseHandling;
+
 @Service
 public class ArchiveHistoryService {
+
+	private static final Logger LOG = LoggerFactory.getLogger(ArchiveHistoryService.class);
 
 	private final BatchHistoryRepository batchHistoryRepository;
 
@@ -43,8 +46,6 @@ public class ArchiveHistoryService {
 	private final ArchiveAttachmentService archiveAttachmentService;
 
 	private final FastighetService fastighetService;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ArchiveHistoryService.class);
 
 	public ArchiveHistoryService(final BatchHistoryRepository batchHistoryRepository,
 		final ArendeExportIntegrationService arendeExportIntegrationService,
@@ -225,4 +226,5 @@ public class ArchiveHistoryService {
 	private boolean isArchived(final ArchiveHistory archiveHistory) {
 		return (archiveHistory != null) && (archiveHistory.getArchiveId() != null);
 	}
+
 }

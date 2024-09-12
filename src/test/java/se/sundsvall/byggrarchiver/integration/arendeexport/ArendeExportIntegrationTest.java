@@ -62,4 +62,5 @@ class ArendeExportIntegrationTest {
 		verify(mockClient).getUpdatedArenden(updatedArendenRequest);
 		verifyNoMoreInteractions(mockClient);
 	}
+
 }

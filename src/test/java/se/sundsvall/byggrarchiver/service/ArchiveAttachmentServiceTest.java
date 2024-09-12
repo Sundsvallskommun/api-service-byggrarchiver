@@ -33,6 +33,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
+import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
+import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
+
 import feign.FeignException;
 import feign.Request;
 import generated.se.sundsvall.archive.ArchiveResponse;
@@ -48,25 +56,22 @@ import generated.se.sundsvall.arendeexport.Fastighet;
 import generated.se.sundsvall.arendeexport.Handelse;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
 import generated.se.sundsvall.bygglov.FastighetTyp;
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
-import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
-import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiveAttachmentServiceTest {
 
 	@Mock
 	LongTermArchiveProperties longTermArchivePropertiesMock;
+
 	@Mock
 	private ArchiveHistoryRepository archiveHistoryRepositoryMock;
+
 	@Mock
 	private MessagingIntegration messagingIntegrationMock;
+
 	@Mock
 	private ArchiveIntegration archiveIntegrationMock;
+
 	@Mock
 	private FastighetService fastighetService;
 
@@ -290,10 +295,10 @@ class ArchiveAttachmentServiceTest {
 	/**
 	 * Util method for creating arende-objects
 	 *
-	 * @param  status               - status for the arende
-	 * @param  handelsetyp          - type of handelse that should be included
-	 * @param  attachmentCategories - the documents that should be generated
-	 * @return                      Arende
+	 * @param status - status for the arende
+	 * @param handelsetyp - type of handelse that should be included
+	 * @param attachmentCategories - the documents that should be generated
+	 * @return Arende
 	 */
 	private Arende createArendeObject(final String status, final String handelsetyp,
 		final List<AttachmentCategory> attachmentCategories) {
@@ -341,4 +346,5 @@ class ArchiveAttachmentServiceTest {
 		arrayOfAbstractArendeObjekt.getAbstractArendeObjekt().add(arendeFastighet);
 		return arrayOfAbstractArendeObjekt;
 	}
+
 }

@@ -14,10 +14,19 @@ import java.io.StringWriter;
 import java.time.LocalDate;
 import java.util.Map;
 
+import jakarta.xml.bind.JAXBContext;
+
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
+import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import feign.FeignException;
 import generated.se.sundsvall.archive.ArchiveResponse;
@@ -27,21 +36,13 @@ import generated.se.sundsvall.arendeexport.Handling;
 import generated.se.sundsvall.bygglov.ArkivobjektListaArendenTyp;
 import generated.se.sundsvall.bygglov.LeveransobjektTyp;
 import generated.se.sundsvall.bygglov.ObjectFactory;
-import jakarta.xml.bind.JAXBContext;
-import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
-import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 @Service
 public class ArchiveAttachmentService {
 
 	static final String ARCHIVE_URL_QUERY = "/Search?searchPath=AGS%20Bygglov&aipFilterOption=0&Arkivpakets-ID=MatchesPhrase(${archiveId})";
-	private static final Logger LOG = LoggerFactory.getLogger(ArchiveAttachmentService.class);
 
-	LongTermArchiveProperties longTermArchiveProperties;
+	private static final Logger LOG = LoggerFactory.getLogger(ArchiveAttachmentService.class);
 
 	private final ArchiveHistoryRepository archiveHistoryRepository;
 
@@ -50,6 +51,8 @@ public class ArchiveAttachmentService {
 	private final ArchiveIntegration archiveIntegration;
 
 	private final FastighetService fastighetService;
+
+	LongTermArchiveProperties longTermArchiveProperties;
 
 	public ArchiveAttachmentService(final LongTermArchiveProperties longTermArchiveProperties, final ArchiveHistoryRepository archiveHistoryRepository,
 		final MessagingIntegration messagingIntegration, final ArchiveIntegration archiveIntegration, final FastighetService fastighetService) {
@@ -150,4 +153,5 @@ public class ArchiveAttachmentService {
 			throw new ApplicationException("Something went wrong when trying to marshal LeveransobjektTyp", e);
 		}
 	}
+
 }

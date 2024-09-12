@@ -1,11 +1,8 @@
 package se.sundsvall.byggrarchiver;
 
-import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.scheduling.annotation.Scheduled;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -15,9 +12,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.scheduling.annotation.Scheduled;
+
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 class ShedlockAnnotationsTest {
 
@@ -75,4 +76,5 @@ class ShedlockAnnotationsTest {
 			return Collections.emptyMap();
 		}
 	}
+
 }

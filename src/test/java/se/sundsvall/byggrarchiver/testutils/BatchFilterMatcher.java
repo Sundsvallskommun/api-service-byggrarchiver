@@ -8,15 +8,16 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class BatchFilterMatcher implements ArgumentMatcher<BatchFilter> {
 
-    private BatchFilter left;
+	private BatchFilter left;
 
-    @Override
-    public boolean matches(final BatchFilter right) {
-        if (right == null) {
-            return false;
-        }
+	@Override
+	public boolean matches(final BatchFilter right) {
+		if (right == null) {
+			return false;
+		}
 
-        return left.getLowerExclusiveBound().isEqual(right.getLowerExclusiveBound()) &&
-                left.getUpperInclusiveBound().isEqual(right.getUpperInclusiveBound());
-    }
+		return left.getLowerExclusiveBound().isEqual(right.getLowerExclusiveBound()) &&
+			left.getUpperInclusiveBound().isEqual(right.getUpperInclusiveBound());
+	}
+
 }

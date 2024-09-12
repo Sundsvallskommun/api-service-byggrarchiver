@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Messaging
-  contact: {}
+  contact: { }
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT
@@ -2148,4 +2148,4 @@ components:
         timestamp:
           type: string
           format: date-time
-  securitySchemes: {}
+  securitySchemes: { }

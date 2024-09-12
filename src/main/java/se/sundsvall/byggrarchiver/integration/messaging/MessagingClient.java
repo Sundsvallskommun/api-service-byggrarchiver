@@ -11,16 +11,17 @@ import generated.se.sundsvall.messaging.EmailRequest;
 import generated.se.sundsvall.messaging.MessageResult;
 
 @FeignClient(
-    name = INTEGRATION_NAME,
-    url = "${integration.messaging.url}",
-    configuration = MessagingIntegrationConfiguration.class
+	name = INTEGRATION_NAME,
+	url = "${integration.messaging.url}",
+	configuration = MessagingIntegrationConfiguration.class
 )
 public interface MessagingClient {
 
-    @PostMapping(
-        path = "/email",
-        consumes = APPLICATION_JSON_VALUE,
-        produces = APPLICATION_JSON_VALUE
-    )
-    MessageResult sendEmail(@RequestBody EmailRequest emailRequest);
+	@PostMapping(
+		path = "/email",
+		consumes = APPLICATION_JSON_VALUE,
+		produces = APPLICATION_JSON_VALUE
+	)
+	MessageResult sendEmail(@RequestBody EmailRequest emailRequest);
+
 }

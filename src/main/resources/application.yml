@@ -1,41 +1,41 @@
 openapi:
-    description: '@project.description@'
-    name: ${spring.application.name}
-    title: ByggR Archiver
-    version: '@project.version@'
+  description: '@project.description@'
+  name: ${spring.application.name}
+  title: ByggR Archiver
+  version: '@project.version@'
 resilience4j:
-    circuitbreaker:
-        instances:
-            archive:
-                ignoreExceptions: se.sundsvall.dept44.exception.ClientProblem
-            messaging:
-                ignoreExceptions: se.sundsvall.dept44.exception.ClientProblem
-    retry:
-        instances:
-            archive:
-                ignore-exceptions: se.sundsvall.dept44.exception.ClientProblem
-            messaging:
-                ignore-exceptions: se.sundsvall.dept44.exception.ClientProblem
+  circuitbreaker:
+    instances:
+      archive:
+        ignoreExceptions: se.sundsvall.dept44.exception.ClientProblem
+      messaging:
+        ignoreExceptions: se.sundsvall.dept44.exception.ClientProblem
+  retry:
+    instances:
+      archive:
+        ignore-exceptions: se.sundsvall.dept44.exception.ClientProblem
+      messaging:
+        ignore-exceptions: se.sundsvall.dept44.exception.ClientProblem
 spring:
-    application:
-        name: api-byggrarchiver
-    datasource:
-        driver-class-name: org.mariadb.jdbc.Driver
-    flyway:
-        enabled: false
-        baseline-on-migrate: true
+  application:
+    name: api-byggrarchiver
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+  flyway:
+    enabled: false
+    baseline-on-migrate: true
 logbook:
-    body-filters:
-        xPath:
-            - key: '//*[contains(local-name(), "filBuffer")]'
-              value: '[binary]'
-            - key: '//*[contains(local-name(), "GetUpdatedArendenResponse")]'
-              value: '[filtered-xml]'
-        jsonPath:
-            - key: '$..file'
-              value: '[base64]'
+  body-filters:
+    xPath:
+      - key: '//*[contains(local-name(), "filBuffer")]'
+        value: '[binary]'
+      - key: '//*[contains(local-name(), "GetUpdatedArendenResponse")]'
+        value: '[filtered-xml]'
+    jsonPath:
+      - key: '$..file'
+        value: '[base64]'
 
 byggrarchiver:
-    cron:
-        expression: '-'
-    shedlock-lock-at-most-for: PT2M
+  cron:
+    expression: '-'
+  shedlock-lock-at-most-for: PT2M

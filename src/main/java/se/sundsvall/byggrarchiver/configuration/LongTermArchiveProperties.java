@@ -9,5 +9,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("long-term-archive")
 public record LongTermArchiveProperties(
 
-    @NotBlank
-    String url) { }
+	@NotBlank
+	String url) {
+
+}

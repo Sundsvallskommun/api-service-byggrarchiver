@@ -15,9 +15,10 @@ import se.sundsvall.byggrarchiver.api.validation.impl.StartBeforeEndValidator;
 @Constraint(validatedBy = StartBeforeEndValidator.class)
 public @interface StartBeforeEnd {
 
-    String message() default "End can not be before start";
+	String message() default "End can not be before start";
 
-    Class<?>[] groups() default {};
+	Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default {};
+	Class<? extends Payload>[] payload() default {};
+
 }

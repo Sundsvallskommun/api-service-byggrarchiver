@@ -16,38 +16,39 @@ import se.sundsvall.byggrarchiver.util.Util;
 
 class UtilTest {
 
-    @Test
-    void testByteArrayToBase64() {
-        assertThat(Util.byteArrayToBase64(null)).isNull();
-    }
+	@Test
+	void testByteArrayToBase64() {
+		assertThat(Util.byteArrayToBase64(null)).isNull();
+	}
 
-    @Test
-    void testGetExtensionFromByteArray() throws IOException, ApplicationException {
-        var file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("File_Without_Extension")).getFile());
-        var path = Paths.get(file.getAbsolutePath());
-        var bytes = Files.readAllBytes(path);
+	@Test
+	void testGetExtensionFromByteArray() throws IOException, ApplicationException {
+		var file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("File_Without_Extension")).getFile());
+		var path = Paths.get(file.getAbsolutePath());
+		var bytes = Files.readAllBytes(path);
 
-        assertThat(Util.getExtensionFromByteArray(bytes)).isEqualTo("docx");
-    }
+		assertThat(Util.getExtensionFromByteArray(bytes)).isEqualTo("docx");
+	}
 
-    @Test
-    void testGetExtensionFromByteArrayError() throws IOException {
-        var file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("Error_File_Without_Extension")).getFile());
-        var path = Paths.get(file.getAbsolutePath());
-        var bytes = Files.readAllBytes(path);
+	@Test
+	void testGetExtensionFromByteArrayError() throws IOException {
+		var file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("Error_File_Without_Extension")).getFile());
+		var path = Paths.get(file.getAbsolutePath());
+		var bytes = Files.readAllBytes(path);
 
-        assertThatExceptionOfType(ApplicationException.class)
-            .isThrownBy(() -> Util.getExtensionFromByteArray(bytes))
-            .withMessage("Could not guess extension from bytearray");
-    }
+		assertThatExceptionOfType(ApplicationException.class)
+			.isThrownBy(() -> Util.getExtensionFromByteArray(bytes))
+			.withMessage("Could not guess extension from bytearray");
+	}
 
-    @Test
-    void testGetStringOrEmpty_1() {
-        assertThat(Util.getStringOrEmpty(null)).isEmpty();
-    }
+	@Test
+	void testGetStringOrEmpty_1() {
+		assertThat(Util.getStringOrEmpty(null)).isEmpty();
+	}
 
-    @Test
-    void testGetStringOrEmpty_2() {
-        assertThat(Util.getStringOrEmpty("test")).isEqualTo("test");
-    }
+	@Test
+	void testGetStringOrEmpty_2() {
+		assertThat(Util.getStringOrEmpty("test")).isEqualTo("test");
+	}
+
 }

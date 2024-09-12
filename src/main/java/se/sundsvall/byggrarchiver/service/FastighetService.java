@@ -4,10 +4,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import generated.se.sundsvall.arendeexport.ArendeFastighet;
-import generated.se.sundsvall.bygglov.FastighetTyp;
 import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+
+import generated.se.sundsvall.arendeexport.ArendeFastighet;
+import generated.se.sundsvall.bygglov.FastighetTyp;
 
 @Service
 public class FastighetService {
@@ -35,4 +36,5 @@ public class FastighetService {
 
 		return fastighet;
 	}
+
 }

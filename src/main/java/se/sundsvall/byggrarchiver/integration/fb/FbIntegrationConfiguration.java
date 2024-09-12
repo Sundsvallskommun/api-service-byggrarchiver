@@ -12,22 +12,23 @@ import se.sundsvall.dept44.configuration.feign.decoder.ProblemErrorDecoder;
 @Import(FeignConfiguration.class)
 class FbIntegrationConfiguration {
 
-    static final String INTEGRATION_NAME = "fb";
+	static final String INTEGRATION_NAME = "fb";
 
-    private final FbIntegrationProperties properties;
+	private final FbIntegrationProperties properties;
 
-    FbIntegrationConfiguration(final FbIntegrationProperties properties) {
-        this.properties = properties;
-    }
+	FbIntegrationConfiguration(final FbIntegrationProperties properties) {
+		this.properties = properties;
+	}
 
-    @Bean
-    FeignBuilderCustomizer feignBuilderCustomizer() {
-        return FeignMultiCustomizer.create()
-            .withRequestInterceptor(requestTemplate -> requestTemplate
-                .query("Database", properties.database())
-                .query("User", properties.username())
-                .query("Password", properties.password()))
-            .withErrorDecoder(new ProblemErrorDecoder(INTEGRATION_NAME))
-            .composeCustomizersToOne();
-    }
+	@Bean
+	FeignBuilderCustomizer feignBuilderCustomizer() {
+		return FeignMultiCustomizer.create()
+			.withRequestInterceptor(requestTemplate -> requestTemplate
+				.query("Database", properties.database())
+				.query("User", properties.username())
+				.query("Password", properties.password()))
+			.withErrorDecoder(new ProblemErrorDecoder(INTEGRATION_NAME))
+			.composeCustomizersToOne();
+	}
+
 }

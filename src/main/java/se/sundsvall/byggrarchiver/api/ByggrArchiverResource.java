@@ -42,142 +42,145 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RestController
 @RequestMapping(produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
 @ApiResponse(
-    responseCode = "200",
-    description = "OK - Successful operation"
+	responseCode = "200",
+	description = "OK - Successful operation"
 )
 @ApiResponse(
-    responseCode = "400",
-    description = "Bad request",
-    content = @Content(
-        mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-        schema = @Schema(oneOf = { Problem.class, ConstraintViolationProblem.class })
-    )
+	responseCode = "400",
+	description = "Bad request",
+	content = @Content(
+		mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+		schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})
+	)
 )
 @ApiResponse(
-    responseCode = "500",
-    description = "Internal Server error",
-    content = @Content(
-        mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-        schema = @Schema(implementation = Problem.class)
-    )
+	responseCode = "500",
+	description = "Internal Server error",
+	content = @Content(
+		mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+		schema = @Schema(implementation = Problem.class)
+	)
 )
 class ByggrArchiverResource {
 
-    private final ByggrArchiverService byggrArchiverService;
-    private final ArchiveHistoryRepository archiveHistoryRepository;
-    private final BatchHistoryRepository batchHistoryRepository;
+	private final ByggrArchiverService byggrArchiverService;
 
-    ByggrArchiverResource(final ByggrArchiverService byggrArchiverService,
-            final ArchiveHistoryRepository archiveHistoryRepository,
-            final BatchHistoryRepository batchHistoryRepository) {
-        this.byggrArchiverService = byggrArchiverService;
-        this.archiveHistoryRepository = archiveHistoryRepository;
-        this.batchHistoryRepository = batchHistoryRepository;
-    }
+	private final ArchiveHistoryRepository archiveHistoryRepository;
 
-    @GetMapping("/archived/attachments")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Not found",
-        content = @Content(
-            mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-            schema = @Schema(implementation = Problem.class)
-        )
-    )
-    ResponseEntity<List<ArchiveHistoryResponse>> getArchiveHistory(
-            @RequestParam(value = "archiveStatus", required = false) final ArchiveStatus archiveStatus,
-            @RequestParam(value = "batchHistoryId", required = false) final Long batchHistoryId) {
-        var archiveHistoryList = archiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(archiveStatus, batchHistoryId);
+	private final BatchHistoryRepository batchHistoryRepository;
 
-        if (archiveHistoryList.isEmpty()) {
-            throw Problem.valueOf(Status.NOT_FOUND, "ArchiveHistory not found");
-        }
+	ByggrArchiverResource(final ByggrArchiverService byggrArchiverService,
+		final ArchiveHistoryRepository archiveHistoryRepository,
+		final BatchHistoryRepository batchHistoryRepository) {
+		this.byggrArchiverService = byggrArchiverService;
+		this.archiveHistoryRepository = archiveHistoryRepository;
+		this.batchHistoryRepository = batchHistoryRepository;
+	}
 
-        return ResponseEntity.ok(archiveHistoryList.stream()
-            .map(this::mapToArchiveHistoryResponse)
-            .toList());
-    }
+	@GetMapping("/archived/attachments")
+	@ApiResponse(
+		responseCode = "404",
+		description = "Not found",
+		content = @Content(
+			mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+			schema = @Schema(implementation = Problem.class)
+		)
+	)
+	ResponseEntity<List<ArchiveHistoryResponse>> getArchiveHistory(
+		@RequestParam(value = "archiveStatus", required = false) final ArchiveStatus archiveStatus,
+		@RequestParam(value = "batchHistoryId", required = false) final Long batchHistoryId) {
+		var archiveHistoryList = archiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryId(archiveStatus, batchHistoryId);
 
-    @GetMapping("/batch-jobs")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Not found",
-        content = @Content(
-            mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-            schema = @Schema(implementation = Problem.class)
-        )
-    )
-    ResponseEntity<List<BatchHistoryResponse>> getBatchHistory() {
-        var batchHistoryList = batchHistoryRepository.findAll();
+		if (archiveHistoryList.isEmpty()) {
+			throw Problem.valueOf(Status.NOT_FOUND, "ArchiveHistory not found");
+		}
 
-        if (batchHistoryList.isEmpty()) {
-            throw Problem.valueOf(Status.NOT_FOUND, "BatchHistory not found");
-        }
+		return ResponseEntity.ok(archiveHistoryList.stream()
+			.map(this::mapToArchiveHistoryResponse)
+			.toList());
+	}
 
-        return ResponseEntity.ok(batchHistoryList.stream()
-            .map(this::mapToBatchHistoryResponse)
-            .toList());
-    }
+	@GetMapping("/batch-jobs")
+	@ApiResponse(
+		responseCode = "404",
+		description = "Not found",
+		content = @Content(
+			mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+			schema = @Schema(implementation = Problem.class)
+		)
+	)
+	ResponseEntity<List<BatchHistoryResponse>> getBatchHistory() {
+		var batchHistoryList = batchHistoryRepository.findAll();
 
-    @PostMapping("/batch-jobs")
-    public ResponseEntity<BatchHistoryResponse> postBatchJob(
-            @Valid
-            @StartBeforeEnd
-            @NotNull(message = "Request body must not be null")
-            @RequestBody final BatchJob batchJob) {
-        var result = byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL);
+		if (batchHistoryList.isEmpty()) {
+			throw Problem.valueOf(Status.NOT_FOUND, "BatchHistory not found");
+		}
 
-        return ResponseEntity.ok(mapToBatchHistoryResponse(result));
-    }
+		return ResponseEntity.ok(batchHistoryList.stream()
+			.map(this::mapToBatchHistoryResponse)
+			.toList());
+	}
 
-    @PostMapping("/batch-jobs/{batchHistoryId}/rerun")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Not found",
-        content = @Content(
-            mediaType = APPLICATION_PROBLEM_JSON_VALUE,
-            schema = @Schema(implementation = Problem.class)
-        )
-    )
-    ResponseEntity<BatchHistoryResponse> reRunBatchJob(
-            @PathVariable("batchHistoryId") final Long batchHistoryId) {
-        var result = byggrArchiverService.reRunBatch(batchHistoryId);
+	@PostMapping("/batch-jobs")
+	public ResponseEntity<BatchHistoryResponse> postBatchJob(
+		@Valid
+		@StartBeforeEnd
+		@NotNull(message = "Request body must not be null")
+		@RequestBody final BatchJob batchJob) {
+		var result = byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL);
 
-        return ResponseEntity.ok(mapToBatchHistoryResponse(result));
-    }
+		return ResponseEntity.ok(mapToBatchHistoryResponse(result));
+	}
 
-    ArchiveHistoryResponse mapToArchiveHistoryResponse(final ArchiveHistory archiveHistory) {
-        if (archiveHistory == null) {
-            return null;
-        }
+	@PostMapping("/batch-jobs/{batchHistoryId}/rerun")
+	@ApiResponse(
+		responseCode = "404",
+		description = "Not found",
+		content = @Content(
+			mediaType = APPLICATION_PROBLEM_JSON_VALUE,
+			schema = @Schema(implementation = Problem.class)
+		)
+	)
+	ResponseEntity<BatchHistoryResponse> reRunBatchJob(
+		@PathVariable("batchHistoryId") final Long batchHistoryId) {
+		var result = byggrArchiverService.reRunBatch(batchHistoryId);
 
-        return ArchiveHistoryResponse.builder()
-            .withDocumentId(archiveHistory.getDocumentId())
-            .withCaseId(archiveHistory.getCaseId())
-            .withDocumentName(archiveHistory.getDocumentName())
-            .withDocumentType(archiveHistory.getDocumentType())
-            .withArchiveId(archiveHistory.getArchiveId())
-            .withArchiveUrl(archiveHistory.getArchiveUrl())
-            .withArchiveStatus(archiveHistory.getArchiveStatus())
-            .withTimestamp(archiveHistory.getTimestamp())
-            .withBatchHistory(Optional.ofNullable(archiveHistory.getBatchHistory())
-                .map(this::mapToBatchHistoryResponse)
-                .orElse(null))
-            .build();
-    }
+		return ResponseEntity.ok(mapToBatchHistoryResponse(result));
+	}
 
-    BatchHistoryResponse mapToBatchHistoryResponse(final BatchHistory batchHistory) {
-        if (batchHistory == null) {
-            return null;
-        }
+	ArchiveHistoryResponse mapToArchiveHistoryResponse(final ArchiveHistory archiveHistory) {
+		if (archiveHistory == null) {
+			return null;
+		}
 
-        return BatchHistoryResponse.builder()
-            .withId(batchHistory.getId())
-            .withStart(batchHistory.getStart())
-            .withEnd(batchHistory.getEnd())
-            .withArchiveStatus(batchHistory.getArchiveStatus())
-            .withBatchTrigger(batchHistory.getBatchTrigger())
-            .withTimestamp(batchHistory.getTimestamp())
-            .build();
-    }
+		return ArchiveHistoryResponse.builder()
+			.withDocumentId(archiveHistory.getDocumentId())
+			.withCaseId(archiveHistory.getCaseId())
+			.withDocumentName(archiveHistory.getDocumentName())
+			.withDocumentType(archiveHistory.getDocumentType())
+			.withArchiveId(archiveHistory.getArchiveId())
+			.withArchiveUrl(archiveHistory.getArchiveUrl())
+			.withArchiveStatus(archiveHistory.getArchiveStatus())
+			.withTimestamp(archiveHistory.getTimestamp())
+			.withBatchHistory(Optional.ofNullable(archiveHistory.getBatchHistory())
+				.map(this::mapToBatchHistoryResponse)
+				.orElse(null))
+			.build();
+	}
+
+	BatchHistoryResponse mapToBatchHistoryResponse(final BatchHistory batchHistory) {
+		if (batchHistory == null) {
+			return null;
+		}
+
+		return BatchHistoryResponse.builder()
+			.withId(batchHistory.getId())
+			.withStart(batchHistory.getStart())
+			.withEnd(batchHistory.getEnd())
+			.withArchiveStatus(batchHistory.getArchiveStatus())
+			.withBatchTrigger(batchHistory.getBatchTrigger())
+			.withTimestamp(batchHistory.getTimestamp())
+			.build();
+	}
+
 }

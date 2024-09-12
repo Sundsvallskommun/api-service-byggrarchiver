@@ -2,19 +2,21 @@ package se.sundsvall.byggrarchiver.service;
 
 import java.util.List;
 
+import jakarta.xml.ws.soap.SOAPFaultException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
+import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
+
 import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.BatchFilter;
 import generated.se.sundsvall.arendeexport.Dokument;
 import generated.se.sundsvall.arendeexport.GetDocument;
 import generated.se.sundsvall.arendeexport.GetUpdatedArenden;
-import jakarta.xml.ws.soap.SOAPFaultException;
-import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
 
 @Service
 public class ArendeExportIntegrationService {
@@ -50,4 +52,5 @@ public class ArendeExportIntegrationService {
 			throw Problem.valueOf(Status.SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetDocument')");
 		}
 	}
+
 }

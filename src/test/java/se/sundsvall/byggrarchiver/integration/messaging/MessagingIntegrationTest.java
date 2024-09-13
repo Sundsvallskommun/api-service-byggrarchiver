@@ -60,7 +60,7 @@ class MessagingIntegrationTest {
 
 		verify(mockEmailProperties, times(2)).extensionError();
 		verifyNoMoreInteractions(mockEmailProperties);
-		verify(mockClient, times(1)).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
+		verify(mockClient).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
 		verifyNoMoreInteractions(mockClient);
 	}
 
@@ -84,7 +84,7 @@ class MessagingIntegrationTest {
 
 		verify(mockEmailProperties, times(2)).status();
 		verifyNoMoreInteractions(mockEmailProperties);
-		verify(mockClient, times(1)).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
+		verify(mockClient).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
 		verifyNoMoreInteractions(mockClient);
 	}
 
@@ -104,7 +104,7 @@ class MessagingIntegrationTest {
 
 		verify(mockEmailProperties, times(2)).lantmateriet();
 		verifyNoMoreInteractions(mockEmailProperties);
-		verify(mockClient, times(1)).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
+		verify(mockClient).sendEmail(eq(MUNICIPALITY_ID), any(EmailRequest.class));
 		verifyNoMoreInteractions(mockClient);
 	}
 

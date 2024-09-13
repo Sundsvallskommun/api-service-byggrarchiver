@@ -2,7 +2,6 @@ package se.sundsvall.byggrarchiver.testutils;
 
 import org.mockito.ArgumentMatcher;
 
-import generated.se.sundsvall.archive.Attachment;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 
 public class ArchiveMessageAttachmentMatcher implements ArgumentMatcher<ByggRArchiveRequest> {
@@ -14,9 +13,9 @@ public class ArchiveMessageAttachmentMatcher implements ArgumentMatcher<ByggRArc
 	}
 
 	@Override
-	public boolean matches(ByggRArchiveRequest right) {
-		Attachment aLeft = left.getAttachment();
-		Attachment aRight = right.getAttachment();
+	public boolean matches(final ByggRArchiveRequest right) {
+		final var aLeft = left.getAttachment();
+		final var aRight = right.getAttachment();
 
 		if (aLeft.equals(aRight)) {
 			return true;

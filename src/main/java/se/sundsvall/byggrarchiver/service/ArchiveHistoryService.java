@@ -29,7 +29,6 @@ import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
-import se.sundsvall.dept44.common.validators.annotation.ValidMunicipalityId;
 
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.ArendeBatch;
@@ -233,7 +232,7 @@ public class ArchiveHistoryService {
 		return (archiveHistory != null) && (archiveHistory.getArchiveId() != null);
 	}
 
-	public List<ArchiveHistoryResponse> getArchiveHistories(final ArchiveStatus archiveStatus, final Long batchHistoryId, final @ValidMunicipalityId String municipalityId) {
+	public List<ArchiveHistoryResponse> getArchiveHistories(final ArchiveStatus archiveStatus, final Long batchHistoryId, final String municipalityId) {
 
 		return archiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(archiveStatus, batchHistoryId, municipalityId).stream()
 			.map(ArchiverMapper::mapToArchiveHistoryResponse).toList();

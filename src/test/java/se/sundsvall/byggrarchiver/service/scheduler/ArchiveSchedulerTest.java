@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.service.scheduler;
 
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -49,7 +48,7 @@ class ArchiveSchedulerTest {
 		archiverScheduler.archive();
 
 		// Assert
-		verify(mockByggrArchiverService, times(1)).runBatch(originalStart, end, batchTrigger, municipalityId);
+		verify(mockByggrArchiverService).runBatch(originalStart, end, batchTrigger, municipalityId);
 		verifyNoMoreInteractions(mockByggrArchiverService);
 	}
 

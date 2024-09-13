@@ -53,7 +53,7 @@ class ArchiveHistoryResponseTest {
 		final var batchHistory = new BatchHistoryResponse();
 
 		// Act
-		final var batchHistoryResponse = ArchiveHistoryResponse.builder()
+		final var archiveHistoryResponse = ArchiveHistoryResponse.builder()
 			.withDocumentId(documentId)
 			.withCaseId(caseId)
 			.withDocumentName(documentName)
@@ -66,16 +66,16 @@ class ArchiveHistoryResponseTest {
 			.build();
 
 		// Assert
-		assertThat(batchHistoryResponse).isNotNull().hasNoNullFieldsOrProperties();
-		assertThat(batchHistoryResponse.getDocumentId()).isEqualTo(documentId);
-		assertThat(batchHistoryResponse.getCaseId()).isEqualTo(caseId);
-		assertThat(batchHistoryResponse.getDocumentName()).isEqualTo(documentName);
-		assertThat(batchHistoryResponse.getDocumentType()).isEqualTo(documentType);
-		assertThat(batchHistoryResponse.getArchiveId()).isEqualTo(archiveId);
-		assertThat(batchHistoryResponse.getArchiveUrl()).isEqualTo(archiveUrl);
-		assertThat(batchHistoryResponse.getArchiveStatus()).isEqualTo(archiveStatus);
-		assertThat(batchHistoryResponse.getTimestamp()).isEqualTo(timestamp);
-		assertThat(batchHistoryResponse.getBatchHistory()).isEqualTo(batchHistory);
+		assertThat(archiveHistoryResponse).isNotNull().hasNoNullFieldsOrProperties();
+		assertThat(archiveHistoryResponse.getDocumentId()).isEqualTo(documentId);
+		assertThat(archiveHistoryResponse.getCaseId()).isEqualTo(caseId);
+		assertThat(archiveHistoryResponse.getDocumentName()).isEqualTo(documentName);
+		assertThat(archiveHistoryResponse.getDocumentType()).isEqualTo(documentType);
+		assertThat(archiveHistoryResponse.getArchiveId()).isEqualTo(archiveId);
+		assertThat(archiveHistoryResponse.getArchiveUrl()).isEqualTo(archiveUrl);
+		assertThat(archiveHistoryResponse.getArchiveStatus()).isEqualTo(archiveStatus);
+		assertThat(archiveHistoryResponse.getTimestamp()).isEqualTo(timestamp);
+		assertThat(archiveHistoryResponse.getBatchHistory()).isEqualTo(batchHistory);
 	}
 
 	@Test

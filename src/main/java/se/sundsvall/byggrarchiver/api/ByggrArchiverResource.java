@@ -55,7 +55,8 @@ class ByggrArchiverResource {
 	}
 
 	@GetMapping("/archived/attachments")
-	ResponseEntity<List<ArchiveHistoryResponse>> getArchiveHistory(@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
+	ResponseEntity<List<ArchiveHistoryResponse>> getArchiveHistory(
+		@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
 		@RequestParam(value = "archiveStatus", required = false) final ArchiveStatus archiveStatus,
 		@RequestParam(value = "batchHistoryId", required = false) final Long batchHistoryId) {
 		return ResponseEntity.ok(archiveHistoryService.getArchiveHistories(archiveStatus, batchHistoryId, municipalityId));

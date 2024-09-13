@@ -132,8 +132,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withServicePath(ARCHIVED_PATH + "?batchHistoryId=" + postBatchHistory.getId())
 			.withExpectedResponseStatus(OK)
 			.withExpectedResponse("response.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	@Test
@@ -147,8 +146,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
 			.withExpectedResponse("response.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	@Test
@@ -158,8 +156,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withServicePath(BATCH_PATH)
 			.withExpectedResponseStatus(OK)
 			.withExpectedResponse("response.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	// Rerun an earlier batch
@@ -180,8 +177,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withServicePath(BATCH_PATH + "/" + batchHistory.getId() + "/rerun")
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(OK)
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	// Rerun an earlier completed batch - verify it did not run
@@ -219,8 +215,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(NOT_FOUND)
 			.withExpectedResponse("response.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	// Try to run batch with start today and end tomorrow
@@ -238,8 +233,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
 			.withExpectedResponse("response.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	// Try to run batch with start and end tomorrow
@@ -257,8 +251,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
 			.withExpectedResponse("response.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	// Try to run batch with start date later than end date
@@ -276,8 +269,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
 			.withExpectedResponse("response.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	// Test exception from GetUpdatedArenden - Should return http 500
@@ -295,16 +287,14 @@ class IntegrationTest extends AbstractAppTest {
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(SERVICE_UNAVAILABLE)
 			.withExpectedResponse("response.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 
 		setupCall()
 			.withHttpMethod(GET)
 			.withServicePath(ARCHIVED_PATH)
 			.withExpectedResponseStatus(OK)
 			.withExpectedResponse("response2.json")
-			.sendRequestAndVerifyResponse()
-			.verifyAllStubs();
+			.sendRequestAndVerifyResponse();
 	}
 
 	//

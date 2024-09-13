@@ -2,8 +2,8 @@ package se.sundsvall.byggrarchiver.service.exceptions;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -17,8 +17,8 @@ class ApplicationExceptionTest {
 
 	@Test
 	void test1() {
-		String message = "test1";
-		var exception = assertThrows(ApplicationException.class, () -> {
+		final var message = "test1";
+		final var exception = assertThrows(ApplicationException.class, () -> {
 			throw new ApplicationException(message);
 		});
 
@@ -27,13 +27,13 @@ class ApplicationExceptionTest {
 
 	@Test
 	void test2() {
-		String message = "test2";
-		var exception = assertThrows(ApplicationException.class, () -> {
+		final var message = "test2";
+		final var exception = assertThrows(ApplicationException.class, () -> {
 			throw new ApplicationException(message, Problem.valueOf(Status.INTERNAL_SERVER_ERROR));
 		});
 
 		assertEquals(message, exception.getMessage());
-		assertTrue(exception.getCause() instanceof ThrowableProblem);
+		assertInstanceOf(ThrowableProblem.class, exception.getCause());
 	}
 
 }

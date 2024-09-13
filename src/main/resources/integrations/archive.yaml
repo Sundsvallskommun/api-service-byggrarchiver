@@ -1,61 +1,21 @@
 openapi: 3.0.1
 info:
-  title: ByggR Archiver
-  description: Application that archives documents from Byggr
+  title: api-archive
   contact: { }
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT
   version: "2.0"
 servers:
-  - url: http://localhost:62328
+  - url: http://localhost:8080
     description: Generated server url
 paths:
-  /{municipalityId}/batch-jobs:
-    get:
-      tags:
-        - byggr-archiver-resource
-      operationId: getBatchHistory
-      parameters:
-        - name: municipalityId
-          in: path
-          description: Municipality id
-          required: true
-          schema:
-            type: string
-          example: 2281
-      responses:
-        "200":
-          description: OK - Successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/BatchHistoryResponse"
-            application/problem+json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/BatchHistoryResponse"
-        "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
-        "500":
-          description: Internal Server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+  /{municipalityId}/archive/byggr:
     post:
       tags:
-        - byggr-archiver-resource
-      operationId: postBatchJob
+        - Archive resources
+      summary: Submit a ByggR archive request
+      operationId: byggR
       parameters:
         - name: municipalityId
           in: path
@@ -68,63 +28,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/BatchJob"
+              $ref: "#/components/schemas/ByggRArchiveRequest"
         required: true
       responses:
-        "200":
-          description: OK - Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BatchHistoryResponse"
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/BatchHistoryResponse"
-        "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /{municipalityId}/batch-jobs/{batchHistoryId}/rerun:
-    post:
-      tags:
-        - byggr-archiver-resource
-      operationId: reRunBatchJob
-      parameters:
-        - name: municipalityId
-          in: path
-          description: Municipality id
-          required: true
-          schema:
-            type: string
-          example: 2281
-        - name: batchHistoryId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        "200":
-          description: OK - Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BatchHistoryResponse"
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/BatchHistoryResponse"
-        "404":
-          description: Not found
           content:
             application/problem+json:
               schema:
@@ -137,67 +45,18 @@ paths:
                 oneOf:
                   - $ref: "#/components/schemas/Problem"
                   - $ref: "#/components/schemas/ConstraintViolationProblem"
-        "500":
-          description: Internal Server error
+        "502":
+          description: Bad Gateway
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /{municipalityId}/archived/attachments:
-    get:
-      tags:
-        - byggr-archiver-resource
-      operationId: getArchiveHistory
-      parameters:
-        - name: municipalityId
-          in: path
-          description: Municipality id
-          required: true
-          schema:
-            type: string
-          example: 2281
-        - name: archiveStatus
-          in: query
-          required: false
-          schema:
-            type: string
-            enum:
-              - COMPLETED
-              - NOT_COMPLETED
-        - name: batchHistoryId
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-      responses:
         "200":
-          description: OK - Successful operation
+          description: Successful operation
           content:
-            application/json:
+            '*/*':
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ArchiveHistoryResponse"
-            application/problem+json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ArchiveHistoryResponse"
-        "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
-        "500":
-          description: Internal Server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ArchiveResponse"
   /api-docs:
     get:
       tags:
@@ -216,22 +75,37 @@ paths:
       x-wso2-mutual-ssl: Optional
 components:
   schemas:
-    BatchJob:
+    Attachment:
       required:
-        - end
-        - start
+        - extension
+        - name
       type: object
       properties:
-        start:
+        name:
           type: string
-          description: Startdatum på körningen.
-          format: date
-          example: 2021-01-01
-        end:
+        extension:
+          pattern: ^\.(bmp|gif|tif|tiff|jpeg|jpg|png|htm|html|pdf|rtf|doc|docx|txt|xls|xlsx|odt|ods|pptx|ppt|msg)$
           type: string
-          description: Slutdatum på körningen.
-          format: date
-          example: 2021-01-02
+          example: .pdf
+        file:
+          maxLength: 100000000
+          minLength: 0
+          type: string
+          description: BASE64-encoded file contents (Max 100Mb)
+          example: YXBhCg==
+      description: Bilaga
+    ByggRArchiveRequest:
+      required:
+        - attachment
+        - metadata
+      type: object
+      properties:
+        attachment:
+          $ref: "#/components/schemas/Attachment"
+        metadata:
+          type: string
+          description: Metadata XML
+      description: Request för att arkivera bygglovshandlingar
     Problem:
       type: object
       properties:
@@ -247,18 +121,18 @@ components:
             type: object
         status:
           $ref: "#/components/schemas/StatusType"
-        title:
-          type: string
         detail:
+          type: string
+        title:
           type: string
     StatusType:
       type: object
       properties:
-        reasonPhrase:
-          type: string
         statusCode:
           type: integer
           format: int32
+        reasonPhrase:
+          type: string
     ConstraintViolationProblem:
       type: object
       properties:
@@ -382,9 +256,9 @@ components:
             type: object
         status:
           $ref: "#/components/schemas/StatusType"
-        title:
-          type: string
         detail:
+          type: string
+        title:
           type: string
         suppressed:
           type: array
@@ -426,54 +300,30 @@ components:
           type: string
         message:
           type: string
-    BatchHistoryResponse:
+    ArchiveResponse:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        start:
-          type: string
-          format: date
-        end:
-          type: string
-          format: date
-        archiveStatus:
-          type: string
-          enum:
-            - COMPLETED
-            - NOT_COMPLETED
-        batchTrigger:
-          type: string
-          enum:
-            - MANUAL
-            - SCHEDULED
-        timestamp:
-          type: string
-          format: date-time
-    ArchiveHistoryResponse:
-      type: object
-      properties:
-        documentId:
-          type: string
-        caseId:
-          type: string
-        documentName:
-          type: string
-        documentType:
-          type: string
         archiveId:
           type: string
-        archiveUrl:
+          description: Archive ID
+          nullable: true
+        errorDetails:
+          $ref: "#/components/schemas/ErrorDetails"
+      description: Archive response
+    ErrorDetails:
+      type: object
+      properties:
+        errorCode:
+          type: integer
+          description: Formpipe error code
+          format: int32
+        errorMessage:
           type: string
-        archiveStatus:
+          description: Formpipe error message
+        serviceName:
           type: string
-          enum:
-            - COMPLETED
-            - NOT_COMPLETED
-        timestamp:
-          type: string
-          format: date-time
-        batchHistory:
-          $ref: "#/components/schemas/BatchHistoryResponse"
+          description: Formpipe service name
+          nullable: true
+      description: Error details
+      nullable: true
   securitySchemes: { }

@@ -49,7 +49,7 @@ public class MessagingIntegration {
 		this.emailProperties = emailProperties;
 	}
 
-	public void sendExtensionErrorEmail(final ArchiveHistory archiveHistory) {
+	public void sendExtensionErrorEmail(final ArchiveHistory archiveHistory, final String municipalityId) {
 
 		final var values = Map.of(
 			"byggrCaseId", ofNullable(archiveHistory.getCaseId()).orElse(""),
@@ -59,10 +59,10 @@ public class MessagingIntegration {
 		final var htmlMessage = toBase64(replace(asString(missingExtensionHtmlTemplate), values));
 
 		final var emailRequest = toEmailRequest(emailProperties.extensionError().sender(), htmlMessage, emailProperties.extensionError().recipient(), "Manuell hantering krävs");
-		sendEmail(emailRequest);
+		sendEmail(emailRequest, municipalityId);
 	}
 
-	public void sendStatusMail(final List<ArchiveHistory> archiveHistories, final Long batchId) {
+	public void sendStatusMail(final List<ArchiveHistory> archiveHistories, final Long batchId, final String municipalityId) {
 
 
 		final var counts = archiveHistories.stream()
@@ -75,11 +75,11 @@ public class MessagingIntegration {
 		final var htmlMessage = toBase64(replace(asString(statusHtmlTemplate), values));
 
 		final var emailRequest = toEmailRequest(emailProperties.status().sender(), htmlMessage, emailProperties.status().recipient(), "Arkiveringsstatus");
-		sendEmail(emailRequest);
+		sendEmail(emailRequest, municipalityId);
 
 	}
 
-	public void sendEmailToLantmateriet(final String propertyDesignation, final ArchiveHistory archiveHistory) {
+	public void sendEmailToLantmateriet(final String propertyDesignation, final ArchiveHistory archiveHistory, final String municipalityId) {
 
 		final var values = Map.of(
 			"byggrCaseId", ofNullable(archiveHistory.getCaseId()).orElse(""),
@@ -88,14 +88,14 @@ public class MessagingIntegration {
 		final var htmlMessage = toBase64(replace(asString(geoTekniskHandlingHtmlTemplate), values));
 
 		final var emailRequest = toEmailRequest(emailProperties.lantmateriet().sender(), htmlMessage, emailProperties.lantmateriet().recipient(), "Arkiverad geoteknisk handling");
-		sendEmail(emailRequest);
+		sendEmail(emailRequest, municipalityId);
 	}
 
 
-	void sendEmail(final EmailRequest request) {
+	void sendEmail(final EmailRequest request, final String municipalityId) {
 
 		LOG.info("Sending e-mail to: {} from: {}", request.getEmailAddress(), request.getSender().getAddress());
-		Optional.ofNullable(client.sendEmail(request))
+		Optional.ofNullable(client.sendEmail(municipalityId, request))
 			.filter(response -> response.getMessageId() != null)
 			.filter(response -> !response.getDeliveries().isEmpty())
 			.filter(response -> response.getDeliveries().getFirst().getStatus() == SENT)

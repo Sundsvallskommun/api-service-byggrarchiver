@@ -3,21 +3,19 @@ package se.sundsvall.byggrarchiver.service;
 import static feign.Request.HttpMethod.POST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
-import static se.sundsvall.byggrarchiver.service.Constants.BYGGR_HANDELSETYP_ARKIV;
-import static se.sundsvall.byggrarchiver.service.Constants.BYGGR_STATUS_AVSLUTAT;
-import static se.sundsvall.byggrarchiver.service.Constants.F_2_BYGGLOV;
-import static se.sundsvall.byggrarchiver.service.Constants.HANTERA_BYGGLOV;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
+import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
+import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -39,6 +37,7 @@ import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
 import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 
 import feign.FeignException;
@@ -60,6 +59,8 @@ import generated.se.sundsvall.bygglov.FastighetTyp;
 @ExtendWith(MockitoExtension.class)
 class ArchiveAttachmentServiceTest {
 
+	private static final String MUNICIPALITY_ID = "2281";
+
 	@Mock
 	LongTermArchiveProperties longTermArchivePropertiesMock;
 
@@ -73,7 +74,7 @@ class ArchiveAttachmentServiceTest {
 	private ArchiveIntegration archiveIntegrationMock;
 
 	@Mock
-	private FastighetService fastighetService;
+	private FbIntegration fastighetService;
 
 	@Captor
 	private ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestCaptor;
@@ -108,8 +109,8 @@ class ArchiveAttachmentServiceTest {
 	@Test
 	void archive() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.ANS));
-		final var handling = arende.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0);
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS));
+		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 
 		final var archiveResponse = new ArchiveResponse();
@@ -118,10 +119,10 @@ class ArchiveAttachmentServiceTest {
 		final var archiveHistory = createRandomArchiveHistory();
 
 		when(archiveHistoryRepositoryMock.save(archiveHistory)).thenReturn(archiveHistory);
-		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture())).thenReturn(archiveResponse);
+		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(archiveResponse);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 
-		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory);
+		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory, MUNICIPALITY_ID);
 
 		// Assert and verify
 		assertThat(result).isNotNull();
@@ -141,15 +142,15 @@ class ArchiveAttachmentServiceTest {
 		assertThat(byggRArchiveRequestCaptor.getValue().getAttachment().getExtension()).isEqualTo(".pdf");
 
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
-		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class));
+		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
 	}
 
 	@Test
 	void archiveWhenAnkomstDatumBefore2017() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(2016, 12, 31));
-		final var handling = arende.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0);
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(2016, 12, 31));
+		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var archiveResponse = new ArchiveResponse();
 		archiveResponse.setArchiveId("123456");
@@ -157,10 +158,10 @@ class ArchiveAttachmentServiceTest {
 		final var archiveHistory = createRandomArchiveHistory();
 
 		when(archiveHistoryRepositoryMock.save(archiveHistory)).thenReturn(archiveHistory);
-		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture())).thenReturn(archiveResponse);
+		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(archiveResponse);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 
-		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory);
+		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory, MUNICIPALITY_ID);
 
 		// Assert and verify
 		assertThat(result).isNotNull();
@@ -174,15 +175,15 @@ class ArchiveAttachmentServiceTest {
 			</Arkivbildare>""");
 		assertThat(byggRArchiveRequestCaptor.getValue().getMetadata()).contains("<Klass>" + F_2_BYGGLOV + "</Klass>");
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
-		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class));
+		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
 	}
 
 	@Test
 	void archiveWhenAnkomstDatumBefore1993() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(1992, 12, 31));
-		final var handling = arende.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0);
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(1992, 12, 31));
+		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var archiveResponse = new ArchiveResponse();
 		archiveResponse.setArchiveId("123456");
@@ -190,10 +191,10 @@ class ArchiveAttachmentServiceTest {
 		final var archiveHistory = createRandomArchiveHistory();
 
 		when(archiveHistoryRepositoryMock.save(archiveHistory)).thenReturn(archiveHistory);
-		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture())).thenReturn(archiveResponse);
+		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(archiveResponse);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 
-		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory);
+		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory, MUNICIPALITY_ID);
 
 		// Assert and verify
 		assertThat(result).isNotNull();
@@ -207,42 +208,42 @@ class ArchiveAttachmentServiceTest {
 			</Arkivbildare>""");
 		assertThat(byggRArchiveRequestCaptor.getValue().getMetadata()).contains("<Klass>" + F_2_BYGGLOV + "</Klass>");
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
-		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class));
+		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
 	}
 
 	@ParameterizedTest
 	@MethodSource("constructDocuments")
-	void testBilagaNamn(Dokument document) throws Exception {
+	void testBilagaNamn(final Dokument document) throws Exception {
 		// Arrange
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE, FASSIT2, TOMTPLBE));
-		arende.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0).setDokument(document);
-		final var handling = arende.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0);
+		final var arende = createArendeObject(List.of(PLFASE, FASSIT2, TOMTPLBE));
+		arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst().setDokument(document);
+		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var archiveResponse = new ArchiveResponse();
 		archiveResponse.setArchiveId("123456");
 
 		final var archiveHistory = createRandomArchiveHistory();
 
 		when(archiveHistoryRepositoryMock.save(archiveHistory)).thenReturn(archiveHistory);
-		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture())).thenReturn(archiveResponse);
+		when(archiveIntegrationMock.archive(byggRArchiveRequestCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(archiveResponse);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 
-		archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory);
+		archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory, MUNICIPALITY_ID);
 
 		assertThat(byggRArchiveRequestCaptor.getAllValues()).allSatisfy(request -> assertThat(request.getMetadata()).containsAnyOf(
 			"Bilaga Namn=\"test.without.extension.docx\" Lank=\"Bilagor\\test.without.extension.docx\"",
 			"Bilaga Namn=\"test.without extension 2.pdf\" Lank=\"Bilagor\\test.without extension 2.pdf\"",
 			"Bilaga Namn=\"test.with   .extension.DOCX\" Lank=\"Bilagor\\test.with   .extension.DOCX\""));
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
-		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class));
+		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
 	}
 
 	@Test
 	void archiveFails() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.ANS));
-		final var handling = arende.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0);
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS));
+		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 
 		// archiveId is null
@@ -251,25 +252,25 @@ class ArchiveAttachmentServiceTest {
 		final var archiveHistory = createRandomArchiveHistory();
 
 		when(archiveHistoryRepositoryMock.save(archiveHistory)).thenReturn(archiveHistory);
-		when(archiveIntegrationMock.archive(any(ByggRArchiveRequest.class))).thenReturn(archiveResponse);
+		when(archiveIntegrationMock.archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID))).thenReturn(archiveResponse);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 
-		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory);
+		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory, MUNICIPALITY_ID);
 
 		// Assert and verify
 		assertThat(result).isNotNull();
 		assertThat(result.getArchiveStatus()).isEqualTo(ArchiveStatus.NOT_COMPLETED);
 
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
-		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class));
+		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
 	}
 
 	@Test
 	void archiveFailsWithFeignException() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(AttachmentCategory.ANS));
-		final var handling = arende.getHandelseLista().getHandelse().get(0).getHandlingLista().getHandling().get(0);
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS));
+		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var exceptionMessage = "File format is not allowed";
 		final var exception = new FeignException.InternalServerError(exceptionMessage, Request.create(POST, "url", Map.of(), null, null, null), null, null);
@@ -277,33 +278,29 @@ class ArchiveAttachmentServiceTest {
 		final var archiveHistory = createRandomArchiveHistory();
 
 		when(archiveHistoryRepositoryMock.save(archiveHistory)).thenReturn(archiveHistory);
-		when(archiveIntegrationMock.archive(any(ByggRArchiveRequest.class))).thenThrow(exception);
+		when(archiveIntegrationMock.archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID))).thenThrow(exception);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 
-		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory);
+		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory, MUNICIPALITY_ID);
 
 		// Assert and verify
 		assertThat(result).isNotNull();
 		assertThat(result.getArchiveStatus()).isEqualTo(ArchiveStatus.NOT_COMPLETED);
 
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
-		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class));
+		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
-		verify(messagingIntegrationMock).sendExtensionErrorEmail(archiveHistory);
+		verify(messagingIntegrationMock).sendExtensionErrorEmail(archiveHistory, MUNICIPALITY_ID);
 	}
 
 	/**
 	 * Util method for creating arende-objects
 	 *
-	 * @param status - status for the arende
-	 * @param handelsetyp - type of handelse that should be included
 	 * @param attachmentCategories - the documents that should be generated
 	 * @return Arende
 	 */
-	private Arende createArendeObject(final String status, final String handelsetyp,
-		final List<AttachmentCategory> attachmentCategories) {
+	private Arende createArendeObject(final List<AttachmentCategory> attachmentCategories) {
 		final var arrayOfHandelseHandling = new ArrayOfHandelseHandling();
-		final var dokumentList = new ArrayList<Dokument>();
 		attachmentCategories.forEach(category -> {
 			final var dokument = new Dokument();
 			dokument.setDokId(String.valueOf(randomInt(999999)));
@@ -312,9 +309,6 @@ class ArchiveAttachmentServiceTest {
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
 			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
-
-			dokumentList.add(dokument);
-
 			final var handling = new HandelseHandling();
 			handling.setTyp(category.name());
 			handling.setDokument(dokument);
@@ -323,13 +317,13 @@ class ArchiveAttachmentServiceTest {
 		});
 
 		final var handelse = new Handelse();
-		handelse.setHandelsetyp(handelsetyp);
+		handelse.setHandelsetyp(se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV);
 		handelse.setHandlingLista(arrayOfHandelseHandling);
 		final var arrayOfHandelse = new ArrayOfHandelse();
 		arrayOfHandelse.getHandelse().add(handelse);
 		final var arende = new Arende();
 		arende.setDnr("BYGG 2021-" + randomInt(999999));
-		arende.setStatus(status);
+		arende.setStatus(se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT);
 		arende.setHandelseLista(arrayOfHandelse);
 		arende.setObjektLista(createArrayOfAbstractArendeObjekt());
 

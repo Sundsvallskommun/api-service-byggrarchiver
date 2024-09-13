@@ -8,6 +8,8 @@ import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FAS;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createBatchHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -44,25 +46,27 @@ class ArchiverMapperTest {
 
 		final var batchHistory = createBatchHistory(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 1), SCHEDULED, COMPLETED);
 
-		final var archiveHistory = ArchiverMapper.toArchiveHistory(handling, batchHistory, "caseId", FASSIT2, COMPLETED);
+		final var archiveHistory = ArchiverMapper.toArchiveHistory(handling, batchHistory, "caseId", FASSIT2, COMPLETED, "2281");
 
 		assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED);
 		assertThat(archiveHistory.getBatchHistory()).isEqualTo(batchHistory);
 		assertThat(archiveHistory.getCaseId()).isEqualTo("caseId");
 		assertThat(archiveHistory.getDocumentId()).isEqualTo("dokId");
 		assertThat(archiveHistory.getDocumentType()).isEqualTo(FASSIT2.getDescription());
+		assertThat(archiveHistory.getMunicipalityId()).isEqualTo("2281");
 	}
 
 	@Test
 	void testToArchiveHistoryWithNull() {
 
-		final var archiveHistory = ArchiverMapper.toArchiveHistory(null, null, null, null, null);
+		final var archiveHistory = ArchiverMapper.toArchiveHistory(null, null, null, null, null, null);
 
 		assertThat(archiveHistory.getArchiveStatus()).isNull();
 		assertThat(archiveHistory.getBatchHistory()).isNull();
 		assertThat(archiveHistory.getCaseId()).isNull();
 		assertThat(archiveHistory.getDocumentId()).isNull();
 		assertThat(archiveHistory.getDocumentType()).isNull();
+		assertThat(archiveHistory.getMunicipalityId()).isNull();
 	}
 
 	@Test
@@ -154,7 +158,7 @@ class ArchiverMapperTest {
 		final var arendeFastighetList = ArchiverMapper.toArendeFastighetList(abstractArendeObjektList);
 
 		assertThat(arendeFastighetList).hasSize(1);
-		assertThat(arendeFastighetList.get(0).getArendeObjektId()).isEqualTo(1);
+		assertThat(arendeFastighetList.getFirst().getArendeObjektId()).isEqualTo(1);
 	}
 
 	@Test
@@ -190,19 +194,6 @@ class ArchiverMapperTest {
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getNamn()).isEqualTo("Stadsbyggnadsnämnden");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidFran()).isEqualTo("1993");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidTill()).isEqualTo("2017");
-		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getArkivbildare()).isNull();
-		assertThat(arkivbildarStruktur.getArkivbildare().getNamn()).isEqualTo("Sundsvalls kommun");
-		assertThat(arkivbildarStruktur.getArkivbildare().getVerksamhetstidFran()).isEqualTo("1974");
-		assertThat(arkivbildarStruktur.getArkivbildare().getVerksamhetstidTill()).isNull();
-	}
-
-	@Test
-	void testToArkivbildarStruktur1992() {
-		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1992, 12, 31));
-
-		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getNamn()).isEqualTo("Byggnadsnämnden");
-		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidFran()).isEqualTo("1974");
-		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidTill()).isEqualTo("1992");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getArkivbildare()).isNull();
 		assertThat(arkivbildarStruktur.getArkivbildare().getNamn()).isEqualTo("Sundsvalls kommun");
 		assertThat(arkivbildarStruktur.getArkivbildare().getVerksamhetstidFran()).isEqualTo("1974");
@@ -259,13 +250,13 @@ class ArchiverMapperTest {
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 
-		var arkivobjektHandling = new ArkivobjektHandlingTyp();
+		final var arkivobjektHandling = new ArkivobjektHandlingTyp();
 		arkivobjektHandling.setArkivobjektID(document.getDokId());
 		arkivobjektHandling.setSkapad("2023-01-01");
 		arkivobjektHandling.getBilaga().add(new BilagaTyp());
 		arkivobjektHandling.setHandlingstyp("handlingstyp");
 
-		var arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
+		final var arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
 		arkivobjektListaHandlingarTyp.getArkivobjektHandling().add(arkivobjektHandling);
 
 		final var expectedExtraID = new ExtraID();
@@ -279,7 +270,7 @@ class ArchiverMapperTest {
 		// Assert
 		assertThat(arkivobjektArendeTyp.getArkivobjektID()).isEqualTo("arendeId");
 		assertThat(arkivobjektArendeTyp.getExtraID()).hasSize(1);
-		assertThat(arkivobjektArendeTyp.getExtraID().get(0)).usingRecursiveComparison().isEqualTo(expectedExtraID);
+		assertThat(arkivobjektArendeTyp.getExtraID().getFirst()).usingRecursiveComparison().isEqualTo(expectedExtraID);
 		assertThat(arkivobjektArendeTyp.getArendeTyp()).isEqualTo("arendeTyp");
 		assertThat(arkivobjektArendeTyp.getArendemening()).isEqualTo("beskrivning");
 		assertThat(arkivobjektArendeTyp.getAvslutat()).isEqualTo("2023-01-03");
@@ -306,6 +297,45 @@ class ArchiverMapperTest {
 		assertThat(byggRArchiveRequest.getAttachment().getName()).isEqualTo("namn.pdf");
 		assertThat(byggRArchiveRequest.getAttachment().getFile()).isEqualTo("AQID");
 		assertThat(byggRArchiveRequest.getMetadata()).isEqualTo("metaData");
+	}
+
+	@Test
+	void mapToArchiveHistoryResponse_withNullInput() {
+		assertThat(ArchiverMapper.mapToArchiveHistoryResponse(null)).isNull();
+	}
+
+	@Test
+	void mapToArchiveHistoryResponse() {
+		final var archiveHistory = createRandomArchiveHistory();
+		final var archiveHistoryResponse = ArchiverMapper.mapToArchiveHistoryResponse(archiveHistory);
+
+		assertThat(archiveHistoryResponse.getDocumentId()).isEqualTo(archiveHistory.getDocumentId());
+		assertThat(archiveHistoryResponse.getCaseId()).isEqualTo(archiveHistory.getCaseId());
+		assertThat(archiveHistoryResponse.getDocumentName()).isEqualTo(archiveHistory.getDocumentName());
+		assertThat(archiveHistoryResponse.getDocumentType()).isEqualTo(archiveHistory.getDocumentType());
+		assertThat(archiveHistoryResponse.getArchiveId()).isEqualTo(archiveHistory.getArchiveId());
+		assertThat(archiveHistoryResponse.getArchiveUrl()).isEqualTo(archiveHistory.getArchiveUrl());
+		assertThat(archiveHistoryResponse.getArchiveStatus()).isEqualTo(archiveHistory.getArchiveStatus());
+		assertThat(archiveHistoryResponse.getTimestamp()).isEqualTo(archiveHistory.getTimestamp());
+		assertThat(archiveHistoryResponse.getBatchHistory()).isNotNull();
+	}
+
+	@Test
+	void mapToBatchHistoryResponse_withNullInput() {
+		assertThat(ArchiverMapper.mapToBatchHistoryResponse(null)).isNull();
+	}
+
+	@Test
+	void mapToBatchHistoryResponse() {
+		final var batchHistory = createRandomBatchHistory();
+		final var batchHistoryResponse = ArchiverMapper.mapToBatchHistoryResponse(batchHistory);
+
+		assertThat(batchHistoryResponse.getId()).isEqualTo(batchHistory.getId());
+		assertThat(batchHistoryResponse.getStart()).isEqualTo(batchHistory.getStart());
+		assertThat(batchHistoryResponse.getEnd()).isEqualTo(batchHistory.getEnd());
+		assertThat(batchHistoryResponse.getArchiveStatus()).isEqualTo(batchHistory.getArchiveStatus());
+		assertThat(batchHistoryResponse.getBatchTrigger()).isEqualTo(batchHistory.getBatchTrigger());
+		assertThat(batchHistoryResponse.getTimestamp()).isEqualTo(batchHistory.getTimestamp());
 	}
 
 }

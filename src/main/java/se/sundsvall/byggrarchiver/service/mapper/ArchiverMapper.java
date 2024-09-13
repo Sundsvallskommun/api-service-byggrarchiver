@@ -2,18 +2,22 @@ package se.sundsvall.byggrarchiver.service.mapper;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE;
 import static java.util.Optional.ofNullable;
-import static se.sundsvall.byggrarchiver.service.Constants.BYGGNADSNAMNDEN;
-import static se.sundsvall.byggrarchiver.service.Constants.STADSBYGGNADSNAMNDEN;
-import static se.sundsvall.byggrarchiver.service.Constants.STANGT;
-import static se.sundsvall.byggrarchiver.service.Constants.SUNDSVALLS_KOMMUN;
+import static se.sundsvall.byggrarchiver.util.Constants.BYGGNADSNAMNDEN;
+import static se.sundsvall.byggrarchiver.util.Constants.STADSBYGGNADSNAMNDEN;
+import static se.sundsvall.byggrarchiver.util.Constants.STANGT;
+import static se.sundsvall.byggrarchiver.util.Constants.SUNDSVALLS_KOMMUN;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
+import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
+import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
@@ -35,16 +39,19 @@ import generated.se.sundsvall.bygglov.BilagaTyp;
 import generated.se.sundsvall.bygglov.ExtraID;
 import generated.se.sundsvall.bygglov.StatusArande;
 
-public class ArchiverMapper {
+public final class ArchiverMapper {
 
-	private ArchiverMapper() {}
+
+	private ArchiverMapper() {
+		// Prevent instantiation
+	}
 
 	public static BilagaTyp toBilaga(final Dokument dokument) throws ApplicationException {
 		if (dokument.getFil().getFilAndelse() == null) {
 			dokument.getFil().setFilAndelse(Util.getExtensionFromByteArray(dokument.getFil().getFilBuffer()));
 		}
 
-		var bilaga = new BilagaTyp();
+		final var bilaga = new BilagaTyp();
 		bilaga.setNamn(toNameWithExtension(dokument.getNamn(), dokument.getFil().getFilAndelse()));
 		bilaga.setBeskrivning(dokument.getBeskrivning());
 		bilaga.setLank("Bilagor\\" + bilaga.getNamn());
@@ -58,30 +65,45 @@ public class ArchiverMapper {
 			.toList();
 	}
 
+	static boolean isAfter1992(final LocalDate ankomstDatum) {
+		return ankomstDatum.isAfter(LocalDate.of(1992, 12, 31));
+	}
+
+	static boolean isAfter2016(final LocalDate ankomstDatum) {
+		return ankomstDatum.isAfter(LocalDate.of(2016, 12, 31));
+	}
+
+	static boolean isBefore1993(final LocalDate ankomstDatum) {
+		return ankomstDatum.isBefore(LocalDate.of(1993, 1, 1));
+	}
+
 	public static ArkivbildarStrukturTyp toArkivbildarStruktur(final LocalDate ankomstDatum) {
-		var arkivbildareByggOchMiljoNamnden = new ArkivbildareTyp();
-		if (ankomstDatum == null || ankomstDatum.isAfter(LocalDate.of(2016, 12, 31))) {
+
+		final var arkivbildareByggOchMiljoNamnden = new ArkivbildareTyp();
+
+		if (ankomstDatum == null || isAfter2016(ankomstDatum)) {
 			arkivbildareByggOchMiljoNamnden.setNamn(STADSBYGGNADSNAMNDEN);
 			arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("2017");
 			arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill(null);
-		} else if (ankomstDatum.isAfter(LocalDate.of(1992, 12, 31))) {
+		} else if (isAfter1992(ankomstDatum)) {
 			arkivbildareByggOchMiljoNamnden.setNamn(STADSBYGGNADSNAMNDEN);
 			arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("1993");
 			arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill("2017");
-		} else if (ankomstDatum.isBefore(LocalDate.of(1993, 1, 1))) {
+		} else if (isBefore1993(ankomstDatum)) {
 			arkivbildareByggOchMiljoNamnden.setNamn(BYGGNADSNAMNDEN);
 			arkivbildareByggOchMiljoNamnden.setVerksamhetstidFran("1974");
 			arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill("1992");
 		}
 
-		var arkivbildareSundsvallsKommun = new ArkivbildareTyp();
-		arkivbildareSundsvallsKommun.setNamn(SUNDSVALLS_KOMMUN);
-		arkivbildareSundsvallsKommun.setVerksamhetstidFran("1974");
-		arkivbildareSundsvallsKommun.setArkivbildare(arkivbildareByggOchMiljoNamnden);
 
-		var arkivbildarStruktur = new ArkivbildarStrukturTyp();
-		arkivbildarStruktur.setArkivbildare(arkivbildareSundsvallsKommun);
-		return arkivbildarStruktur;
+		final var arkivbildareSundsvallsKommun = new ArkivbildareTyp()
+			.withNamn(SUNDSVALLS_KOMMUN)
+			.withVerksamhetstidFran("1974")
+			.withArkivbildare(arkivbildareByggOchMiljoNamnden);
+
+
+		return new ArkivbildarStrukturTyp()
+			.withArkivbildare(arkivbildareSundsvallsKommun);
 	}
 
 	public static String toIsoDate(final LocalDate date) {
@@ -101,7 +123,7 @@ public class ArchiverMapper {
 	public static AttachmentCategory toAttachmentCategory(final String handlingsTyp) {
 		try {
 			return AttachmentCategory.fromCode(handlingsTyp);
-		} catch (IllegalArgumentException e) {
+		} catch (final IllegalArgumentException e) {
 			// All the "handlingstyper" we don't recognize, we set to AttachmentCategory.BIL, which
 			// means they get the archiveClassification D, which means that they are not public in
 			// the archive
@@ -110,53 +132,91 @@ public class ArchiverMapper {
 	}
 
 	public static ArkivobjektArendeTyp toArkivobjektArendeTyp(final Arende2 arende, final Handling handling, final Dokument document) throws ApplicationException {
-		var extraId = new ExtraID();
-		extraId.setContent(arende.getDnr());
 
-		var statusArande = new StatusArande();
-		statusArande.setValue(STANGT);
-
-		var arkivobjektArende = new ArkivobjektArendeTyp();
-		arkivobjektArende.setArkivobjektID(arende.getDnr());
-		arkivobjektArende.getExtraID().add(extraId);
-		arkivobjektArende.setArendemening(arende.getBeskrivning());
-		arkivobjektArende.setAvslutat(toIsoDate(arende.getSlutDatum()));
-		arkivobjektArende.setSkapad(toIsoDate(arende.getRegistreradDatum()));
-		arkivobjektArende.setStatusArande(statusArande);
-		arkivobjektArende.setArendeTyp(arende.getArendetyp());
-		arkivobjektArende.setArkivobjektListaHandlingar(toArkivobjektListaHandlingar(handling, document));
-
-		return arkivobjektArende;
+		return new ArkivobjektArendeTyp()
+			.withArkivobjektID(arende.getDnr())
+			.withExtraID(new ExtraID().withContent(arende.getDnr()))
+			.withArendemening(arende.getBeskrivning())
+			.withAvslutat(toIsoDate(arende.getSlutDatum()))
+			.withSkapad(toIsoDate(arende.getRegistreradDatum()))
+			.withStatusArande(new StatusArande().withValue(STANGT))
+			.withArendeTyp(arende.getArendetyp())
+			.withArkivobjektListaHandlingar(toArkivobjektListaHandlingar(handling, document));
 	}
 
-	public static ArchiveHistory toArchiveHistory(final Handling handling, final BatchHistory batchHistory, final String caseId, final AttachmentCategory attachmentCategory, ArchiveStatus archiveStatus) {
+	public static ArchiveHistory toArchiveHistory(final Handling handling, final BatchHistory batchHistory, final String caseId, final AttachmentCategory attachmentCategory, final ArchiveStatus archiveStatus, final String municipalityId) {
 
-		var archiveHistory = new ArchiveHistory();
-		archiveHistory.setDocumentId(getDocId(handling));
-		archiveHistory.setDocumentName(getDocumentName(handling));
-		archiveHistory.setDocumentType(getAttachmentCategoryDescription(attachmentCategory));
-		archiveHistory.setCaseId(caseId);
-		archiveHistory.setBatchHistory(batchHistory);
-		archiveHistory.setArchiveStatus(archiveStatus);
-
-		return archiveHistory;
+		return ArchiveHistory.builder()
+			.withDocumentId(getDocId(handling))
+			.withDocumentName(getDocumentName(handling))
+			.withMunicipalityId(municipalityId)
+			.withDocumentType(getAttachmentCategoryDescription(attachmentCategory))
+			.withCaseId(caseId)
+			.withBatchHistory(batchHistory)
+			.withArchiveStatus(archiveStatus)
+			.build();
 	}
 
-	public static ByggRArchiveRequest toByggRArchiveRequest(final Dokument document, String metaData) throws ApplicationException {
-		var request = new ByggRArchiveRequest();
-		request.setAttachment(toAttachment(document));
-		request.setMetadata(metaData);
-
-		return request;
+	public static ByggRArchiveRequest toByggRArchiveRequest(final Dokument document, final String metaData) throws ApplicationException {
+		return new ByggRArchiveRequest()
+			.attachment(toAttachment(document))
+			.metadata(metaData);
 	}
+
+
+	public static ArchiveHistoryResponse mapToArchiveHistoryResponse(final ArchiveHistory archiveHistory) {
+		if (archiveHistory == null) {
+			return null;
+		}
+
+		return ArchiveHistoryResponse.builder()
+			.withDocumentId(archiveHistory.getDocumentId())
+			.withCaseId(archiveHistory.getCaseId())
+			.withDocumentName(archiveHistory.getDocumentName())
+			.withDocumentType(archiveHistory.getDocumentType())
+			.withArchiveId(archiveHistory.getArchiveId())
+			.withArchiveUrl(archiveHistory.getArchiveUrl())
+			.withArchiveStatus(archiveHistory.getArchiveStatus())
+			.withTimestamp(archiveHistory.getTimestamp())
+			.withBatchHistory(Optional.ofNullable(archiveHistory.getBatchHistory())
+				.map(ArchiverMapper::mapToBatchHistoryResponse)
+				.orElse(null))
+			.build();
+	}
+
+	public static BatchHistoryResponse mapToBatchHistoryResponse(final BatchHistory batchHistory) {
+		if (batchHistory == null) {
+			return null;
+		}
+
+		return BatchHistoryResponse.builder()
+			.withId(batchHistory.getId())
+			.withStart(batchHistory.getStart())
+			.withEnd(batchHistory.getEnd())
+			.withArchiveStatus(batchHistory.getArchiveStatus())
+			.withBatchTrigger(batchHistory.getBatchTrigger())
+			.withTimestamp(batchHistory.getTimestamp())
+			.build();
+	}
+
+
+	public static BatchHistory createBatchHistory(final LocalDate actualStart, final LocalDate end, final BatchTrigger batchTrigger, final ArchiveStatus archiveStatus, final String municipalityId) {
+		return BatchHistory.builder()
+			.withMunicipalityId(municipalityId)
+			.withStart(actualStart)
+			.withEnd(end)
+			.withBatchTrigger(batchTrigger)
+			.withArchiveStatus(archiveStatus).build();
+	}
+
 
 	private static String toNameWithExtension(final String name, final String extension) {
-		var trimmedExtension = extension.trim().toLowerCase();
+		final var trimmedExtension = extension.trim().toLowerCase();
 
 		if (Pattern.compile("^[a-zA-Z0-9_. -]*\\.[a-zA-Z]{3,4}$").matcher(name).find()) {
 			return name;
 		} else {
-			var extensionWithDot = trimmedExtension.contains(".") ? trimmedExtension : "." + trimmedExtension;
+			final var extensionWithDot = trimmedExtension.contains(".") ? trimmedExtension : "." + trimmedExtension;
 			return name + extensionWithDot;
 		}
 	}
@@ -165,26 +225,27 @@ public class ArchiverMapper {
 		if (dokument.getFil().getFilAndelse() == null) {
 			dokument.getFil().setFilAndelse(Util.getExtensionFromByteArray(dokument.getFil().getFilBuffer()));
 		}
-		var attachment = new Attachment();
-		attachment.setExtension("." + dokument.getFil().getFilAndelse().toLowerCase());
-		attachment.setName(toNameWithExtension(dokument.getNamn(), dokument.getFil().getFilAndelse()));
-		attachment.setFile(Util.byteArrayToBase64(dokument.getFil().getFilBuffer()));
-		return attachment;
+		return new Attachment()
+			.extension("." + dokument.getFil().getFilAndelse().toLowerCase())
+			.name(toNameWithExtension(dokument.getNamn(), dokument.getFil().getFilAndelse()))
+			.file(Util.byteArrayToBase64(dokument.getFil().getFilBuffer()));
 	}
 
 	private static ArkivobjektListaHandlingarTyp toArkivobjektListaHandlingar(final Handling handling,
 		final Dokument document) throws ApplicationException {
-		var arkivobjektHandling = new ArkivobjektHandlingTyp();
-		arkivobjektHandling.setArkivobjektID(document.getDokId());
-		arkivobjektHandling.setSkapad(toIsoDate(document.getSkapadDatum()));
-		arkivobjektHandling.getBilaga().add(toBilaga(document));
+
+		final var arkivobjektHandling = new ArkivobjektHandlingTyp()
+			.withArkivobjektID(document.getDokId())
+			.withSkapad(toIsoDate(document.getSkapadDatum()))
+			.withBilaga(toBilaga(document));
+
 		if (handling.getTyp() != null) {
-			var attachmentCategory = toAttachmentCategory(handling.getTyp());
+			final var attachmentCategory = toAttachmentCategory(handling.getTyp());
 			arkivobjektHandling.setHandlingstyp(attachmentCategory.getArchiveClassification());
 			arkivobjektHandling.setRubrik(attachmentCategory.getDescription());
 		}
 
-		var arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
+		final var arkivobjektListaHandlingarTyp = new ArkivobjektListaHandlingarTyp();
 		arkivobjektListaHandlingarTyp.getArkivobjektHandling().add(arkivobjektHandling);
 		return arkivobjektListaHandlingarTyp;
 	}
@@ -197,7 +258,7 @@ public class ArchiverMapper {
 		return ofNullable(handling).map(Handling::getDokument).map(Dokument::getNamn).orElse(null);
 	}
 
-	private static String getAttachmentCategoryDescription(AttachmentCategory attachmentCategory) {
+	private static String getAttachmentCategoryDescription(final AttachmentCategory attachmentCategory) {
 		return ofNullable(attachmentCategory).isPresent() ? attachmentCategory.getDescription() : null;
 	}
 

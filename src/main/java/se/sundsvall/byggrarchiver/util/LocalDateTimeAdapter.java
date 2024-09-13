@@ -1,4 +1,4 @@
-package se.sundsvall.byggrarchiver.support;
+package se.sundsvall.byggrarchiver.util;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

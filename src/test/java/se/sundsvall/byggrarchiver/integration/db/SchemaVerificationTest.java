@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +38,7 @@ class SchemaVerificationTest {
 	}
 
 	private String getResourceString(final String fileName) throws IOException, URISyntaxException {
-		return Files.readString(Paths.get(getClass().getClassLoader().getResource(fileName).toURI()));
+		return Files.readString(Paths.get(Objects.requireNonNull(getClass().getClassLoader().getResource(fileName)).toURI()));
 	}
 
 }

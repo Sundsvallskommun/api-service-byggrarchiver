@@ -34,8 +34,7 @@ logbook:
     jsonPath:
       - key: '$..file'
         value: '[base64]'
-
-byggrarchiver:
+scheduler:
   cron:
     expression: '-'
   shedlock-lock-at-most-for: PT2M

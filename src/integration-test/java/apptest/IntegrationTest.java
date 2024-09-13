@@ -39,6 +39,12 @@ import se.sundsvall.dept44.test.annotation.wiremock.WireMockAppTestSuite;
 )
 class IntegrationTest extends AbstractAppTest {
 
+	private static final String MUNICIPALITY_ID = "2281";
+
+	private static final String BATCH_PATH = "/2281/batch-jobs";
+
+	private static final String ARCHIVED_PATH = "/2281/archived/attachments";
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -60,39 +66,39 @@ class IntegrationTest extends AbstractAppTest {
 	// POST batch and then GET batch history and archive histories - verify that the correct is returned
 	@Test
 	void test01_standardPostBatchJob() throws JsonProcessingException, ClassNotFoundException {
-		var batchJob = BatchJob.builder()
+		final var batchJob = BatchJob.builder()
 			.withStart(LocalDate.now().minusDays(1))
 			.withEnd(LocalDate.now().minusDays(1))
 			.build();
 
 		// POST batchJob
-		var postBatchHistory = postBatchJob(batchJob);
+		final var postBatchHistory = postBatchJob(batchJob);
 
 		// GET batchJob
-		var postBatchHistoryList = List.of(
+		final var postBatchHistoryList = List.of(
 			setupCall()
 				.withHttpMethod(GET)
-				.withServicePath("/batch-jobs")
+				.withServicePath(BATCH_PATH)
 				.withExpectedResponseStatus(OK)
 				.sendRequestAndVerifyResponse()
 				.andReturnBody(BatchHistory[].class));
 
 		assertThat(postBatchHistoryList).contains(postBatchHistory);
 
-		// GET archiveHistoryb
-		var getArchiveHistoryList = List.of(
+		// GET archiveHistory
+		final var getArchiveHistoryList = List.of(
 			setupCall()
 				.withHttpMethod(GET)
-				.withServicePath("/archived/attachments?batchHistoryId=" + postBatchHistory.getId())
+				.withServicePath(ARCHIVED_PATH + "?batchHistoryId=" + postBatchHistory.getId())
 				.withExpectedResponseStatus(OK)
 				.sendRequestAndVerifyResponse()
 				.andReturnBody(ArchiveHistory[].class));
 
 		// GET archiveHistory with status COMPLETED
-		var getArchiveHistoryListCompleted = List.of(
+		final var getArchiveHistoryListCompleted = List.of(
 			setupCall()
 				.withHttpMethod(GET)
-				.withServicePath("/archived/attachments?status=" + COMPLETED)
+				.withServicePath(ARCHIVED_PATH + "?status=" + COMPLETED)
 				.withExpectedResponseStatus(OK)
 				.sendRequestAndVerifyResponse()
 				.andReturnBody(ArchiveHistory[].class));
@@ -101,36 +107,41 @@ class IntegrationTest extends AbstractAppTest {
 			assertThat(archiveHistory.getBatchHistory()).isEqualTo(postBatchHistory);
 			assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED);
 		});
-		assertThat(archiveHistoryRepository.getArchiveHistoriesByBatchHistoryId(postBatchHistory.getId())).isEqualTo(getArchiveHistoryList);
+
+		getArchiveHistoryList.forEach(archiveHistory -> {
+			archiveHistory.setMunicipalityId(MUNICIPALITY_ID);
+			archiveHistory.getBatchHistory().setMunicipalityId(MUNICIPALITY_ID);
+		});
+		assertThat(archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(postBatchHistory.getId(), MUNICIPALITY_ID)).isEqualTo(getArchiveHistoryList);
 	}
 
 	// POST batch and then GET batch history and archive histories - verify that the correct is returned
 	@Test
 	void test02_standardPostBatchJob_zeroArchivedDocs() throws JsonProcessingException, ClassNotFoundException {
-		var batchJob = BatchJob.builder()
+		final var batchJob = BatchJob.builder()
 			.withStart(LocalDate.parse("2021-01-01"))
 			.withEnd(LocalDate.parse("2021-01-01"))
 			.build();
 
 		// POST batchJob
-		var postBatchHistory = postBatchJob(batchJob);
+		final var postBatchHistory = postBatchJob(batchJob);
 
 		// GET archiveHistory
 		setupCall()
 			.withHttpMethod(GET)
-			.withServicePath("/archived/attachments?batchHistoryId=" + postBatchHistory.getId())
-			.withExpectedResponseStatus(NOT_FOUND)
+			.withServicePath(ARCHIVED_PATH + "?batchHistoryId=" + postBatchHistory.getId())
+			.withExpectedResponseStatus(OK)
 			.withExpectedResponse("response.json")
 			.sendRequestAndVerifyResponse();
 	}
 
 	@Test
 	void test03_standardPostBatchJobNullDate() throws JsonProcessingException {
-		var batchJob = new BatchJob();
+		final var batchJob = new BatchJob();
 
 		setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs")
+			.withServicePath(BATCH_PATH)
 			.withRequest(objectMapper.writeValueAsString(batchJob))
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
@@ -142,8 +153,8 @@ class IntegrationTest extends AbstractAppTest {
 	void test04_getBatchHistoryNotFound() {
 		setupCall()
 			.withHttpMethod(GET)
-			.withServicePath("/batch-jobs")
-			.withExpectedResponseStatus(NOT_FOUND)
+			.withServicePath(BATCH_PATH)
+			.withExpectedResponseStatus(OK)
 			.withExpectedResponse("response.json")
 			.sendRequestAndVerifyResponse();
 	}
@@ -151,7 +162,7 @@ class IntegrationTest extends AbstractAppTest {
 	// Rerun an earlier batch
 	@Test
 	void test05_rerun() {
-		var batchHistory = BatchHistory.builder()
+		final var batchHistory = BatchHistory.builder()
 			.withArchiveStatus(NOT_COMPLETED)
 			.withStart(LocalDate.now().minusDays(2))
 			.withEnd(LocalDate.now())
@@ -163,7 +174,7 @@ class IntegrationTest extends AbstractAppTest {
 		// POST rerun
 		setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs/" + batchHistory.getId() + "/rerun")
+			.withServicePath(BATCH_PATH + "/" + batchHistory.getId() + "/rerun")
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(OK)
 			.sendRequestAndVerifyResponse();
@@ -172,20 +183,20 @@ class IntegrationTest extends AbstractAppTest {
 	// Rerun an earlier completed batch - verify it did not run
 	@Test
 	void test06_rerunWithCompletedBatch() throws JsonProcessingException, ClassNotFoundException {
-		var batchJob = BatchJob.builder()
+		final var batchJob = BatchJob.builder()
 			.withStart(LocalDate.now().minusDays(1))
 			.withEnd(LocalDate.now().minusDays(1))
 			.build();
 
 		// POST batchJob
-		var postBatchHistoryList = postBatchJob(batchJob);
+		final var postBatchHistoryList = postBatchJob(batchJob);
 
 		assertThat(postBatchHistoryList.getArchiveStatus()).isEqualTo(COMPLETED);
 
 		// POST rerun
 		setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs/" + postBatchHistoryList.getId() + "/rerun")
+			.withServicePath(BATCH_PATH + "/" + postBatchHistoryList.getId() + "/rerun")
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
 			.withExpectedResponse("response.json")
@@ -195,12 +206,12 @@ class IntegrationTest extends AbstractAppTest {
 	// Rerun a non-existing batch
 	@Test
 	void test07_rerunNonExistingBatch() {
-		var randomNumber = randomInt(999999);
+		final var randomNumber = randomInt(999999);
 
 		// POST rerun
 		setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs/" + randomNumber + "/rerun")
+			.withServicePath(BATCH_PATH + "/" + randomNumber + "/rerun")
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(NOT_FOUND)
 			.withExpectedResponse("response.json")
@@ -210,14 +221,14 @@ class IntegrationTest extends AbstractAppTest {
 	// Try to run batch with start today and end tomorrow
 	@Test
 	void test08_runBatchForFutureDateV1() throws JsonProcessingException {
-		var batchJob = BatchJob.builder()
+		final var batchJob = BatchJob.builder()
 			.withStart(LocalDate.now())
 			.withEnd(LocalDate.now().plusDays(1))
 			.build();
 
 		setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs")
+			.withServicePath(BATCH_PATH)
 			.withRequest(objectMapper.writeValueAsString(batchJob))
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
@@ -228,14 +239,14 @@ class IntegrationTest extends AbstractAppTest {
 	// Try to run batch with start and end tomorrow
 	@Test
 	void test09_runBatchForFutureDateV2() throws JsonProcessingException {
-		var batchJob = BatchJob.builder()
+		final var batchJob = BatchJob.builder()
 			.withStart(LocalDate.now().plusDays(1))
 			.withEnd(LocalDate.now().plusDays(1))
 			.build();
 
 		setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs")
+			.withServicePath(BATCH_PATH)
 			.withRequest(objectMapper.writeValueAsString(batchJob))
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
@@ -246,14 +257,14 @@ class IntegrationTest extends AbstractAppTest {
 	// Try to run batch with start date later than end date
 	@Test
 	void test10_runBatchWithEndBeforeStart() throws JsonProcessingException {
-		var batchJob = BatchJob.builder()
+		final var batchJob = BatchJob.builder()
 			.withStart(LocalDate.now().minusDays(1))
 			.withEnd(LocalDate.now().minusDays(2))
 			.build();
 
 		setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs")
+			.withServicePath(BATCH_PATH)
 			.withRequest(objectMapper.writeValueAsString(batchJob))
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(BAD_REQUEST)
@@ -264,14 +275,14 @@ class IntegrationTest extends AbstractAppTest {
 	// Test exception from GetUpdatedArenden - Should return http 500
 	@Test
 	void test11_errorFromGetUpdatedArenden() throws JsonProcessingException {
-		var batchJob = BatchJob.builder()
+		final var batchJob = BatchJob.builder()
 			.withStart(LocalDate.parse("1999-01-01"))
 			.withEnd(LocalDate.parse("1999-01-01"))
 			.build();
 
 		setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs")
+			.withServicePath(BATCH_PATH)
 			.withRequest(objectMapper.writeValueAsString(batchJob))
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(SERVICE_UNAVAILABLE)
@@ -280,8 +291,8 @@ class IntegrationTest extends AbstractAppTest {
 
 		setupCall()
 			.withHttpMethod(GET)
-			.withServicePath("/archived/attachments")
-			.withExpectedResponseStatus(NOT_FOUND)
+			.withServicePath(ARCHIVED_PATH)
+			.withExpectedResponseStatus(OK)
 			.withExpectedResponse("response2.json")
 			.sendRequestAndVerifyResponse();
 	}
@@ -303,10 +314,10 @@ class IntegrationTest extends AbstractAppTest {
 			.build());
 	}
 
-	private BatchHistory postBatchJob(BatchJob batchJob) throws JsonProcessingException, ClassNotFoundException {
+	private BatchHistory postBatchJob(final BatchJob batchJob) throws JsonProcessingException, ClassNotFoundException {
 		return setupCall()
 			.withHttpMethod(POST)
-			.withServicePath("/batch-jobs")
+			.withServicePath(BATCH_PATH)
 			.withRequest(objectMapper.writeValueAsString(batchJob))
 			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 			.withExpectedResponseStatus(OK)
@@ -316,9 +327,9 @@ class IntegrationTest extends AbstractAppTest {
 
 	@Override
 	public boolean verifyAllStubs() {
-		var unmatchedRequests = wiremock.findAllUnmatchedRequests();
+		final var unmatchedRequests = wiremock.findAllUnmatchedRequests();
 		if (!unmatchedRequests.isEmpty()) {
-			var unmatchedUrls = unmatchedRequests.stream()
+			final var unmatchedUrls = unmatchedRequests.stream()
 				.map(LoggedRequest::getUrl)
 				.toList();
 

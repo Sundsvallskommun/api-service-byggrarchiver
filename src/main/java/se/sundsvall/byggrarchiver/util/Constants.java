@@ -1,4 +1,4 @@
-package se.sundsvall.byggrarchiver.service;
+package se.sundsvall.byggrarchiver.util;
 
 public final class Constants {
 

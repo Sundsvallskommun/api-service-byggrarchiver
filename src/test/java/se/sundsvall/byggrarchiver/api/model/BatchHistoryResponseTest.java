@@ -1,4 +1,4 @@
-package se.sundsvall.byggrarchiver.integration.db.model;
+package se.sundsvall.byggrarchiver.api.model;
 
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEquals;
@@ -7,7 +7,7 @@ import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanToString;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidGettersAndSetters;
 import static com.google.code.beanmatchers.BeanMatchers.registerValueGenerator;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.core.AllOf.allOf;
+import static org.hamcrest.Matchers.allOf;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 import java.time.LocalDate;
@@ -20,17 +20,18 @@ import org.junit.jupiter.api.Test;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 
-class BatchHistoryTest {
+class BatchHistoryResponseTest {
 
 	@BeforeAll
 	static void setup() {
-		registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
 		registerValueGenerator(() -> LocalDate.now().plusDays(randomInt()), LocalDate.class);
+		registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
 	}
+
 
 	@Test
 	void testBean() {
-		MatcherAssert.assertThat(BatchHistory.class, allOf(
+		MatcherAssert.assertThat(BatchHistoryResponse.class, allOf(
 			hasValidBeanConstructor(),
 			hasValidGettersAndSetters(),
 			hasValidBeanHashCode(),
@@ -38,7 +39,6 @@ class BatchHistoryTest {
 			hasValidBeanToString()));
 	}
 
-	@Test
 	void builder() {
 		// Arrange
 		final var id = 1L;
@@ -47,34 +47,31 @@ class BatchHistoryTest {
 		final var archiveStatus = ArchiveStatus.COMPLETED;
 		final var batchTrigger = BatchTrigger.MANUAL;
 		final var timestamp = LocalDateTime.now();
-		final var municipalityId = "2281";
 
 		// Act
-		final var batchHistory = BatchHistory.builder()
+		final var batchHistoryResponse = BatchHistoryResponse.builder()
 			.withId(id)
 			.withStart(start)
 			.withEnd(end)
 			.withArchiveStatus(archiveStatus)
 			.withBatchTrigger(batchTrigger)
-			.withMunicipalityId(municipalityId)
 			.withTimestamp(timestamp)
 			.build();
 
 		// Assert
-		assertThat(batchHistory).isNotNull().hasNoNullFieldsOrProperties();
-		assertThat(batchHistory.getId()).isEqualTo(id);
-		assertThat(batchHistory.getStart()).isEqualTo(start);
-		assertThat(batchHistory.getEnd()).isEqualTo(end);
-		assertThat(batchHistory.getArchiveStatus()).isEqualTo(archiveStatus);
-		assertThat(batchHistory.getBatchTrigger()).isEqualTo(batchTrigger);
-		assertThat(batchHistory.getTimestamp()).isEqualTo(timestamp);
-		assertThat(batchHistory.getMunicipalityId()).isEqualTo(municipalityId);
+		assertThat(batchHistoryResponse).isNotNull().hasNoNullFieldsOrProperties();
+		assertThat(batchHistoryResponse.getId()).isEqualTo(id);
+		assertThat(batchHistoryResponse.getStart()).isEqualTo(start);
+		assertThat(batchHistoryResponse.getEnd()).isEqualTo(end);
+		assertThat(batchHistoryResponse.getArchiveStatus()).isEqualTo(archiveStatus);
+		assertThat(batchHistoryResponse.getBatchTrigger()).isEqualTo(batchTrigger);
+		assertThat(batchHistoryResponse.getTimestamp()).isEqualTo(timestamp);
 	}
 
 	@Test
 	void testNoDirtOnCreatedBean() {
-		assertThat(BatchHistory.builder().build()).hasAllNullFieldsOrProperties();
-		assertThat(new BatchHistory()).hasAllNullFieldsOrProperties();
+		assertThat(BatchHistoryResponse.builder().build()).hasAllNullFieldsOrProperties();
+		assertThat(new BatchHistoryResponse()).hasAllNullFieldsOrProperties();
 	}
 
 }

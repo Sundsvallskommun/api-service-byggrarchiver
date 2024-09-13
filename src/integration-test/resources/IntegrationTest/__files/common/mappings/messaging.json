@@ -6,7 +6,7 @@
       }
     },
     "method": "POST",
-    "urlPath": "/messaging/email"
+    "urlPath": "/messaging/2281/email"
   },
   "response": {
     "status": 200,

@@ -41,20 +41,20 @@ spring:
     url: jdbc:tc:mariadb:10.6.14:///
   jpa:
     properties:
-      hibernate:
-        format_sql: true
-        hbm2ddl:
-          schema-generation:
-            script:
-              append: false
       jakarta:
         persistence:
           schema-generation:
-            create-source: metadata
             database:
               action: update
             scripts:
               action: create
               create-target: target/database/generated-schema.sql
+            create-source: metadata
+      hibernate:
+        hbm2ddl:
+          schema-generation:
+            script:
+              append: false
+        format_sql: true
 sundsvall:
   token-uri: http://token.uri

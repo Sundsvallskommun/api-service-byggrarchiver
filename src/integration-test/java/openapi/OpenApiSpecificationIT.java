@@ -21,7 +21,7 @@ import se.sundsvall.dept44.util.ResourceUtils;
 
 import net.javacrumbs.jsonunit.core.Option;
 
-@ActiveProfiles("junit")
+@ActiveProfiles("it")
 @SpringBootTest(
 	webEnvironment = WebEnvironment.RANDOM_PORT,
 	classes = Application.class,

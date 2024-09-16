@@ -47,6 +47,6 @@ spring:
         persistence:
           schema-generation:
             database:
-              action: update
+              action: validate
 sundsvall:
   token-uri: http://localhost:${wiremock.server.port}/token

@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>se.sundsvall.dept44</groupId>
 		<artifactId>dept44-service-parent</artifactId>
-		<version>6.0.1</version>
+		<version>6.0.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>se.sundsvall</groupId>
@@ -15,16 +15,13 @@
 	<name>api-service-byggrarchiver</name>
 	<description>Application that archives documents from Byggr</description>
 	<properties>
-		<generated-sources-path>${project.build.directory}/generated-sources
-		</generated-sources-path>
+		<generated-sources-path>${project.build.directory}/generated-sources</generated-sources-path>
 		<generated-sources-java-path>src/main/java</generated-sources-java-path>
-		<!-- Dependency versions -->
 		<jmimemagic.version>0.1.5</jmimemagic.version>
 		<commons-text.version>1.12.0</commons-text.version>
 		<jaxb2-maven-plugin.version>3.2.0</jaxb2-maven-plugin.version>
 		<jaxb2-fluent-api.version>3.0</jaxb2-fluent-api.version>
 		<shedlock.version>5.16.0</shedlock.version>
-		<app.jvm.xmx.mb>2048</app.jvm.xmx.mb>
 	</properties>
 	<dependencies>
 		<!-- Test -->
@@ -126,8 +123,7 @@
 					<generateSupportingFiles>false</generateSupportingFiles>
 					<configOptions>
 						<sourceFolder>${generated-sources-java-path}</sourceFolder>
-						<generatedConstructorWithRequiredArgs>false
-						</generatedConstructorWithRequiredArgs>
+						<generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
 						<generatePom>false</generatePom>
 						<library>spring-boot</library>
 						<dateLibrary>java8</dateLibrary>

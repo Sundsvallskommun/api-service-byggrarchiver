@@ -33,11 +33,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "batch_history", indexes =
-	{
-		@jakarta.persistence.Index(name = "batch_history_municipality_id_idx", columnList = "municipalityId"),
-		@jakarta.persistence.Index(name = "batch_history_archive_status_idx", columnList = "archiveStatus")
-	})
+@Table(name = "batch_history", indexes = {
+	@jakarta.persistence.Index(name = "batch_history_municipality_id_idx", columnList = "municipalityId"),
+	@jakarta.persistence.Index(name = "batch_history_archive_status_idx", columnList = "archiveStatus")
+})
 public class BatchHistory {
 
 	@Id
@@ -75,10 +74,13 @@ public class BatchHistory {
 
 	@Override
 	public boolean equals(final Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 		final BatchHistory that = (BatchHistory) o;
-		return Objects.equals(id, that.id) && Objects.equals(municipalityId, that.municipalityId) && Objects.equals(start, that.start) && Objects.equals(end, that.end) && archiveStatus == that.archiveStatus && batchTrigger == that.batchTrigger && Objects.equals(timestamp, that.timestamp);
+		return Objects.equals(id, that.id) && Objects.equals(municipalityId, that.municipalityId) && Objects.equals(start, that.start) && Objects.equals(end, that.end) && archiveStatus == that.archiveStatus && batchTrigger == that.batchTrigger && Objects
+			.equals(timestamp, that.timestamp);
 	}
 
 	@Override

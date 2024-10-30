@@ -31,7 +31,6 @@ class LocalDateAdapterTests {
 		assertThat(localDateAdapter.marshal(null)).isNull();
 	}
 
-
 	@Test
 	void testMarshalWithNonNullInput() {
 		final var result = localDateAdapter.marshal(LocalDate.of(2023, 12, 24));

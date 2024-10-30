@@ -1,11 +1,9 @@
 {
-  "type": "https://zalando.github.io/problem/constraint-violation",
-  "status": 400,
-  "violations": [
-    {
-      "field": "end",
-      "message": "must be a date in the past or in the present"
-    }
-  ],
-  "title": "Constraint Violation"
+	"violations": [{
+		"field": "end",
+		"message": "must be a date in the past or in the present"
+	}],
+	"type": "https://zalando.github.io/problem/constraint-violation",
+	"title": "Constraint Violation",
+	"status": 400
 }

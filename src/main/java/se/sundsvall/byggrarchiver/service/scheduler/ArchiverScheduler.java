@@ -37,8 +37,7 @@ public class ArchiverScheduler {
 		final LocalDate oneWeekBack = LocalDate.now(ZoneId.systemDefault()).minusDays(7);
 		final LocalDate yesterday = LocalDate.now(ZoneId.systemDefault()).minusDays(1);
 
-		schedulerProperties.municipalityIds().forEach(municipalityId
-			-> byggrArchiverService.runBatch(oneWeekBack, yesterday, BatchTrigger.SCHEDULED, municipalityId));
+		schedulerProperties.municipalityIds().forEach(municipalityId -> byggrArchiverService.runBatch(oneWeekBack, yesterday, BatchTrigger.SCHEDULED, municipalityId));
 	}
 
 }

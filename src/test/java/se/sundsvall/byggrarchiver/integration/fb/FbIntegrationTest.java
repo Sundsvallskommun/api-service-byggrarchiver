@@ -41,7 +41,7 @@ class FbIntegrationTest {
 
 	@Test
 	void getFastighet() throws Exception {
-		//Arrange
+		// Arrange
 		final var fastighet1 = new Fastighet();
 		fastighet1.setFnr(123);
 		final var arendeFastighet1 = new ArendeFastighet().withArHuvudObjekt(true).withFastighet(fastighet1);
@@ -59,10 +59,10 @@ class FbIntegrationTest {
 
 		when(mockFbClient.getPropertyInfoByFnr(List.of(123))).thenReturn(new ResponseDtoIEnumerableFastighetDto().data(List.of(fastighetDto)));
 
-		//Act
+		// Act
 		final var result = fbIntegration.getFastighet(arendeFastighetList);
 
-		//Assert and verify
+		// Assert and verify
 		verify(mockFbClient).getPropertyInfoByFnr(List.of(123));
 
 		assertThat(result.getFastighetsbeteckning()).isEqualTo(fastighetDto.getKommun() + " " + fastighetDto.getBeteckning());
@@ -72,7 +72,7 @@ class FbIntegrationTest {
 
 	@Test
 	void getFastighetWhenNoHuvudObjekt() throws Exception {
-		//Arrange
+		// Arrange
 		final var fastighet1 = new Fastighet();
 		fastighet1.setFnr(123);
 		final var arendeFastighet1 = new ArendeFastighet().withArHuvudObjekt(false).withFastighet(fastighet1);
@@ -81,10 +81,10 @@ class FbIntegrationTest {
 
 		final var arendeFastighetList = List.of(arendeFastighet1, arendeFastighet2);
 
-		//Act
+		// Act
 		final var result = fbIntegration.getFastighet(arendeFastighetList);
 
-		//Assert and verify
+		// Assert and verify
 		verifyNoInteractions(mockFbClient);
 
 		assertThat(result.getFastighetsbeteckning()).isNull();

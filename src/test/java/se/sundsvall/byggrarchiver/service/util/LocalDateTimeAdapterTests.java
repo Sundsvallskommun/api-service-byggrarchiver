@@ -34,7 +34,6 @@ class LocalDateTimeAdapterTests {
 		assertThat(localDateTimeAdapter.marshal(null)).isNull();
 	}
 
-
 	@Test
 	void testMarshalWithNonNullInput() {
 		final var result = localDateTimeAdapter.marshal(LocalDateTime.of(2011, 12, 3, 10, 15, 30));

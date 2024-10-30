@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xmlns="http://maven.apache.org/POM/4.0.0"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>se.sundsvall.dept44</groupId>
 		<artifactId>dept44-service-parent</artifactId>
-		<version>6.0.2</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>6.0.3</version>
+		<relativePath />
+		<!-- lookup parent from repository -->
 	</parent>
 	<groupId>se.sundsvall</groupId>
 	<artifactId>api-service-byggrarchiver</artifactId>
@@ -108,8 +107,8 @@
 	<build>
 		<testResources>
 			<testResource>
-				<directory>src/test/resources</directory>
 				<filtering>false</filtering>
+				<directory>src/test/resources</directory>
 			</testResource>
 		</testResources>
 		<plugins>
@@ -144,9 +143,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>
-								${project.basedir}/src/main/resources/integrations/messaging.yml
-							</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/integrations/messaging.yml</inputSpec>
 							<configOptions>
 								<modelPackage>generated.se.sundsvall.messaging</modelPackage>
 							</configOptions>
@@ -158,9 +155,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>
-								${project.basedir}/src/main/resources/integrations/archive.yaml
-							</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/integrations/archive.yaml</inputSpec>
 							<configOptions>
 								<modelPackage>generated.se.sundsvall.archive</modelPackage>
 							</configOptions>
@@ -172,9 +167,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>
-								${project.basedir}/src/main/resources/integrations/fb-v1.json
-							</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/integrations/fb-v1.json</inputSpec>
 							<configOptions>
 								<modelPackage>generated.sokigo.fb</modelPackage>
 							</configOptions>
@@ -186,6 +179,12 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxb2-maven-plugin</artifactId>
 				<version>${jaxb2-maven-plugin.version}</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<addGeneratedAnnotation>true</addGeneratedAnnotation>
+					<noGeneratedHeaderComments>true</noGeneratedHeaderComments>
+					<clearOutputDir>false</clearOutputDir>
+				</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.jvnet.jaxb2_commons</groupId>
@@ -193,12 +192,6 @@
 						<version>${jaxb2-fluent-api.version}</version>
 					</dependency>
 				</dependencies>
-				<configuration>
-					<encoding>UTF-8</encoding>
-					<addGeneratedAnnotation>true</addGeneratedAnnotation>
-					<noGeneratedHeaderComments>true</noGeneratedHeaderComments>
-					<clearOutputDir>false</clearOutputDir>
-				</configuration>
 				<executions>
 					<execution>
 						<id>bygglov</id>
@@ -206,23 +199,17 @@
 							<goal>xjc</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>
-								${generated-sources-path}/${generated-sources-java-path}
-							</outputDirectory>
+							<outputDirectory>${generated-sources-path}/${generated-sources-java-path}</outputDirectory>
 							<packageName>generated.se.sundsvall.bygglov</packageName>
 							<arguments>
 								<argument>-Xfluent-api</argument>
 								<argument>-XautoNameResolution</argument>
 							</arguments>
 							<sources>
-								<source>
-									${project.basedir}/src/main/resources/integrations/bygglov/Bygglov_v2.xsd
-								</source>
+								<source>${project.basedir}/src/main/resources/integrations/bygglov/Bygglov_v2.xsd</source>
 							</sources>
 							<xjbSources>
-								<xjbSource>
-									${project.basedir}/src/main/resources/integrations/bygglov/bindings.xjb
-								</xjbSource>
+								<xjbSource>${project.basedir}/src/main/resources/integrations/bygglov/bindings.xjb</xjbSource>
 							</xjbSources>
 						</configuration>
 					</execution>
@@ -232,9 +219,7 @@
 							<goal>xjc</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>
-								${generated-sources-path}/${generated-sources-java-path}
-							</outputDirectory>
+							<outputDirectory>${generated-sources-path}/${generated-sources-java-path}</outputDirectory>
 							<packageName>generated.se.sundsvall.arendeexport</packageName>
 							<sourceType>wsdl</sourceType>
 							<arguments>
@@ -242,14 +227,10 @@
 								<argument>-XautoNameResolution</argument>
 							</arguments>
 							<sources>
-								<source>
-									${project.basedir}/src/main/resources/integrations/arendeexport/ArendeExportWS.wsdl
-								</source>
+								<source>${project.basedir}/src/main/resources/integrations/arendeexport/ArendeExportWS.wsdl</source>
 							</sources>
 							<xjbSources>
-								<xjbSource>
-									${project.basedir}/src/main/resources/integrations/arendeexport/bindings.xjb
-								</xjbSource>
+								<xjbSource>${project.basedir}/src/main/resources/integrations/arendeexport/bindings.xjb</xjbSource>
 							</xjbSources>
 						</configuration>
 					</execution>
@@ -262,14 +243,13 @@
 				<executions>
 					<execution>
 						<id>add-generated-source</id>
-						<phase>initialize</phase>
 						<goals>
 							<goal>add-source</goal>
 						</goals>
+						<phase>initialize</phase>
 						<configuration>
 							<sources>
-								<source>${generated-sources-path}/${generated-sources-java-path}
-								</source>
+								<source>${generated-sources-path}/${generated-sources-java-path}</source>
 							</sources>
 						</configuration>
 					</execution>

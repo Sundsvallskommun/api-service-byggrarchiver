@@ -78,7 +78,6 @@ class ArchiveHistoryTest {
 
 	}
 
-
 	@Test
 	void testNoDirtOnCreatedBean() {
 		assertThat(ArchiveHistory.builder().build()).hasAllNullFieldsOrProperties();

@@ -44,7 +44,7 @@ class ArchiveSchedulerTest {
 
 		when(mockSchedulerProperties.municipalityIds()).thenReturn(List.of(municipalityId));
 
-		//Act
+		// Act
 		archiverScheduler.archive();
 
 		// Assert

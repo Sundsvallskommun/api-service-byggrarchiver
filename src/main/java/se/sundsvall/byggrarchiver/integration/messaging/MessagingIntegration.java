@@ -54,8 +54,7 @@ public class MessagingIntegration {
 		final var values = Map.of(
 			"byggrCaseId", ofNullable(archiveHistory.getCaseId()).orElse(""),
 			"documentName", ofNullable(archiveHistory.getDocumentName()).orElse(""),
-			"documentType", ofNullable(archiveHistory.getDocumentType()).orElse("")
-		);
+			"documentType", ofNullable(archiveHistory.getDocumentType()).orElse(""));
 		final var htmlMessage = toBase64(replace(asString(missingExtensionHtmlTemplate), values));
 
 		final var emailRequest = toEmailRequest(emailProperties.extensionError().sender(), htmlMessage, emailProperties.extensionError().recipient(), "Manuell hantering krävs");
@@ -63,7 +62,6 @@ public class MessagingIntegration {
 	}
 
 	public void sendStatusMail(final List<ArchiveHistory> archiveHistories, final Long batchId, final String municipalityId) {
-
 
 		final var counts = archiveHistories.stream()
 			.collect(Collectors.partitioningBy(archiveHistory -> archiveHistory.getArchiveStatus().equals(COMPLETED), Collectors.counting()));
@@ -83,14 +81,12 @@ public class MessagingIntegration {
 
 		final var values = Map.of(
 			"byggrCaseId", ofNullable(archiveHistory.getCaseId()).orElse(""),
-			"propertyDesignation", ofNullable(propertyDesignation).orElse("")
-		);
+			"propertyDesignation", ofNullable(propertyDesignation).orElse(""));
 		final var htmlMessage = toBase64(replace(asString(geoTekniskHandlingHtmlTemplate), values));
 
 		final var emailRequest = toEmailRequest(emailProperties.lantmateriet().sender(), htmlMessage, emailProperties.lantmateriet().recipient(), "Arkiverad geoteknisk handling");
 		sendEmail(emailRequest, municipalityId);
 	}
-
 
 	void sendEmail(final EmailRequest request, final String municipalityId) {
 

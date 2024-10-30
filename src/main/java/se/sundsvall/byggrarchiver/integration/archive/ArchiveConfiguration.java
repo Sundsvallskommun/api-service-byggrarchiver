@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.archive;
 
-
 import static se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration.INTEGRATION_NAME;
 
 import org.springframework.cloud.openfeign.FeignBuilderCustomizer;

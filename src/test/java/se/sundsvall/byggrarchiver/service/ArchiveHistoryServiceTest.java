@@ -218,7 +218,6 @@ class ArchiveHistoryServiceTest {
 		// Return empty document-list for one document
 		doReturn(new ArrayList<>()).when(mockArendeExportIntegrationService).getDocument(arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().get(1).getDokument().getDokId());
 
-
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
 		verifyCalls(2, 3, 2, 0);
@@ -346,7 +345,6 @@ class ArchiveHistoryServiceTest {
 		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID)))
 			.thenReturn(archiveHistory);
 
-
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
 		verifyCalls(2, 1, 1, 0);
@@ -383,7 +381,6 @@ class ArchiveHistoryServiceTest {
 		final var archiveHistory = new ArchiveHistory();
 		archiveHistory.setArchiveStatus(COMPLETED);
 		archiveHistory.setBatchHistory(batchHistory);
-
 
 		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID)))
 			.thenReturn(archiveHistory);
@@ -583,10 +580,10 @@ class ArchiveHistoryServiceTest {
 	/**
 	 * Util method for creating arende-objects
 	 *
-	 * @param status - status for the arende
-	 * @param handelsetyp - type of handelse that should be included
-	 * @param attachmentCategories - the documents that should be generated
-	 * @return Arende
+	 * @param  status               - status for the arende
+	 * @param  handelsetyp          - type of handelse that should be included
+	 * @param  attachmentCategories - the documents that should be generated
+	 * @return                      Arende
 	 */
 	private Arende createArendeObject(final String status, final String handelsetyp,
 		final List<AttachmentCategory> attachmentCategories) {

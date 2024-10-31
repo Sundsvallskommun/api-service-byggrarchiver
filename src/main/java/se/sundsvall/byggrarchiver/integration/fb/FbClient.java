@@ -14,8 +14,7 @@ import io.github.resilience4j.retry.annotation.Retry;
 @FeignClient(
 	name = FbIntegrationConfiguration.INTEGRATION_NAME,
 	url = "${integration.fb.url}",
-	configuration = FbIntegrationConfiguration.class
-)
+	configuration = FbIntegrationConfiguration.class)
 public interface FbClient {
 
 	@Retry(name = FbIntegrationConfiguration.INTEGRATION_NAME)

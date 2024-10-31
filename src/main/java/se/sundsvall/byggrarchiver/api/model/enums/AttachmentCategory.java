@@ -246,7 +246,6 @@ public enum AttachmentCategory {
 	VS("VS", "VS-handling", "VVS"),
 	VVSH("VVSH", "VVS-handling", "VVS"),
 
-
 	///////////////////////////////////
 	// Ecos
 	///////////////////////////////////

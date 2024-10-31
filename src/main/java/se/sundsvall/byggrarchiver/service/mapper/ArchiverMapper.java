@@ -41,7 +41,6 @@ import generated.se.sundsvall.bygglov.StatusArande;
 
 public final class ArchiverMapper {
 
-
 	private ArchiverMapper() {
 		// Prevent instantiation
 	}
@@ -95,12 +94,10 @@ public final class ArchiverMapper {
 			arkivbildareByggOchMiljoNamnden.setVerksamhetstidTill("1992");
 		}
 
-
 		final var arkivbildareSundsvallsKommun = new ArkivbildareTyp()
 			.withNamn(SUNDSVALLS_KOMMUN)
 			.withVerksamhetstidFran("1974")
 			.withArkivbildare(arkivbildareByggOchMiljoNamnden);
-
 
 		return new ArkivbildarStrukturTyp()
 			.withArkivbildare(arkivbildareSundsvallsKommun);
@@ -163,7 +160,6 @@ public final class ArchiverMapper {
 			.metadata(metaData);
 	}
 
-
 	public static ArchiveHistoryResponse mapToArchiveHistoryResponse(final ArchiveHistory archiveHistory) {
 		if (archiveHistory == null) {
 			return null;
@@ -199,7 +195,6 @@ public final class ArchiverMapper {
 			.build();
 	}
 
-
 	public static BatchHistory createBatchHistory(final LocalDate actualStart, final LocalDate end, final BatchTrigger batchTrigger, final ArchiveStatus archiveStatus, final String municipalityId) {
 		return BatchHistory.builder()
 			.withMunicipalityId(municipalityId)
@@ -208,7 +203,6 @@ public final class ArchiverMapper {
 			.withBatchTrigger(batchTrigger)
 			.withArchiveStatus(archiveStatus).build();
 	}
-
 
 	private static String toNameWithExtension(final String name, final String extension) {
 		final var trimmedExtension = extension.trim().toLowerCase();

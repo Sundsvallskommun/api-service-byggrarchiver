@@ -10,7 +10,9 @@ import jakarta.validation.Payload;
 
 import se.sundsvall.byggrarchiver.api.validation.impl.StartBeforeEndValidator;
 
-@Target({ElementType.PARAMETER})
+@Target({
+	ElementType.PARAMETER
+})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = StartBeforeEndValidator.class)
 public @interface StartBeforeEnd {

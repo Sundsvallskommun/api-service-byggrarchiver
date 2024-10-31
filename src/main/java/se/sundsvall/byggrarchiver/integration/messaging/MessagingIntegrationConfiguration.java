@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.messaging;
 
-
 import static org.springframework.security.oauth2.core.AuthorizationGrantType.CLIENT_CREDENTIALS;
 import static se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration.INTEGRATION_NAME;
 

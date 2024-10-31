@@ -28,7 +28,6 @@ class BatchHistoryResponseTest {
 		registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
 	}
 
-
 	@Test
 	void testBean() {
 		MatcherAssert.assertThat(BatchHistoryResponse.class, allOf(

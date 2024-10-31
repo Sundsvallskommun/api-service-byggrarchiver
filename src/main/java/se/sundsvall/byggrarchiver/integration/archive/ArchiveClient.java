@@ -14,8 +14,7 @@ import generated.se.sundsvall.archive.ByggRArchiveRequest;
 @FeignClient(
 	name = INTEGRATION_NAME,
 	url = "${integration.archive.url}",
-	configuration = ArchiveConfiguration.class
-)
+	configuration = ArchiveConfiguration.class)
 interface ArchiveClient {
 
 	@PostMapping(path = "/{municipalityId}/archive/byggr", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)

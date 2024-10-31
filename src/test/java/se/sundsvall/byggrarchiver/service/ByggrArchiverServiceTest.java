@@ -181,7 +181,8 @@ class ByggrArchiverServiceTest {
 		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), batchHistoryCaptor.capture(), any());
 	}
 
-	// Try to run batch for a date back in time and verify the scheduled batch change the startDate back in time to the day after latest scheduled batch.
+	// Try to run batch for a date back in time and verify the scheduled batch change the startDate back in time to the day
+	// after latest scheduled batch.
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testTimeGapScheduled(final BatchTrigger batchTrigger) {
@@ -193,7 +194,6 @@ class ByggrArchiverServiceTest {
 
 		// Run the first batch
 		byggrArchiverService.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger, MUNICIPALITY_ID);
-
 
 		when(mockBatchHistoryRepository.findAll()).thenReturn(List.of(batchHistory));
 
@@ -292,7 +292,6 @@ class ByggrArchiverServiceTest {
 
 		byggrArchiverService.reRunBatch(randomId, MUNICIPALITY_ID);
 
-
 		verify(mockArchiveHistoryService).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
 		assertThat(batchHistoryCaptor.getValue().getStart()).isEqualTo(start);
 		assertThat(batchHistoryCaptor.getValue().getEnd()).isEqualTo(end);
@@ -325,8 +324,8 @@ class ByggrArchiverServiceTest {
 	/**
 	 * Util method for creating arende-objects
 	 *
-	 * @param attachmentCategories - the documents that should be generated
-	 * @return Arende
+	 * @param  attachmentCategories - the documents that should be generated
+	 * @return                      Arende
 	 */
 	private Arende createArendeObject(final List<AttachmentCategory> attachmentCategories) {
 		final var arrayOfHandelseHandling = new ArrayOfHandelseHandling();

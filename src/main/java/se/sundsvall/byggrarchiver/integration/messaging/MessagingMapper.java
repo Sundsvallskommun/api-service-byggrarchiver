@@ -7,7 +7,6 @@ public final class MessagingMapper {
 
 	private static final String BYGGR_ARCHIVER_SENDER = "ByggrArchiver";
 
-
 	private MessagingMapper() {
 		// Prevent instantiation
 	}

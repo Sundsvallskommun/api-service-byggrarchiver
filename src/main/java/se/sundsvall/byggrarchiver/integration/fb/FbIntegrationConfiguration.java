@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.fb;
 
-
 import org.springframework.cloud.openfeign.FeignBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;

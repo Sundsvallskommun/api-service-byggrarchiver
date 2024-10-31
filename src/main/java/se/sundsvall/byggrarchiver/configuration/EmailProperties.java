@@ -11,17 +11,11 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("email")
 public record EmailProperties(
 
-	@Valid
-	@NotNull
-	Instance lantmateriet,
+	@Valid @NotNull Instance lantmateriet,
 
-	@Valid
-	@NotNull
-	Instance extensionError,
+	@Valid @NotNull Instance extensionError,
 
-	@Valid
-	@NotNull
-	Instance status) {
+	@Valid @NotNull Instance status) {
 
 	public record Instance(@NotBlank String sender, @NotBlank String recipient) {
 

@@ -13,11 +13,8 @@ import se.sundsvall.byggrarchiver.integration.OAuth2;
 @ConfigurationProperties(prefix = "integration.messaging")
 record MessagingIntegrationProperties(
 
-	@NotBlank
-	String url,
+	@NotBlank String url,
 
-	@NotNull
-	@Valid
-	OAuth2 oauth2) {
+	@NotNull @Valid OAuth2 oauth2) {
 
 }

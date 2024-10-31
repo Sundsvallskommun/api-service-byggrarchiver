@@ -42,7 +42,9 @@ class ArchiverMapperTest {
 		final var handling = new Handling()
 			.withHandlingDatum(LocalDate.of(2023, 1, 1))
 			.withAnteckning("anteckning")
-			.withDokument(new Dokument().withDokId("dokId").withNamn("namn").withFil(new DokumentFil().withFilBuffer(new byte[]{1, 2, 3}).withFilAndelse("pdf")));
+			.withDokument(new Dokument().withDokId("dokId").withNamn("namn").withFil(new DokumentFil().withFilBuffer(new byte[] {
+				1, 2, 3
+			}).withFilAndelse("pdf")));
 
 		final var batchHistory = createBatchHistory(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 1), SCHEDULED, COMPLETED);
 
@@ -74,7 +76,9 @@ class ArchiverMapperTest {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("namn")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[]{1, 2, 3})
+				.withFilBuffer(new byte[] {
+					1, 2, 3
+				})
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 
@@ -91,7 +95,9 @@ class ArchiverMapperTest {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("1_NameWithExtension.docx")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[]{1, 2, 3})
+				.withFilBuffer(new byte[] {
+					1, 2, 3
+				})
 				.withFilAndelse("notUsed"))
 			.withBeskrivning("beskrivning");
 
@@ -137,7 +143,9 @@ class ArchiverMapperTest {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("namn.pdf")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[]{1, 2, 3})
+				.withFilBuffer(new byte[] {
+					1, 2, 3
+				})
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 
@@ -240,13 +248,17 @@ class ArchiverMapperTest {
 			.withTyp("handlingstyp")
 			.withDokument(new Dokument().withDokId("dokId")
 				.withNamn("namn")
-				.withFil(new DokumentFil().withFilBuffer(new byte[]{1, 2, 3})
+				.withFil(new DokumentFil().withFilBuffer(new byte[] {
+					1, 2, 3
+				})
 					.withFilAndelse("pdf")));
 
 		final var document = new Dokument().withDokId("dokId")
 			.withNamn("namn")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[]{1, 2, 3})
+				.withFilBuffer(new byte[] {
+					1, 2, 3
+				})
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 
@@ -285,7 +297,9 @@ class ArchiverMapperTest {
 		final var dokument = new Dokument().withDokId("dokId")
 			.withNamn("namn")
 			.withFil(new DokumentFil()
-				.withFilBuffer(new byte[]{1, 2, 3})
+				.withFilBuffer(new byte[] {
+					1, 2, 3
+				})
 				.withFilAndelse("pdf"))
 			.withBeskrivning("beskrivning");
 

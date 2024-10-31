@@ -14,15 +14,13 @@ import generated.se.sundsvall.messaging.MessageResult;
 @FeignClient(
 	name = INTEGRATION_NAME,
 	url = "${integration.messaging.url}",
-	configuration = MessagingIntegrationConfiguration.class
-)
+	configuration = MessagingIntegrationConfiguration.class)
 public interface MessagingClient {
 
 	@PostMapping(
 		path = "/{municipalityId}/email",
 		consumes = APPLICATION_JSON_VALUE,
-		produces = APPLICATION_JSON_VALUE
-	)
+		produces = APPLICATION_JSON_VALUE)
 	MessageResult sendEmail(
 		@PathVariable("municipalityId") String municipalityId,
 		@RequestBody EmailRequest emailRequest);

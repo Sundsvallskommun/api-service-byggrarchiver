@@ -1,5 +1,5 @@
 {
-  "title": "Bad Request",
-  "status": 400,
-  "detail": "It's not possible to rerun a completed batch."
+	"detail": "It's not possible to rerun a completed batch.",
+	"title": "Bad Request",
+	"status": 400
 }

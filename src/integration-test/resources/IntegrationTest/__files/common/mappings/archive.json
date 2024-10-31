@@ -1,18 +1,12 @@
 {
-  "request": {
-    "headers": {
-      "Authorization": {
-        "equalTo": "Bearer 0000000000000000AAAAAAAAAAAAAAAA"
-      }
-    },
-    "method": "POST",
-    "urlPath": "/archive/2.0/2281/archive/byggr"
-  },
-  "response": {
-    "status": 200,
-    "bodyFileName": "common/response/archive.200.json",
-    "headers": {
-      "Content-Type": "application/json"
-    }
-  }
+	"request": {
+		"headers": {"Authorization": {"equalTo": "Bearer 0000000000000000AAAAAAAAAAAAAAAA"}},
+		"method": "POST",
+		"urlPath": "/archive/2.0/2281/archive/byggr"
+	},
+	"response": {
+		"headers": {"Content-Type": "application/json"},
+		"bodyFileName": "common/response/archive.200.json",
+		"status": 200
+	}
 }

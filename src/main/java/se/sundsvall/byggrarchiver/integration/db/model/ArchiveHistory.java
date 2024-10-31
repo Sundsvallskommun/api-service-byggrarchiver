@@ -38,11 +38,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "archive_history", indexes =
-	{
-		@Index(name = "archive_history_municipality_id_idx", columnList = "municipalityId"),
-		@Index(name = "archive_history_archive_status_idx", columnList = "archiveStatus")
-	})
+@Table(name = "archive_history", indexes = {
+	@Index(name = "archive_history_municipality_id_idx", columnList = "municipalityId"),
+	@Index(name = "archive_history_archive_status_idx", columnList = "archiveStatus")
+})
 public class ArchiveHistory {
 
 	@Id
@@ -82,10 +81,13 @@ public class ArchiveHistory {
 
 	@Override
 	public boolean equals(final Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 		final ArchiveHistory that = (ArchiveHistory) o;
-		return Objects.equals(documentId, that.documentId) && Objects.equals(caseId, that.caseId) && Objects.equals(municipalityId, that.municipalityId) && Objects.equals(documentName, that.documentName) && Objects.equals(documentType, that.documentType) && Objects.equals(archiveId, that.archiveId) && Objects.equals(archiveUrl, that.archiveUrl) && archiveStatus == that.archiveStatus && Objects.equals(timestamp, that.timestamp) && Objects.equals(batchHistory, that.batchHistory);
+		return Objects.equals(documentId, that.documentId) && Objects.equals(caseId, that.caseId) && Objects.equals(municipalityId, that.municipalityId) && Objects.equals(documentName, that.documentName) && Objects.equals(documentType, that.documentType)
+			&& Objects.equals(archiveId, that.archiveId) && Objects.equals(archiveUrl, that.archiveUrl) && archiveStatus == that.archiveStatus && Objects.equals(timestamp, that.timestamp) && Objects.equals(batchHistory, that.batchHistory);
 	}
 
 	@Override

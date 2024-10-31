@@ -1,5 +1,5 @@
 {
-  "title": "Service Unavailable",
-  "status": 503,
-  "detail": "ArendeExport integration failed ('GetUpdatedArenden')"
+	"detail": "ArendeExport integration failed ('GetUpdatedArenden')",
+	"title": "Service Unavailable",
+	"status": 503
 }

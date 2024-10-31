@@ -37,9 +37,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Validated
 @RestController
-@RequestMapping(path = "/{municipalityId}", produces = {APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE})
+@RequestMapping(path = "/{municipalityId}", produces = {
+	APPLICATION_JSON_VALUE, APPLICATION_PROBLEM_JSON_VALUE
+})
 @ApiResponse(responseCode = "200", description = "OK - Successful operation")
-@ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {Problem.class, ConstraintViolationProblem.class})))
+@ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(oneOf = {
+	Problem.class, ConstraintViolationProblem.class
+})))
 @ApiResponse(responseCode = "500", description = "Internal Server error", content = @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Problem.class)))
 class ByggrArchiverResource {
 
@@ -71,9 +75,7 @@ class ByggrArchiverResource {
 	@PostMapping("/batch-jobs")
 	public ResponseEntity<BatchHistoryResponse> postBatchJob(
 		@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
-		@Valid @StartBeforeEnd
-		@NotNull(message = "Request body must not be null")
-		@RequestBody final BatchJob batchJob) {
+		@Valid @StartBeforeEnd @NotNull(message = "Request body must not be null") @RequestBody final BatchJob batchJob) {
 		return ResponseEntity.ok(byggrArchiverService.runBatch(batchJob.getStart(), batchJob.getEnd(), BatchTrigger.MANUAL, municipalityId));
 	}
 

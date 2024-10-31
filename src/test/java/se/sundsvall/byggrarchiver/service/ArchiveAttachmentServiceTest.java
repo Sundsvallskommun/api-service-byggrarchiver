@@ -168,7 +168,7 @@ class ArchiveAttachmentServiceTest {
 		assertThat(result.getArchiveId()).isEqualTo(archiveResponse.getArchiveId());
 		assertThat(result.getArchiveStatus()).isEqualTo(ArchiveStatus.COMPLETED);
 		assertThat(byggRArchiveRequestCaptor.getValue().getMetadata()).containsIgnoringWhitespaces("""
-			   															<Arkivbildare>
+																		<Arkivbildare>
 				<Namn>Stadsbyggnadsnämnden</Namn>
 				<VerksamhetstidFran>1993</VerksamhetstidFran>
 				<VerksamhetstidTill>2017</VerksamhetstidTill>
@@ -201,7 +201,7 @@ class ArchiveAttachmentServiceTest {
 		assertThat(result.getArchiveId()).isEqualTo(archiveResponse.getArchiveId());
 		assertThat(result.getArchiveStatus()).isEqualTo(ArchiveStatus.COMPLETED);
 		assertThat(byggRArchiveRequestCaptor.getValue().getMetadata()).containsIgnoringWhitespaces("""
-			   															<Arkivbildare>
+																		<Arkivbildare>
 				<Namn>Byggnadsnämnden</Namn>
 				<VerksamhetstidFran>1974</VerksamhetstidFran>
 				<VerksamhetstidTill>1992</VerksamhetstidTill>
@@ -296,8 +296,8 @@ class ArchiveAttachmentServiceTest {
 	/**
 	 * Util method for creating arende-objects
 	 *
-	 * @param attachmentCategories - the documents that should be generated
-	 * @return Arende
+	 * @param  attachmentCategories - the documents that should be generated
+	 * @return                      Arende
 	 */
 	private Arende createArendeObject(final List<AttachmentCategory> attachmentCategories) {
 		final var arrayOfHandelseHandling = new ArrayOfHandelseHandling();

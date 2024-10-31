@@ -21,7 +21,7 @@ Tjänsten har integrationer mot följande API:er:
 
 ### Konfiguration
 
-| Miljövariabel                                               | Beskrivning                                                    |
+|                        Miljövariabel                        |                          Beskrivning                           |
 |-------------------------------------------------------------|----------------------------------------------------------------|
 | **Inställningar för utgående e-post**                       |                                                                |
 | `email.lantmateriet.sender`                                 | Avsändande e-postadress för e-post relaterad till Lantmäteriet |

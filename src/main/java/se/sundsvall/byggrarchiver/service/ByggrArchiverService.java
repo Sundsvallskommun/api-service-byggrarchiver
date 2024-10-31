@@ -99,7 +99,6 @@ public class ByggrArchiverService {
 			.orElse(null);
 	}
 
-
 	private LocalDate getBatchStartOfScheduledJob(LocalDate start, final LocalDate end) {
 		final var latestBatch = getLatestCompletedBatch();
 

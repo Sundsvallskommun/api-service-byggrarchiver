@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 
-
 class ArchiveHistoryResponseTest {
 
 	@BeforeAll
@@ -27,7 +26,6 @@ class ArchiveHistoryResponseTest {
 		registerValueGenerator(() -> LocalDate.now().plusDays(randomInt()), LocalDate.class);
 		registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
 	}
-
 
 	@Test
 	void testBean() {

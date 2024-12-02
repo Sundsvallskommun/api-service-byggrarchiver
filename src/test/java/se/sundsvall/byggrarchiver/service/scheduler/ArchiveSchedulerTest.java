@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,7 +22,7 @@ import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
 @ExtendWith(MockitoExtension.class)
 class ArchiveSchedulerTest {
 
-	@Mock
+	@Mock(answer = Answers.RETURNS_DEEP_STUBS)
 	private SchedulerProperties mockSchedulerProperties;
 
 	@Mock
@@ -32,24 +33,19 @@ class ArchiveSchedulerTest {
 
 	@Test
 	void archive() {
+		var originalStart = LocalDate.now().minusDays(7);
+		var end = LocalDate.now().minusDays(1);
+		var batchTrigger = BatchTrigger.SCHEDULED;
+		var municipalityId = "2281";
 
-		// Arrange
-		final var originalStart = LocalDate.now().minusDays(7);
-		final var end = LocalDate.now().minusDays(1);
-		final var batchTrigger = BatchTrigger.SCHEDULED;
-		final var municipalityId = "2281";
+		when(mockSchedulerProperties.municipalityIds()).thenReturn(List.of(municipalityId));
 
 		when(mockByggrArchiverService.runBatch(originalStart, end, batchTrigger, municipalityId))
 			.thenReturn(BatchHistoryResponse.builder().withId(randomLong()).build());
 
-		when(mockSchedulerProperties.municipalityIds()).thenReturn(List.of(municipalityId));
-
-		// Act
 		archiverScheduler.archive();
 
-		// Assert
 		verify(mockByggrArchiverService).runBatch(originalStart, end, batchTrigger, municipalityId);
 		verifyNoMoreInteractions(mockByggrArchiverService);
 	}
-
 }

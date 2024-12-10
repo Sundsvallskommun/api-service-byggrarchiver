@@ -2,14 +2,12 @@ package se.sundsvall.byggrarchiver.integration.fb;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
+import io.github.resilience4j.retry.annotation.Retry;
 import java.util.List;
-
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
-import io.github.resilience4j.retry.annotation.Retry;
 
 @FeignClient(
 	name = FbIntegrationConfiguration.INTEGRATION_NAME,

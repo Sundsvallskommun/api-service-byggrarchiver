@@ -10,25 +10,6 @@ import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toByggRAr
 import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
 import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
 
-import java.io.StringWriter;
-import java.time.LocalDate;
-import java.util.Map;
-
-import jakarta.xml.bind.JAXBContext;
-
-import org.apache.commons.text.StringSubstitutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
-import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-
 import feign.FeignException;
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.arendeexport.Arende2;
@@ -37,6 +18,21 @@ import generated.se.sundsvall.arendeexport.Handling;
 import generated.se.sundsvall.bygglov.ArkivobjektListaArendenTyp;
 import generated.se.sundsvall.bygglov.LeveransobjektTyp;
 import generated.se.sundsvall.bygglov.ObjectFactory;
+import jakarta.xml.bind.JAXBContext;
+import java.io.StringWriter;
+import java.time.LocalDate;
+import java.util.Map;
+import org.apache.commons.text.StringSubstitutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
+import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
+import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 @Service
 public class ArchiveAttachmentService {

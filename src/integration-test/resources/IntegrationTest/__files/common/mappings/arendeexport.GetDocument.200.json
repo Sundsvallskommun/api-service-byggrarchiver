@@ -1,7 +1,11 @@
 {
 	"request": {
 		"method": "POST",
-		"bodyPatterns": [{"contains": "GetDocument"}],
+		"bodyPatterns": [
+			{
+				"contains": "GetDocument"
+			}
+		],
 		"url": "/TekisArende/ArendeExportWS.svc"
 	},
 	"response": {
@@ -12,7 +16,9 @@
 			"Content-Type": "text/xml; charset=utf-8",
 			"X-Powered-By": "ASP.NET"
 		},
-		"transformers": ["get-document-transformer"],
+		"transformers": [
+			"get-document-transformer"
+		],
 		"bodyFileName": "common/response/arendeexport.GetDocument.200.xml",
 		"status": 200
 	}

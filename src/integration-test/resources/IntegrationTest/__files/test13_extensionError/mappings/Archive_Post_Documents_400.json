@@ -4,7 +4,9 @@
 		"urlPath": "/archive/2.0/2281/archive/byggr"
 	},
 	"response": {
-		"headers": {"Content-Type": "application/json"},
+		"headers": {
+			"Content-Type": "application/json"
+		},
 		"bodyFileName": "test13_extensionError/response/archiveExtensionError400.json",
 		"status": 400
 	}

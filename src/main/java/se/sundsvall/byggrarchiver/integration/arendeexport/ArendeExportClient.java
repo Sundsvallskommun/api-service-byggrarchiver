@@ -2,13 +2,12 @@ package se.sundsvall.byggrarchiver.integration.arendeexport;
 
 import static se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportConfiguration.CLIENT_ID;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.PostMapping;
-
 import generated.se.sundsvall.arendeexport.GetDocument;
 import generated.se.sundsvall.arendeexport.GetDocumentResponse;
 import generated.se.sundsvall.arendeexport.GetUpdatedArenden;
 import generated.se.sundsvall.arendeexport.GetUpdatedArendenResponse;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @FeignClient(name = CLIENT_ID, url = "${integration.arendeexport.url}", configuration = ArendeExportConfiguration.class)
 public interface ArendeExportClient {

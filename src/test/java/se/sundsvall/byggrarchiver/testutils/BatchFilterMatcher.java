@@ -1,9 +1,8 @@
 package se.sundsvall.byggrarchiver.testutils;
 
-import org.mockito.ArgumentMatcher;
-
 import generated.se.sundsvall.arendeexport.BatchFilter;
 import lombok.AllArgsConstructor;
+import org.mockito.ArgumentMatcher;
 
 @AllArgsConstructor
 public class BatchFilterMatcher implements ArgumentMatcher<BatchFilter> {

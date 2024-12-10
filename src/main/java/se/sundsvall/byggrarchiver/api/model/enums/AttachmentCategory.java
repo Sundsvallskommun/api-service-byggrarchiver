@@ -1,7 +1,6 @@
 package se.sundsvall.byggrarchiver.api.model.enums;
 
 import java.util.Arrays;
-
 import lombok.Getter;
 
 @Getter

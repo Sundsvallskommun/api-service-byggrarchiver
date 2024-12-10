@@ -8,15 +8,17 @@ import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeF
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
 
+import generated.se.sundsvall.arendeexport.Arende2;
+import generated.se.sundsvall.arendeexport.ArendeBatch;
+import generated.se.sundsvall.arendeexport.BatchFilter;
+import generated.se.sundsvall.arendeexport.HandelseHandling;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
@@ -29,11 +31,6 @@ import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
-
-import generated.se.sundsvall.arendeexport.Arende2;
-import generated.se.sundsvall.arendeexport.ArendeBatch;
-import generated.se.sundsvall.arendeexport.BatchFilter;
-import generated.se.sundsvall.arendeexport.HandelseHandling;
 
 @Service
 public class ArchiveHistoryService {

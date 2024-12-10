@@ -1,18 +1,15 @@
 package se.sundsvall.byggrarchiver.integration.fb;
 
+import generated.se.sundsvall.arendeexport.ArendeFastighet;
+import generated.se.sundsvall.bygglov.FastighetTyp;
+import generated.sokigo.fb.FastighetDto;
 import java.util.List;
-
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.zalando.problem.AbstractThrowableProblem;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
-
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-
-import generated.se.sundsvall.arendeexport.ArendeFastighet;
-import generated.se.sundsvall.bygglov.FastighetTyp;
-import generated.sokigo.fb.FastighetDto;
 
 @Component
 @EnableConfigurationProperties(FbIntegrationProperties.class)

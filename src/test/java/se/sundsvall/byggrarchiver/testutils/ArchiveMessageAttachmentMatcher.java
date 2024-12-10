@@ -1,8 +1,7 @@
 package se.sundsvall.byggrarchiver.testutils;
 
-import org.mockito.ArgumentMatcher;
-
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
+import org.mockito.ArgumentMatcher;
 
 public class ArchiveMessageAttachmentMatcher implements ArgumentMatcher<ByggRArchiveRequest> {
 

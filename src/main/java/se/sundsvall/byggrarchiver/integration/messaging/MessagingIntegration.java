@@ -7,12 +7,12 @@ import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED
 import static se.sundsvall.byggrarchiver.integration.messaging.MessagingMapper.toEmailRequest;
 import static se.sundsvall.dept44.util.ResourceUtils.asString;
 
+import generated.se.sundsvall.messaging.EmailRequest;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +20,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-
 import se.sundsvall.byggrarchiver.configuration.EmailProperties;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-
-import generated.se.sundsvall.messaging.EmailRequest;
 
 @Component
 @EnableConfigurationProperties(MessagingIntegrationProperties.class)

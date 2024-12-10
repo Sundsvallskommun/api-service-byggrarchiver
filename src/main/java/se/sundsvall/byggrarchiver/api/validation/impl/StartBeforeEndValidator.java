@@ -2,7 +2,6 @@ package se.sundsvall.byggrarchiver.api.validation.impl;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.validation.StartBeforeEnd;
 

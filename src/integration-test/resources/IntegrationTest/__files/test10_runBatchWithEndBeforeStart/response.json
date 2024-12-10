@@ -1,8 +1,10 @@
 {
-	"violations": [{
-		"field": "postBatchJob.batchJob",
-		"message": "End can not be before start"
-	}],
+	"violations": [
+		{
+			"field": "postBatchJob.batchJob",
+			"message": "End can not be before start"
+		}
+	],
 	"type": "https://zalando.github.io/problem/constraint-violation",
 	"title": "Constraint Violation",
 	"status": 400

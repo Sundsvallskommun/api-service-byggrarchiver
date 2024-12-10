@@ -17,7 +17,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -43,13 +43,13 @@ class ByggrArchiverResourceTest {
 
 	private static final String ARCHIVED_PATH = "/{municipalityId}/archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}";
 
-	@MockBean
+	@MockitoBean
 	private ByggrArchiverService mockByggrArchiverService;
 
-	@MockBean
+	@MockitoBean
 	private ArchiveHistoryRepository mockArchiveHistoryRepository;
 
-	@MockBean
+	@MockitoBean
 	private BatchHistoryRepository mockBatchHistoryRepository;
 
 	@Autowired

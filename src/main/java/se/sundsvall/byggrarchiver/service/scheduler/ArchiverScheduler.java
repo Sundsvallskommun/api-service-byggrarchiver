@@ -2,16 +2,13 @@ package se.sundsvall.byggrarchiver.service.scheduler;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
-
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Service
 public class ArchiverScheduler {

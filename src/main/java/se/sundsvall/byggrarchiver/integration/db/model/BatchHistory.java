@@ -1,11 +1,6 @@
 package se.sundsvall.byggrarchiver.integration.db.model;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.Objects;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,16 +11,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
+import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 
 @Entity
 @Builder(setterPrefix = "with")

@@ -11,7 +11,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 import java.time.LocalDate;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

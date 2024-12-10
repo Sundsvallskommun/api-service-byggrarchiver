@@ -4,16 +4,13 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.Base64;
 import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 public final class Util {
 

@@ -1,10 +1,18 @@
 {
 	"request": {
 		"method": "POST",
-		"bodyPatterns": [{"and": [
-			{"contains": "GetUpdatedArenden"},
-			{"contains": "UpperInclusiveBound>1999-01-01T23:59:59"}
-		]}],
+		"bodyPatterns": [
+			{
+				"and": [
+					{
+						"contains": "GetUpdatedArenden"
+					},
+					{
+						"contains": "UpperInclusiveBound>1999-01-01T23:59:59"
+					}
+				]
+			}
+		],
 		"url": "/TekisArende/ArendeExportWS.svc"
 	},
 	"response": {

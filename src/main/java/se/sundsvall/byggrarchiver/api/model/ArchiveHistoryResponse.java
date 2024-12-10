@@ -2,14 +2,12 @@ package se.sundsvall.byggrarchiver.api.model;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 
 @Setter
 @Getter

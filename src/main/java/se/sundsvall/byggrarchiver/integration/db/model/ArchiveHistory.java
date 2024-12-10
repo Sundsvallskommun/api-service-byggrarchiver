@@ -1,11 +1,6 @@
 package se.sundsvall.byggrarchiver.integration.db.model;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.Objects;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
@@ -21,15 +16,17 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 
 @Entity
 @IdClass(IdPk.class)

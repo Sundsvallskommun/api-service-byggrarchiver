@@ -27,38 +27,6 @@ import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.hibernate.service.spi.ServiceException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
-import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
-import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
-import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-import se.sundsvall.byggrarchiver.testutils.BatchFilterMatcher;
-
 import generated.se.sundsvall.arendeexport.Arende;
 import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.ArendeFastighet;
@@ -73,6 +41,35 @@ import generated.se.sundsvall.arendeexport.Fastighet;
 import generated.se.sundsvall.arendeexport.Handelse;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
 import generated.se.sundsvall.bygglov.FastighetTyp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.hibernate.service.spi.ServiceException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
+import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
+import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
+import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+import se.sundsvall.byggrarchiver.testutils.BatchFilterMatcher;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiveHistoryServiceTest {

@@ -11,16 +11,6 @@ import static se.sundsvall.byggrarchiver.testutils.TestUtil.createBatchHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-
 import generated.se.sundsvall.arendeexport.AbstractArendeObjekt;
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.ArendeFastighet;
@@ -34,6 +24,13 @@ import generated.se.sundsvall.bygglov.ArkivobjektListaHandlingarTyp;
 import generated.se.sundsvall.bygglov.BilagaTyp;
 import generated.se.sundsvall.bygglov.ExtraID;
 import generated.se.sundsvall.bygglov.StatusArande;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 class ArchiverMapperTest {
 

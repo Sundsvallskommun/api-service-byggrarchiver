@@ -7,22 +7,6 @@ import static se.sundsvall.byggrarchiver.util.Constants.STADSBYGGNADSNAMNDEN;
 import static se.sundsvall.byggrarchiver.util.Constants.STANGT;
 import static se.sundsvall.byggrarchiver.util.Constants.SUNDSVALLS_KOMMUN;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
-import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
-import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-import se.sundsvall.byggrarchiver.util.Util;
-
 import generated.se.sundsvall.archive.Attachment;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 import generated.se.sundsvall.arendeexport.AbstractArendeObjekt;
@@ -38,6 +22,20 @@ import generated.se.sundsvall.bygglov.ArkivobjektListaHandlingarTyp;
 import generated.se.sundsvall.bygglov.BilagaTyp;
 import generated.se.sundsvall.bygglov.ExtraID;
 import generated.se.sundsvall.bygglov.StatusArande;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
+import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
+import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
+import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+import se.sundsvall.byggrarchiver.util.Util;
 
 public final class ArchiverMapper {
 

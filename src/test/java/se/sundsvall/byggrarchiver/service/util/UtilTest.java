@@ -8,9 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
-
 import org.junit.jupiter.api.Test;
-
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.util.Util;
 

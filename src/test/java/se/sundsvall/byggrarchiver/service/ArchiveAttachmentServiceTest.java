@@ -14,32 +14,6 @@ import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
 import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
-import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
-import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
-import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
-import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
-
 import feign.FeignException;
 import feign.Request;
 import generated.se.sundsvall.archive.ArchiveResponse;
@@ -55,6 +29,29 @@ import generated.se.sundsvall.arendeexport.Fastighet;
 import generated.se.sundsvall.arendeexport.Handelse;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
 import generated.se.sundsvall.bygglov.FastighetTyp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
+import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
+import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
+import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiveAttachmentServiceTest {

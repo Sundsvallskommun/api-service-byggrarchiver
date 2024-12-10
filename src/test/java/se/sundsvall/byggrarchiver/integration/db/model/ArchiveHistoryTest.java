@@ -11,11 +11,9 @@ import static org.hamcrest.core.AllOf.allOf;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 import java.time.LocalDateTime;
-
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 
 class ArchiveHistoryTest {

@@ -1,9 +1,8 @@
 package se.sundsvall.byggrarchiver.integration.archive;
 
-import org.springframework.stereotype.Component;
-
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ArchiveIntegration {

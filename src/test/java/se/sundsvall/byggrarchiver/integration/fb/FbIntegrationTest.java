@@ -11,9 +11,12 @@ import static org.mockito.Mockito.when;
 import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
+import generated.se.sundsvall.arendeexport.ArendeFastighet;
+import generated.se.sundsvall.arendeexport.Fastighet;
+import generated.sokigo.fb.FastighetDto;
+import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,13 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
-
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-
-import generated.se.sundsvall.arendeexport.ArendeFastighet;
-import generated.se.sundsvall.arendeexport.Fastighet;
-import generated.sokigo.fb.FastighetDto;
-import generated.sokigo.fb.ResponseDtoIEnumerableFastighetDto;
 
 @ExtendWith(MockitoExtension.class)
 class FbIntegrationTest {

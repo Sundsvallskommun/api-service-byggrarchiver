@@ -16,8 +16,5 @@ public record EmailProperties(
 
 	@Valid @NotNull Instance status) {
 
-	public record Instance(@NotBlank String sender, @NotBlank String recipient) {
-
-	}
-
+	public record Instance(@NotBlank String sender, String replyTo, @NotBlank String recipient) {}
 }

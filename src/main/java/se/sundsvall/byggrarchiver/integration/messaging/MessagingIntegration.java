@@ -11,7 +11,6 @@ import generated.se.sundsvall.messaging.EmailRequest;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -47,48 +46,44 @@ public class MessagingIntegration {
 	}
 
 	public void sendExtensionErrorEmail(final ArchiveHistory archiveHistory, final String municipalityId) {
-
-		final var values = Map.of(
+		var values = Map.of(
 			"byggrCaseId", ofNullable(archiveHistory.getCaseId()).orElse(""),
 			"documentName", ofNullable(archiveHistory.getDocumentName()).orElse(""),
 			"documentType", ofNullable(archiveHistory.getDocumentType()).orElse(""));
-		final var htmlMessage = toBase64(replace(asString(missingExtensionHtmlTemplate), values));
+		var htmlMessage = toBase64(replace(asString(missingExtensionHtmlTemplate), values));
 
-		final var emailRequest = toEmailRequest(emailProperties.extensionError().sender(), htmlMessage, emailProperties.extensionError().recipient(), "Manuell hantering krävs");
+		var emailRequest = toEmailRequest(emailProperties.extensionError(), "Manuell hantering krävs", htmlMessage);
 		sendEmail(emailRequest, municipalityId);
 	}
 
 	public void sendStatusMail(final List<ArchiveHistory> archiveHistories, final Long batchId, final String municipalityId) {
-
-		final var counts = archiveHistories.stream()
+		var counts = archiveHistories.stream()
 			.collect(Collectors.partitioningBy(archiveHistory -> archiveHistory.getArchiveStatus().equals(COMPLETED), Collectors.counting()));
 
-		final var values = Map.of(
+		var values = Map.of(
 			"batchId", String.valueOf(batchId),
 			"countCompleted", String.valueOf(counts.get(true)),
 			"countNotCompleted", String.valueOf(counts.get(false)));
-		final var htmlMessage = toBase64(replace(asString(statusHtmlTemplate), values));
+		var htmlMessage = toBase64(replace(asString(statusHtmlTemplate), values));
+		var emailRequest = toEmailRequest(emailProperties.status(), "Arkiveringsstatus", htmlMessage);
 
-		final var emailRequest = toEmailRequest(emailProperties.status().sender(), htmlMessage, emailProperties.status().recipient(), "Arkiveringsstatus");
 		sendEmail(emailRequest, municipalityId);
-
 	}
 
 	public void sendEmailToLantmateriet(final String propertyDesignation, final ArchiveHistory archiveHistory, final String municipalityId) {
-
-		final var values = Map.of(
+		var values = Map.of(
 			"byggrCaseId", ofNullable(archiveHistory.getCaseId()).orElse(""),
 			"propertyDesignation", ofNullable(propertyDesignation).orElse(""));
-		final var htmlMessage = toBase64(replace(asString(geoTekniskHandlingHtmlTemplate), values));
+		var htmlMessage = toBase64(replace(asString(geoTekniskHandlingHtmlTemplate), values));
+		var emailRequest = toEmailRequest(emailProperties.lantmateriet(), "Arkiverad geoteknisk handling", htmlMessage);
 
-		final var emailRequest = toEmailRequest(emailProperties.lantmateriet().sender(), htmlMessage, emailProperties.lantmateriet().recipient(), "Arkiverad geoteknisk handling");
 		sendEmail(emailRequest, municipalityId);
 	}
 
 	void sendEmail(final EmailRequest request, final String municipalityId) {
-
 		LOG.info("Sending e-mail to: {} from: {}", request.getEmailAddress(), request.getSender().getAddress());
-		Optional.ofNullable(client.sendEmail(municipalityId, request))
+
+		ofNullable(client.sendEmail(municipalityId, request))
 			.filter(response -> response.getMessageId() != null)
 			.filter(response -> !response.getDeliveries().isEmpty())
 			.filter(response -> response.getDeliveries().getFirst().getStatus() == SENT)
@@ -107,5 +102,4 @@ public class MessagingIntegration {
 	private String fromBase64(final String s) {
 		return new String(Base64.getDecoder().decode(s), UTF_8);
 	}
-
 }

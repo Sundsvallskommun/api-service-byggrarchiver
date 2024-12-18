@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.service;
 
-import static feign.Request.HttpMethod.POST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -14,8 +13,6 @@ import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
 import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
 
-import feign.FeignException;
-import feign.Request;
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 import generated.se.sundsvall.arendeexport.Arende;
@@ -32,7 +29,6 @@ import generated.se.sundsvall.bygglov.FastighetTyp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +40,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.zalando.problem.Status;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
@@ -52,6 +49,7 @@ import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
+import se.sundsvall.dept44.exception.ClientProblem;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiveAttachmentServiceTest {
@@ -264,18 +262,18 @@ class ArchiveAttachmentServiceTest {
 	}
 
 	@Test
-	void archiveFailsWithFeignException() throws Exception {
+	void archiveFailsWithClientProblem() throws Exception {
 		// Arrange
 		final var arende = createArendeObject(List.of(AttachmentCategory.ANS));
 		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var exceptionMessage = "File format is not allowed";
-		final var exception = new FeignException.InternalServerError(exceptionMessage, Request.create(POST, "url", Map.of(), null, null, null), null, null);
+		final var problem = new ClientProblem(Status.BAD_REQUEST, exceptionMessage);
 
 		final var archiveHistory = createRandomArchiveHistory();
 
 		when(archiveHistoryRepositoryMock.save(archiveHistory)).thenReturn(archiveHistory);
-		when(archiveIntegrationMock.archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID))).thenThrow(exception);
+		when(archiveIntegrationMock.archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID))).thenThrow(problem);
 		when(fastighetService.getFastighet(any())).thenReturn(new FastighetTyp());
 
 		final var result = archiveAttachmentService.archiveAttachment(arende, handling, document, archiveHistory, MUNICIPALITY_ID);

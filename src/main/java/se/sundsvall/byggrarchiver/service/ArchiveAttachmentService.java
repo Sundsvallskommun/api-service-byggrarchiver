@@ -10,7 +10,6 @@ import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toByggRAr
 import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
 import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
 
-import feign.FeignException;
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.Dokument;
@@ -33,6 +32,7 @@ import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+import se.sundsvall.dept44.exception.ClientProblem;
 
 @Service
 public class ArchiveAttachmentService {
@@ -66,7 +66,7 @@ public class ArchiveAttachmentService {
 		ArchiveResponse archiveResponse = null;
 		try {
 			archiveResponse = archiveIntegration.archive(toByggRArchiveRequest(document, createMetadata(arende, handling, document)), municipalityId);
-		} catch (final FeignException e) {
+		} catch (final ClientProblem e) {
 			LOG.error("Request to Archive failed. Continue with the rest.", e);
 
 			if (e.getMessage().contains("extension must be valid") || e.getMessage().contains("File format")) {

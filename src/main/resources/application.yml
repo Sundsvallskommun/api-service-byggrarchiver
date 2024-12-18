@@ -3,19 +3,22 @@ openapi:
   name: ${spring.application.name}
   title: ByggR Archiver
   version: '@project.version@'
-resilience4j:
-  circuitbreaker:
-    instances:
-      archive:
-        ignoreExceptions: se.sundsvall.dept44.exception.ClientProblem
-      messaging:
-        ignoreExceptions: se.sundsvall.dept44.exception.ClientProblem
-  retry:
-    instances:
-      archive:
-        ignore-exceptions: se.sundsvall.dept44.exception.ClientProblem
-      messaging:
-        ignore-exceptions: se.sundsvall.dept44.exception.ClientProblem
+resilience4j.circuitbreaker:
+  instances:
+    archive:
+      ignore-exceptions:
+        - se.sundsvall.dept44.exception.ClientProblem
+    messaging:
+      ignore-exceptions:
+        - se.sundsvall.dept44.exception.ClientProblem
+resilience4j.retry:
+  instances:
+    archive:
+      ignore-exceptions:
+        - se.sundsvall.dept44.exception.ClientProblem
+    messaging:
+      ignore-exceptions:
+        - se.sundsvall.dept44.exception.ClientProblem
 spring:
   application:
     name: api-byggrarchiver

@@ -14,7 +14,7 @@ import se.sundsvall.dept44.configuration.feign.FeignMultiCustomizer;
 @Import(FeignConfiguration.class)
 public class ArendeExportConfiguration {
 
-	public static final String CLIENT_ID = "arendeExport";
+	public static final String INTEGRATION_NAME = "arendeExport";
 
 	private static final JAXBContextFactory JAXB_FACTORY = new JAXBContextFactory.Builder().build();
 

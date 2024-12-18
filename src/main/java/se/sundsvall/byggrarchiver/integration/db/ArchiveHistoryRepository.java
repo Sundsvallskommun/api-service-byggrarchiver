@@ -1,5 +1,6 @@
 package se.sundsvall.byggrarchiver.integration.db;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,7 @@ import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 
 @Transactional
+@CircuitBreaker(name = "archiveHistoryRepository")
 public interface ArchiveHistoryRepository extends JpaRepository<ArchiveHistory, Long> {
 
 	Optional<ArchiveHistory> getArchiveHistoryByDocumentIdAndCaseIdAndMunicipalityId(String documentId, String caseId, String municipalityId);

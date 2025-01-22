@@ -37,6 +37,8 @@ logbook:
       - key: '$..file'
         value: '[base64]'
 scheduler:
+  name: archive
   cron:
     expression: '-'
   shedlock-lock-at-most-for: PT2M
+  maximum-execution-time: PT2M

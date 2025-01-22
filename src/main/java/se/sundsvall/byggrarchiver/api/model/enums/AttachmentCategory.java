@@ -6,9 +6,7 @@ import lombok.Getter;
 @Getter
 public enum AttachmentCategory {
 
-	///////////////////////////////////
 	// ByggR
-	///////////////////////////////////
 
 	// archiveClassification "A"
 	ARIT("ARIT", "A-ritningar", "A"),
@@ -245,9 +243,7 @@ public enum AttachmentCategory {
 	VS("VS", "VS-handling", "VVS"),
 	VVSH("VVSH", "VVS-handling", "VVS"),
 
-	///////////////////////////////////
 	// Ecos
-	///////////////////////////////////
 	ANMALAN_LIVSMEDELSANLAGGNING("ANMALAN_LIVSMEDELSANLAGGNING", "3AD42CEE-C09E-401B-ABE8-0CD5D03FE6B4"),
 
 	ANMALAN_ENSKILT_AVLOPP("ANMALAN_ENSKILT_AVLOPP", "E9F85119-9E94-47AD-B531-BB91EF75368A"),

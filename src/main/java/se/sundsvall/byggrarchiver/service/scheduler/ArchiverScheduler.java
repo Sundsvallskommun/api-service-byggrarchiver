@@ -2,13 +2,12 @@ package se.sundsvall.byggrarchiver.service.scheduler;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
+import se.sundsvall.dept44.scheduling.Dept44Scheduled;
 
 @Service
 public class ArchiverScheduler {
@@ -29,16 +28,18 @@ public class ArchiverScheduler {
 		}
 	}
 
-	@Scheduled(cron = "${scheduler.cron.expression}")
-	@SchedulerLock(name = "archive", lockAtMostFor = "${scheduler.shedlock-lock-at-most-for}")
+	@Dept44Scheduled(cron = "${scheduler.cron.expression}",
+		name = "${scheduler.name}",
+		lockAtMostFor = "${scheduler.shedlock-lock-at-most-for}",
+		maximumExecutionTime = "${scheduler.maximum-execution-time}")
 	public void archive() {
-		var now = LocalDateTime.now(ZoneId.systemDefault());
+		final var now = LocalDateTime.now(ZoneId.systemDefault());
 
 		LOG.info("Running archiving on schedule. Timestamp: {}", now);
 
 		// Run batch from one week back in time to yesterday
-		var oneWeekBack = now.toLocalDate().minusDays(7);
-		var yesterday = now.toLocalDate().minusDays(1);
+		final var oneWeekBack = now.toLocalDate().minusDays(7);
+		final var yesterday = now.toLocalDate().minusDays(1);
 
 		schedulerProperties.municipalityIds().forEach(municipalityId -> byggrArchiverService.runBatch(oneWeekBack, yesterday, BatchTrigger.SCHEDULED, municipalityId));
 	}

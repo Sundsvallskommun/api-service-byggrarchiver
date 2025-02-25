@@ -18,7 +18,7 @@ import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
 
 @ExtendWith(MockitoExtension.class)
-class ArchiveSchedulerTest {
+class ArchiverSchedulerTest {
 
 	@Mock(answer = Answers.RETURNS_DEEP_STUBS)
 	private SchedulerProperties mockSchedulerProperties;

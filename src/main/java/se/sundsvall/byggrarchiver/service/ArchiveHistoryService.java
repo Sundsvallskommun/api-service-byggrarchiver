@@ -2,6 +2,7 @@ package se.sundsvall.byggrarchiver.service;
 
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArchiveHistory;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
@@ -11,6 +12,7 @@ import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.BatchFilter;
+import generated.se.sundsvall.arendeexport.Dokument;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +20,7 @@ import java.time.ZoneId;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
@@ -38,29 +41,30 @@ public class ArchiveHistoryService {
 	private static final Logger LOG = LoggerFactory.getLogger(ArchiveHistoryService.class);
 
 	private final BatchHistoryRepository batchHistoryRepository;
-
-	private final ArendeExportIntegration arendeExportIntegration;
-
 	private final ArchiveHistoryRepository archiveHistoryRepository;
 
+	private final ArendeExportIntegration arendeExportIntegration;
 	private final MessagingIntegration messagingIntegration;
+	private final FbIntegration fbIntegration;
 
 	private final ArchiveAttachmentService archiveAttachmentService;
 
-	private final FbIntegration fbIntegration;
+	private final Integer maximumFileSize;
 
 	public ArchiveHistoryService(final BatchHistoryRepository batchHistoryRepository,
 		final ArendeExportIntegration arendeExportIntegration,
 		final ArchiveHistoryRepository archiveHistoryRepository,
 		final MessagingIntegration messagingIntegration,
 		final ArchiveAttachmentService archiveAttachmentService,
-		final FbIntegration fbIntegration) {
+		final FbIntegration fbIntegration,
+		@Value("${integration.archive.maximum-file-size}") final Integer maximumFileSize) {
 		this.batchHistoryRepository = batchHistoryRepository;
 		this.arendeExportIntegration = arendeExportIntegration;
 		this.archiveHistoryRepository = archiveHistoryRepository;
 		this.messagingIntegration = messagingIntegration;
 		this.archiveAttachmentService = archiveAttachmentService;
 		this.fbIntegration = fbIntegration;
+		this.maximumFileSize = maximumFileSize;
 	}
 
 	public BatchHistory archive(final LocalDate searchStart, final LocalDate searchEnd,
@@ -196,8 +200,7 @@ public class ArchiveHistoryService {
 		handleArchiving(dokumentList, arende, handling, newArchiveHistory, municipalityId);
 	}
 
-	private void handleArchiving(final List<generated.se.sundsvall.arendeexport.Dokument> dokumentList, final Arende2 arende, final HandelseHandling handling, final ArchiveHistory archiveHistory, final String municipalityId) throws ApplicationException {
-
+	void handleArchiving(final List<Dokument> dokuments, final Arende2 arende, final HandelseHandling handling, final ArchiveHistory archiveHistory, final String municipalityId) throws ApplicationException {
 		if (isArchived(archiveHistory)) {
 			LOG.info("ArchiveHistory already got a archive-ID. Set status to {}", COMPLETED);
 
@@ -206,7 +209,15 @@ public class ArchiveHistoryService {
 			return;
 		}
 
-		for (final var dokument : dokumentList) {
+		for (final var dokument : dokuments) {
+			if (dokument.getFil().getFilBuffer().length > maximumFileSize) {
+				LOG.info("Document-ID: {} is too large ({} bytes) to be archived, maximum file size is set to {} bytes. Setting archive history status to {}", dokument.getDokId(), dokument.getFil().getFilBuffer().length, maximumFileSize,
+					NOT_COMPLETED_FILE_TO_LARGE);
+				archiveHistory.setArchiveStatus(NOT_COMPLETED_FILE_TO_LARGE);
+				archiveHistoryRepository.save(archiveHistory);
+				continue;
+			}
+
 			LOG.info("Case-ID: {} Document name: {} Handlingstyp: {} Handling-ID: {} Document-ID: {}",
 				arende.getDnr(), dokument.getNamn(), handling.getTyp(),
 				handling.getHandlingId(), dokument.getDokId());

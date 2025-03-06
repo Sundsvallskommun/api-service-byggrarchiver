@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.ANS;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
@@ -57,7 +58,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
@@ -75,11 +78,10 @@ import se.sundsvall.byggrarchiver.testutils.BatchFilterMatcher;
 class ArchiveHistoryServiceTest {
 
 	private static final String ONGOING = "Pågående";
-
 	private static final String MUNICIPALITY_ID = "2281";
 
 	@Mock
-	ArchiveAttachmentService mockArchiveAttachmentService;
+	private ArchiveAttachmentService mockArchiveAttachmentService;
 
 	@Mock
 	private MessagingIntegration mockMessagingIntegration;
@@ -119,6 +121,8 @@ class ArchiveHistoryServiceTest {
 		lenient()
 			.doNothing()
 			.when(mockMessagingIntegration).sendExtensionErrorEmail(any(ArchiveHistory.class), eq(MUNICIPALITY_ID));
+
+		ReflectionTestUtils.setField(archiveHistoryService, "maximumFileSize", 100000);
 
 		// FB
 		final var fastighetTyp = new FastighetTyp();
@@ -562,6 +566,23 @@ class ArchiveHistoryServiceTest {
 		verifyCalls(2, 3, 3, 1);
 	}
 
+	@Test
+	void handleArchiving_tooLargeFileSize() throws ApplicationException {
+		var dokument = Mockito.mock(Dokument.class);
+		var fil = Mockito.mock(DokumentFil.class);
+		when(dokument.getFil()).thenReturn(fil);
+		when(fil.getFilBuffer()).thenReturn(new byte[100001]);
+		var dokuments = List.of(dokument);
+		var arende = new Arende();
+		var handling = new HandelseHandling();
+		var archiveHistory = new ArchiveHistory();
+
+		archiveHistoryService.handleArchiving(dokuments, arende, handling, archiveHistory, MUNICIPALITY_ID);
+
+		assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED_FILE_TO_LARGE);
+
+	}
+
 	private void verifyCalls(final int nrOfCallsToGetUpdatedArenden,
 		final int nrOfCallsToGetDocument,
 		final int nrOfCallsToArchiveAttachmentService,
@@ -593,6 +614,7 @@ class ArchiveHistoryServiceTest {
 			final var dokumentFil = new DokumentFil();
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
+			dokumentFil.setFilBuffer(new byte[5]);
 			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
 
 			dokumentList.add(dokument);

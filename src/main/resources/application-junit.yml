@@ -13,6 +13,8 @@ email:
     sender: junit-sender@test.se
 integration:
   archive:
+    # Sets the maximum file size for the archive integration, in bytes. E.g. 100 * 1024 * 1024 = 104857600 (100 MB)
+    maximum-file-size: 100000
     oauth2:
       clientId: client-id
       clientSecret: client-secret

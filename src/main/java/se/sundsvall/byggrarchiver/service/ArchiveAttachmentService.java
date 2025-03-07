@@ -33,6 +33,7 @@ import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.dept44.exception.ClientProblem;
+import se.sundsvall.dept44.exception.ServerProblem;
 
 @Service
 public class ArchiveAttachmentService {
@@ -66,11 +67,13 @@ public class ArchiveAttachmentService {
 		ArchiveResponse archiveResponse = null;
 		try {
 			archiveResponse = archiveIntegration.archive(toByggRArchiveRequest(document, createMetadata(arende, handling, document)), municipalityId);
-		} catch (final ClientProblem e) {
+		} catch (final ClientProblem | ServerProblem e) {
 			LOG.error("Request to Archive failed. Continue with the rest.", e);
 
-			if (e.getMessage().contains("extension must be valid") || e.getMessage().contains("File format")) {
-				LOG.info("The problem was related to the file extension. Send email with the information.");
+			if (e.getMessage().contains("extension must be valid") ||
+				e.getMessage().contains("File format") ||
+				e.getMessage().contains("PreservationObjectConversionException")) {
+				LOG.debug("The problem was related to the file extension. Send email with the information.");
 
 				messagingIntegration.sendExtensionErrorEmail(archiveHistory, municipalityId);
 			}

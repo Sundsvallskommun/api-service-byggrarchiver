@@ -1,4 +1,4 @@
-openapi: 3.0.1
+openapi: 3.1.0
 info:
   title: ByggR Archiver
   description: Application that archives documents from Byggr
@@ -8,7 +8,7 @@ info:
     url: https://opensource.org/licenses/MIT
   version: "2.0"
 servers:
-  - url: http://localhost:54008
+  - url: http://localhost:51537
     description: Generated server url
 paths:
   /{municipalityId}/batch-jobs:
@@ -25,14 +25,6 @@ paths:
             type: string
           example: 2281
       responses:
-        "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
         "200":
           description: OK - Successful operation
           content:
@@ -46,6 +38,14 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/BatchHistoryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Problem"
+                  - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
           content:
@@ -71,14 +71,6 @@ paths:
               $ref: "#/components/schemas/BatchJob"
         required: true
       responses:
-        "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
         "200":
           description: OK - Successful operation
           content:
@@ -88,6 +80,14 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/BatchHistoryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Problem"
+                  - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
           content:
@@ -114,20 +114,6 @@ paths:
             type: integer
             format: int64
       responses:
-        "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "200":
           description: OK - Successful operation
           content:
@@ -137,8 +123,22 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/BatchHistoryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Problem"
+                  - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
           content:
             application/problem+json:
               schema:
@@ -172,14 +172,6 @@ paths:
             type: integer
             format: int64
       responses:
-        "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
         "200":
           description: OK - Successful operation
           content:
@@ -193,6 +185,14 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ArchiveHistoryResponse"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Problem"
+                  - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
           content:
@@ -218,21 +218,23 @@ paths:
 components:
   schemas:
     BatchJob:
-      required:
-        - end
-        - start
       type: object
       properties:
         start:
           type: string
-          description: Startdatum på körningen.
           format: date
-          example: 2021-01-01
+          description: Startdatum på körningen.
+          examples:
+            - 2021-01-01
         end:
           type: string
-          description: Slutdatum på körningen.
           format: date
-          example: 2021-01-02
+          description: Slutdatum på körningen.
+          examples:
+            - 2021-01-02
+      required:
+        - end
+        - start
     Problem:
       type: object
       properties:
@@ -244,13 +246,12 @@ components:
           format: uri
         parameters:
           type: object
-          additionalProperties:
-            type: object
+          additionalProperties: { }
         status:
           $ref: "#/components/schemas/StatusType"
-        detail:
-          type: string
         title:
+          type: string
+        detail:
           type: string
     StatusType:
       type: object
@@ -305,8 +306,7 @@ components:
           format: uri
         parameters:
           type: object
-          additionalProperties:
-            type: object
+          additionalProperties: { }
         detail:
           type: string
         suppressed:
@@ -345,8 +345,7 @@ components:
     ThrowableProblem:
       type: object
       properties:
-        cause:
-          $ref: "#/components/schemas/ThrowableProblem"
+        cause: { }
         stackTrace:
           type: array
           items:
@@ -379,13 +378,12 @@ components:
           format: uri
         parameters:
           type: object
-          additionalProperties:
-            type: object
+          additionalProperties: { }
         status:
           $ref: "#/components/schemas/StatusType"
-        detail:
-          type: string
         title:
+          type: string
+        detail:
           type: string
         suppressed:
           type: array

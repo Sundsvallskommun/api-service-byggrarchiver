@@ -6,7 +6,7 @@ _The service orchestrates the process of sending and archiving documents from By
 
 ### Prerequisites
 
-- **Java 21 or higher**
+- **Java 25 or higher**
 - **MariaDB**
 - **Maven**
 - **Git**

@@ -1,18 +1,5 @@
 package se.sundsvall.byggrarchiver.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
-import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
-import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
-
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 import generated.se.sundsvall.arendeexport.Arende;
@@ -50,6 +37,19 @@ import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.dept44.exception.ClientProblem;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
+import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
+import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiveAttachmentServiceTest {

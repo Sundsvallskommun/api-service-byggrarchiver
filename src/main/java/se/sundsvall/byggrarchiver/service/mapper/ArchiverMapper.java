@@ -1,12 +1,5 @@
 package se.sundsvall.byggrarchiver.service.mapper;
 
-import static java.time.format.DateTimeFormatter.ISO_DATE;
-import static java.util.Optional.ofNullable;
-import static se.sundsvall.byggrarchiver.util.Constants.BYGGNADSNAMNDEN;
-import static se.sundsvall.byggrarchiver.util.Constants.STADSBYGGNADSNAMNDEN;
-import static se.sundsvall.byggrarchiver.util.Constants.STANGT;
-import static se.sundsvall.byggrarchiver.util.Constants.SUNDSVALLS_KOMMUN;
-
 import generated.se.sundsvall.archive.Attachment;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 import generated.se.sundsvall.arendeexport.AbstractArendeObjekt;
@@ -36,6 +29,13 @@ import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.util.Util;
+
+import static java.time.format.DateTimeFormatter.ISO_DATE;
+import static java.util.Optional.ofNullable;
+import static se.sundsvall.byggrarchiver.util.Constants.BYGGNADSNAMNDEN;
+import static se.sundsvall.byggrarchiver.util.Constants.STADSBYGGNADSNAMNDEN;
+import static se.sundsvall.byggrarchiver.util.Constants.STANGT;
+import static se.sundsvall.byggrarchiver.util.Constants.SUNDSVALLS_KOMMUN;
 
 public final class ArchiverMapper {
 

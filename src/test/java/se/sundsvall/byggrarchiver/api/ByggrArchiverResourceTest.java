@@ -1,16 +1,5 @@
 package se.sundsvall.byggrarchiver.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistoryResponse;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.getRandomEnumValue;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +21,17 @@ import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistoryResponse;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.getRandomEnumValue;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 
 @ActiveProfiles("junit")
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

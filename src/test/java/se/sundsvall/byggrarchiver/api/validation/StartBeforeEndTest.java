@@ -1,7 +1,5 @@
 package se.sundsvall.byggrarchiver.api.validation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import jakarta.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -11,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.validation.impl.StartBeforeEndValidator;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class StartBeforeEndTest {

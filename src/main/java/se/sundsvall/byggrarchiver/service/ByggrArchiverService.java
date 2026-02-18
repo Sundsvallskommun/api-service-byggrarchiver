@@ -1,10 +1,5 @@
 package se.sundsvall.byggrarchiver.service;
 
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.createBatchHistory;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.mapToBatchHistoryResponse;
-
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -19,6 +14,11 @@ import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
 import se.sundsvall.dept44.common.validators.annotation.ValidMunicipalityId;
+
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.createBatchHistory;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.mapToBatchHistoryResponse;
 
 @Service
 public class ByggrArchiverService {

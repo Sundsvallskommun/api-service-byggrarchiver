@@ -1,16 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.fb;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
-
 import generated.se.sundsvall.arendeexport.ArendeFastighet;
 import generated.se.sundsvall.arendeexport.Fastighet;
 import generated.sokigo.fb.FastighetDto;
@@ -26,6 +15,17 @@ import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 @ExtendWith(MockitoExtension.class)
 class FbIntegrationTest {

@@ -1,16 +1,5 @@
 package se.sundsvall.byggrarchiver.service.mapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.BIL;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FAS;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
-import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createBatchHistory;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
-
 import generated.se.sundsvall.arendeexport.AbstractArendeObjekt;
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.ArendeFastighet;
@@ -31,6 +20,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.BIL;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FAS;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
+import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createBatchHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
 
 class ArchiverMapperTest {
 

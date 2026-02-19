@@ -1,15 +1,5 @@
 package se.sundsvall.byggrarchiver.service;
 
-import static java.util.Optional.ofNullable;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivbildarStruktur;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivobjektArendeTyp;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toByggRArchiveRequest;
-import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
-import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
-
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.Dokument;
@@ -34,6 +24,16 @@ import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.dept44.exception.ClientProblem;
 import se.sundsvall.dept44.exception.ServerProblem;
+
+import static java.util.Optional.ofNullable;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivbildarStruktur;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivobjektArendeTyp;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toByggRArchiveRequest;
+import static se.sundsvall.byggrarchiver.util.Constants.F_2_BYGGLOV;
+import static se.sundsvall.byggrarchiver.util.Constants.HANTERA_BYGGLOV;
 
 @Service
 public class ArchiveAttachmentService {

@@ -1,14 +1,5 @@
 package se.sundsvall.byggrarchiver.service;
 
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArchiveHistory;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
-import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
-import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
-
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.BatchFilter;
@@ -34,6 +25,15 @@ import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
+
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArchiveHistory;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
+import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
+import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
 
 @Service
 public class ArchiveHistoryService {

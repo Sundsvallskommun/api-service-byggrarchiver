@@ -1,30 +1,5 @@
 package se.sundsvall.byggrarchiver.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-import static org.zalando.problem.Status.BAD_REQUEST;
-import static org.zalando.problem.Status.NOT_FOUND;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
-import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.MANUAL;
-import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
-
 import generated.se.sundsvall.archive.ArchiveResponse;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 import generated.se.sundsvall.arendeexport.Arende;
@@ -69,6 +44,31 @@ import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.zalando.problem.Status.BAD_REQUEST;
+import static org.zalando.problem.Status.NOT_FOUND;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
+import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.MANUAL;
+import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 
 @ExtendWith(MockitoExtension.class)
 class ByggrArchiverServiceTest {

@@ -1,17 +1,13 @@
 package se.sundsvall.byggrarchiver.service.exceptions;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 
-@RunWith(SpringRunner.class)
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 class ApplicationExceptionTest {
 
 	@Test
@@ -21,7 +17,7 @@ class ApplicationExceptionTest {
 			throw new ApplicationException(message);
 		});
 
-		assertEquals(message, exception.getMessage());
+		assertThat(exception.getMessage()).isEqualTo(message);
 	}
 
 	@Test
@@ -31,8 +27,8 @@ class ApplicationExceptionTest {
 			throw new ApplicationException(message, Problem.valueOf(Status.INTERNAL_SERVER_ERROR));
 		});
 
-		assertEquals(message, exception.getMessage());
-		assertInstanceOf(ThrowableProblem.class, exception.getCause());
+		assertThat(exception.getMessage()).isEqualTo(message);
+		assertThat(exception.getCause()).isInstanceOf(ThrowableProblem.class);
 	}
 
 }

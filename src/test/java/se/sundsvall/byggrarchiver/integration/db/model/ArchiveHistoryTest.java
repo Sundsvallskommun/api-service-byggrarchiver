@@ -1,5 +1,11 @@
 package se.sundsvall.byggrarchiver.integration.db.model;
 
+import java.time.LocalDateTime;
+import org.hamcrest.MatcherAssert;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
+
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEquals;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanHashCode;
@@ -9,12 +15,6 @@ import static com.google.code.beanmatchers.BeanMatchers.registerValueGenerator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.AllOf.allOf;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
-
-import java.time.LocalDateTime;
-import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 
 class ArchiveHistoryTest {
 

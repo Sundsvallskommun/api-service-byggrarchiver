@@ -1,33 +1,5 @@
 package se.sundsvall.byggrarchiver.service;
 
-import static java.lang.String.valueOf;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.ANS;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.LUTE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.RUE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
-import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
-import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
-import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
-
 import generated.se.sundsvall.arendeexport.Arende;
 import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.ArendeFastighet;
@@ -73,6 +45,34 @@ import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.testutils.BatchFilterMatcher;
+
+import static java.lang.String.valueOf;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.ANS;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.LUTE;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.RUE;
+import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
+import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
+import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
+import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiveHistoryServiceTest {

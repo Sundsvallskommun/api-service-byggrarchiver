@@ -1,15 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.messaging;
 
-import static generated.se.sundsvall.messaging.MessageStatus.SENT;
-import static generated.se.sundsvall.messaging.MessageType.EMAIL;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-
 import generated.se.sundsvall.messaging.DeliveryResult;
 import generated.se.sundsvall.messaging.EmailRequest;
 import generated.se.sundsvall.messaging.MessageResult;
@@ -23,6 +13,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.sundsvall.byggrarchiver.configuration.EmailProperties;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+
+import static generated.se.sundsvall.messaging.MessageStatus.SENT;
+import static generated.se.sundsvall.messaging.MessageType.EMAIL;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 
 @ExtendWith(MockitoExtension.class)
 class MessagingIntegrationTest {

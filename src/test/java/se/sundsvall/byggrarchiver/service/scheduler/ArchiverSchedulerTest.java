@@ -1,10 +1,5 @@
 package se.sundsvall.byggrarchiver.service.scheduler;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
-
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -16,6 +11,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiverSchedulerTest {

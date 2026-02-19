@@ -1,7 +1,5 @@
 package se.sundsvall.byggrarchiver.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import java.util.Base64;
 import java.util.Optional;
 import net.sf.jmimemagic.Magic;
@@ -11,6 +9,8 @@ import net.sf.jmimemagic.MagicParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public final class Util {
 

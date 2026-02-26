@@ -6,10 +6,11 @@ import generated.sokigo.fb.FastighetDto;
 import java.util.List;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.zalando.problem.AbstractThrowableProblem;
-import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+import se.sundsvall.dept44.problem.Problem;
+import se.sundsvall.dept44.problem.ThrowableProblem;
+
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @Component
 @EnableConfigurationProperties(FbIntegrationProperties.class)
@@ -43,8 +44,8 @@ public class FbIntegration {
 		final List<FastighetDto> fastighetDtoList;
 		try {
 			fastighetDtoList = fbClient.getPropertyInfoByFnr(List.of(fnr)).getData();
-		} catch (final AbstractThrowableProblem e) {
-			throw Problem.valueOf(Status.SERVICE_UNAVAILABLE, "Request to fbService.getPropertyInfoByFnr(" + fnr + ") failed.");
+		} catch (final ThrowableProblem e) {
+			throw Problem.valueOf(SERVICE_UNAVAILABLE, "Request to fbService.getPropertyInfoByFnr(" + fnr + ") failed.");
 		}
 
 		if (fastighetDtoList.isEmpty()) {
@@ -52,8 +53,7 @@ public class FbIntegration {
 		} else if (fastighetDtoList.size() > 1) {
 			throw new ApplicationException("The response from fbService.getPropertyInfoByFnr([" + fnr + "]) contained more than one FastighetDto, that should not happen");
 		} else {
-			return fastighetDtoList.get(0);
+			return fastighetDtoList.getFirst();
 		}
 	}
-
 }

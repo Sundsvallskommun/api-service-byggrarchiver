@@ -10,8 +10,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
+import se.sundsvall.dept44.problem.Problem;
+
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @Service
 public class ArendeExportIntegration {
@@ -32,7 +33,7 @@ public class ArendeExportIntegration {
 		} catch (final SOAPFaultException e) {
 			LOG.warn("ArendeExport integration failed ('GetUpdatedArenden')", e);
 
-			throw Problem.valueOf(Status.SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetUpdatedArenden')");
+			throw Problem.valueOf(SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetUpdatedArenden')");
 		}
 	}
 
@@ -44,7 +45,7 @@ public class ArendeExportIntegration {
 		} catch (final SOAPFaultException e) {
 			LOG.warn("ArendeExport integration failed ('GetDocument')", e);
 
-			throw Problem.valueOf(Status.SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetDocument')");
+			throw Problem.valueOf(SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetDocument')");
 		}
 	}
 

@@ -27,7 +27,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.zalando.problem.Status;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
@@ -43,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
@@ -268,7 +268,7 @@ class ArchiveAttachmentServiceTest {
 		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var exceptionMessage = "File format is not allowed";
-		final var problem = new ClientProblem(Status.BAD_REQUEST, exceptionMessage);
+		final var problem = new ClientProblem(BAD_REQUEST, exceptionMessage);
 
 		final var archiveHistory = createRandomArchiveHistory();
 

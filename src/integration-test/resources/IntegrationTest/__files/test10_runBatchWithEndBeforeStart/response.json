@@ -5,7 +5,7 @@
 			"message": "End can not be before start"
 		}
 	],
-	"type": "https://zalando.github.io/problem/constraint-violation",
+	"type": "about:blank",
 	"title": "Constraint Violation",
 	"status": 400
 }

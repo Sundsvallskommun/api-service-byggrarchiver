@@ -6,15 +6,16 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
 import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
 import se.sundsvall.dept44.common.validators.annotation.ValidMunicipalityId;
+import se.sundsvall.dept44.problem.Problem;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.createBatchHistory;
@@ -61,10 +62,10 @@ public class ByggrArchiverService {
 		LOG.info("Rerun was started with batchHistoryId: {}", batchHistoryId);
 
 		final var batchHistory = batchHistoryRepository.findById(batchHistoryId)
-			.orElseThrow(() -> Problem.valueOf(Status.NOT_FOUND, "BatchHistory not found"));
+			.orElseThrow(() -> Problem.valueOf(NOT_FOUND, "BatchHistory not found"));
 
 		if (batchHistory.getArchiveStatus().equals(COMPLETED)) {
-			throw Problem.valueOf(Status.BAD_REQUEST, "It's not possible to rerun a completed batch.");
+			throw Problem.valueOf(BAD_REQUEST, "It's not possible to rerun a completed batch.");
 		}
 
 		LOG.info("Rerun batch: {}", batchHistory);

@@ -9,9 +9,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,7 +22,7 @@ import se.sundsvall.dept44.util.ResourceUtils;
 
 import net.javacrumbs.jsonunit.core.Option;
 
-@ActiveProfiles("it")
+@ActiveProfiles("junit")
 @SpringBootTest(
 	webEnvironment = WebEnvironment.RANDOM_PORT,
 	classes = Application.class,
@@ -29,6 +30,7 @@ import net.javacrumbs.jsonunit.core.Option;
 		"spring.main.banner-mode=off",
 		"logging.level.se.sundsvall.dept44.payload=OFF"
 	})
+@AutoConfigureTestRestTemplate
 class OpenApiSpecificationIT {
 
 	private static final YAMLMapper YAML_MAPPER = new YAMLMapper();

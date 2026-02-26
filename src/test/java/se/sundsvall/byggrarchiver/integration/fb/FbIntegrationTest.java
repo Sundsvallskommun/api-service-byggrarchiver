@@ -11,10 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
-import org.zalando.problem.ThrowableProblem;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
+import se.sundsvall.dept44.problem.Problem;
+import se.sundsvall.dept44.problem.ThrowableProblem;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -24,7 +23,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 @ExtendWith(MockitoExtension.class)
@@ -143,7 +143,7 @@ class FbIntegrationTest {
 	@Test
 	void getPropertyInfoByFnr_ClientError() {
 		when(mockFbClient.getPropertyInfoByFnr(anyList()))
-			.thenThrow(Problem.valueOf(Status.INTERNAL_SERVER_ERROR));
+			.thenThrow(Problem.valueOf(INTERNAL_SERVER_ERROR));
 
 		final int fnr = randomInt();
 

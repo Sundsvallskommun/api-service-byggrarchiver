@@ -1,12 +1,12 @@
 package se.sundsvall.byggrarchiver.service.exceptions;
 
 import org.junit.jupiter.api.Test;
-import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
-import org.zalando.problem.ThrowableProblem;
+import se.sundsvall.dept44.problem.Problem;
+import se.sundsvall.dept44.problem.ThrowableProblem;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 class ApplicationExceptionTest {
 
@@ -24,7 +24,7 @@ class ApplicationExceptionTest {
 	void test2() {
 		final var message = "test2";
 		final var exception = assertThrows(ApplicationException.class, () -> {
-			throw new ApplicationException(message, Problem.valueOf(Status.INTERNAL_SERVER_ERROR));
+			throw new ApplicationException(message, Problem.valueOf(INTERNAL_SERVER_ERROR));
 		});
 
 		assertThat(exception.getMessage()).isEqualTo(message);

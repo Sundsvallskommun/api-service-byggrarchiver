@@ -2,28 +2,28 @@ openapi: 3.1.0
 info:
   title: ByggR Archiver
   description: Application that archives documents from Byggr
-  contact: { }
+  contact: {}
   license:
     name: MIT License
     url: https://opensource.org/licenses/MIT
   version: "2.0"
 servers:
-  - url: http://localhost:51537
-    description: Generated server url
+- url: http://localhost:8080
+  description: Generated server url
 paths:
   /{municipalityId}/batch-jobs:
     get:
       tags:
-        - byggr-archiver-resource
+      - byggr-archiver-resource
       operationId: getBatchHistory
       parameters:
-        - name: municipalityId
-          in: path
-          description: Municipality id
-          required: true
-          schema:
-            type: string
-          example: 2281
+      - name: municipalityId
+        in: path
+        description: Municipality id
+        required: true
+        schema:
+          type: string
+        example: 2281
       responses:
         "200":
           description: OK - Successful operation
@@ -44,8 +44,8 @@ paths:
             application/problem+json:
               schema:
                 oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
+                - $ref: "#/components/schemas/Problem"
+                - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
           content:
@@ -54,16 +54,16 @@ paths:
                 $ref: "#/components/schemas/Problem"
     post:
       tags:
-        - byggr-archiver-resource
+      - byggr-archiver-resource
       operationId: postBatchJob
       parameters:
-        - name: municipalityId
-          in: path
-          description: Municipality id
-          required: true
-          schema:
-            type: string
-          example: 2281
+      - name: municipalityId
+        in: path
+        description: Municipality id
+        required: true
+        schema:
+          type: string
+        example: 2281
       requestBody:
         content:
           application/json:
@@ -86,8 +86,8 @@ paths:
             application/problem+json:
               schema:
                 oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
+                - $ref: "#/components/schemas/Problem"
+                - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
           content:
@@ -97,22 +97,22 @@ paths:
   /{municipalityId}/batch-jobs/{batchHistoryId}/rerun:
     post:
       tags:
-        - byggr-archiver-resource
+      - byggr-archiver-resource
       operationId: reRunBatchJob
       parameters:
-        - name: municipalityId
-          in: path
-          description: Municipality id
-          required: true
-          schema:
-            type: string
-          example: 2281
-        - name: batchHistoryId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - name: municipalityId
+        in: path
+        description: Municipality id
+        required: true
+        schema:
+          type: string
+        example: 2281
+      - name: batchHistoryId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
       responses:
         "200":
           description: OK - Successful operation
@@ -129,8 +129,8 @@ paths:
             application/problem+json:
               schema:
                 oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
+                - $ref: "#/components/schemas/Problem"
+                - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
           content:
@@ -146,31 +146,31 @@ paths:
   /{municipalityId}/archived/attachments:
     get:
       tags:
-        - byggr-archiver-resource
+      - byggr-archiver-resource
       operationId: getArchiveHistory
       parameters:
-        - name: municipalityId
-          in: path
-          description: Municipality id
-          required: true
-          schema:
-            type: string
-          example: 2281
-        - name: archiveStatus
-          in: query
-          required: false
-          schema:
-            type: string
-            enum:
-              - COMPLETED
-              - NOT_COMPLETED
-              - NOT_COMPLETED_FILE_TO_LARGE
-        - name: batchHistoryId
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
+      - name: municipalityId
+        in: path
+        description: Municipality id
+        required: true
+        schema:
+          type: string
+        example: 2281
+      - name: archiveStatus
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - COMPLETED
+          - NOT_COMPLETED
+          - NOT_COMPLETED_FILE_TO_LARGE
+      - name: batchHistoryId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
       responses:
         "200":
           description: OK - Successful operation
@@ -191,8 +191,8 @@ paths:
             application/problem+json:
               schema:
                 oneOf:
-                  - $ref: "#/components/schemas/Problem"
-                  - $ref: "#/components/schemas/ConstraintViolationProblem"
+                - $ref: "#/components/schemas/Problem"
+                - $ref: "#/components/schemas/ConstraintViolationProblem"
         "500":
           description: Internal Server error
           content:
@@ -202,7 +202,7 @@ paths:
   /api-docs:
     get:
       tags:
-        - API
+      - API
       summary: OpenAPI
       operationId: getApiDocs
       responses:
@@ -225,199 +225,71 @@ components:
           format: date
           description: Startdatum på körningen.
           examples:
-            - 2021-01-01
+          - 2021-01-01
         end:
           type: string
           format: date
           description: Slutdatum på körningen.
           examples:
-            - 2021-01-02
+          - 2021-01-02
       required:
-        - end
-        - start
+      - end
+      - start
     Problem:
       type: object
       properties:
+        title:
+          type: string
+        detail:
+          type: string
         instance:
           type: string
           format: uri
         type:
           type: string
           format: uri
-        parameters:
-          type: object
-          additionalProperties: { }
         status:
-          $ref: "#/components/schemas/StatusType"
-        title:
-          type: string
-        detail:
-          type: string
-    StatusType:
-      type: object
-      properties:
-        statusCode:
           type: integer
           format: int32
-        reasonPhrase:
-          type: string
     ConstraintViolationProblem:
       type: object
       properties:
-        cause:
-          $ref: "#/components/schemas/ThrowableProblem"
-        stackTrace:
-          type: array
-          items:
-            type: object
-            properties:
-              classLoaderName:
-                type: string
-              moduleName:
-                type: string
-              moduleVersion:
-                type: string
-              methodName:
-                type: string
-              fileName:
-                type: string
-              lineNumber:
-                type: integer
-                format: int32
-              className:
-                type: string
-              nativeMethod:
-                type: boolean
         type:
           type: string
           format: uri
         status:
-          $ref: "#/components/schemas/StatusType"
+          type: integer
+          format: int32
         violations:
           type: array
           items:
             $ref: "#/components/schemas/Violation"
         title:
           type: string
-        message:
+        detail:
           type: string
+        causeAsProblem:
+          $ref: "#/components/schemas/ThrowableProblem"
         instance:
           type: string
           format: uri
-        parameters:
-          type: object
-          additionalProperties: { }
-        detail:
-          type: string
-        suppressed:
-          type: array
-          items:
-            type: object
-            properties:
-              stackTrace:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    classLoaderName:
-                      type: string
-                    moduleName:
-                      type: string
-                    moduleVersion:
-                      type: string
-                    methodName:
-                      type: string
-                    fileName:
-                      type: string
-                    lineNumber:
-                      type: integer
-                      format: int32
-                    className:
-                      type: string
-                    nativeMethod:
-                      type: boolean
-              message:
-                type: string
-              localizedMessage:
-                type: string
-        localizedMessage:
-          type: string
     ThrowableProblem:
       type: object
       properties:
-        cause: { }
-        stackTrace:
-          type: array
-          items:
-            type: object
-            properties:
-              classLoaderName:
-                type: string
-              moduleName:
-                type: string
-              moduleVersion:
-                type: string
-              methodName:
-                type: string
-              fileName:
-                type: string
-              lineNumber:
-                type: integer
-                format: int32
-              className:
-                type: string
-              nativeMethod:
-                type: boolean
-        message:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
           type: string
         instance:
           type: string
           format: uri
-        type:
-          type: string
-          format: uri
-        parameters:
-          type: object
-          additionalProperties: { }
-        status:
-          $ref: "#/components/schemas/StatusType"
-        title:
-          type: string
-        detail:
-          type: string
-        suppressed:
-          type: array
-          items:
-            type: object
-            properties:
-              stackTrace:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    classLoaderName:
-                      type: string
-                    moduleName:
-                      type: string
-                    moduleVersion:
-                      type: string
-                    methodName:
-                      type: string
-                    fileName:
-                      type: string
-                    lineNumber:
-                      type: integer
-                      format: int32
-                    className:
-                      type: string
-                    nativeMethod:
-                      type: boolean
-              message:
-                type: string
-              localizedMessage:
-                type: string
-        localizedMessage:
-          type: string
+        causeAsProblem: {}
     Violation:
       type: object
       properties:
@@ -440,14 +312,14 @@ components:
         archiveStatus:
           type: string
           enum:
-            - COMPLETED
-            - NOT_COMPLETED
-            - NOT_COMPLETED_FILE_TO_LARGE
+          - COMPLETED
+          - NOT_COMPLETED
+          - NOT_COMPLETED_FILE_TO_LARGE
         batchTrigger:
           type: string
           enum:
-            - MANUAL
-            - SCHEDULED
+          - MANUAL
+          - SCHEDULED
         timestamp:
           type: string
           format: date-time
@@ -469,12 +341,12 @@ components:
         archiveStatus:
           type: string
           enum:
-            - COMPLETED
-            - NOT_COMPLETED
-            - NOT_COMPLETED_FILE_TO_LARGE
+          - COMPLETED
+          - NOT_COMPLETED
+          - NOT_COMPLETED_FILE_TO_LARGE
         timestamp:
           type: string
           format: date-time
         batchHistory:
           $ref: "#/components/schemas/BatchHistoryResponse"
-  securitySchemes: { }
+  securitySchemes: {}

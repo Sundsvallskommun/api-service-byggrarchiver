@@ -9,7 +9,7 @@
 			"message": "must not be null"
 		}
 	],
-	"type": "about:blank",
+	"type": "https://github.com/Sundsvallskommun/dept44/problems/constraint-violation",
 	"title": "Constraint Violation",
 	"status": 400
 }

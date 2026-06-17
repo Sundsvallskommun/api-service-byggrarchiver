@@ -1,0 +1,27 @@
+{
+	"priority": 1,
+	"request": {
+		"method": "POST",
+		"url": "/TekisArende/ArendeExportWS.svc",
+		"bodyPatterns": [
+			{
+				"and": [
+					{
+						"contains": "GetUpdatedArenden"
+					},
+					{
+						"contains": "UpperInclusiveBound>2021-12-17T23:59:59"
+					}
+				]
+			}
+		]
+	},
+	"response": {
+		"headers": {
+			"Server": "Microsoft-IIS/10.0",
+			"Content-Type": "text/xml; charset=utf-8"
+		},
+		"bodyFileName": "test14_failingBatch/response/arendeexport.GetUpdatedArenden.200.xml",
+		"status": 200
+	}
+}

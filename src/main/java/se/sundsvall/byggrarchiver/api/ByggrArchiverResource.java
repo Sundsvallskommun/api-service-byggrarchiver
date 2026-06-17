@@ -16,13 +16,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 import se.sundsvall.byggrarchiver.api.validation.StartBeforeEnd;
-import se.sundsvall.byggrarchiver.service.ArchiveHistoryService;
+import se.sundsvall.byggrarchiver.service.ArchiveFailureService;
+import se.sundsvall.byggrarchiver.service.ArchiveHistoryQueryService;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
 import se.sundsvall.dept44.common.validators.annotation.ValidMunicipalityId;
 import se.sundsvall.dept44.problem.Problem;
@@ -45,13 +48,18 @@ class ByggrArchiverResource {
 
 	private final ByggrArchiverService byggrArchiverService;
 
-	private final ArchiveHistoryService archiveHistoryService;
+	private final ArchiveHistoryQueryService archiveHistoryQueryService;
+
+	private final ArchiveFailureService archiveFailureService;
 
 	ByggrArchiverResource(final ByggrArchiverService byggrArchiverService,
 
-		final ArchiveHistoryService archiveHistoryService) {
+		final ArchiveHistoryQueryService archiveHistoryQueryService,
+
+		final ArchiveFailureService archiveFailureService) {
 		this.byggrArchiverService = byggrArchiverService;
-		this.archiveHistoryService = archiveHistoryService;
+		this.archiveHistoryQueryService = archiveHistoryQueryService;
+		this.archiveFailureService = archiveFailureService;
 	}
 
 	@GetMapping("/archived/attachments")
@@ -59,7 +67,7 @@ class ByggrArchiverResource {
 		@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
 		@RequestParam(value = "archiveStatus", required = false) final ArchiveStatus archiveStatus,
 		@RequestParam(value = "batchHistoryId", required = false) final Long batchHistoryId) {
-		return ResponseEntity.ok(archiveHistoryService.getArchiveHistories(archiveStatus, batchHistoryId, municipalityId));
+		return ResponseEntity.ok(archiveHistoryQueryService.getArchiveHistories(archiveStatus, batchHistoryId, municipalityId));
 	}
 
 	@GetMapping("/batch-jobs")
@@ -83,6 +91,14 @@ class ByggrArchiverResource {
 		final var result = byggrArchiverService.reRunBatch(batchHistoryId, municipalityId);
 
 		return ResponseEntity.ok((result));
+	}
+
+	@GetMapping("/batch-jobs/{batchHistoryId}/fallout")
+	ResponseEntity<List<ArchiveFailureResponse>> getFallout(
+		@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
+		@PathVariable("batchHistoryId") final Long batchHistoryId,
+		@RequestParam(value = "category", required = false) final FailureCategory category) {
+		return ResponseEntity.ok(archiveFailureService.getFailures(batchHistoryId, category, municipalityId));
 	}
 
 }

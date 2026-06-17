@@ -2,6 +2,7 @@ package se.sundsvall.byggrarchiver.testutils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
@@ -24,7 +25,7 @@ public final class TestUtil {
 			.withDocumentName(UUID.randomUUID().toString().substring(0, 21))
 			.withDocumentType(UUID.randomUUID().toString().substring(0, 21))
 			.withCaseId(UUID.randomUUID().toString())
-			.withTimestamp(LocalDateTime.now())
+			.withTimestamp(LocalDateTime.of(2024, Month.JANUARY, 16, 12, 0))
 			.build();
 	}
 
@@ -32,9 +33,9 @@ public final class TestUtil {
 		return BatchHistory.builder()
 			.withId(randomLong())
 			.withBatchTrigger(getRandomEnumValue(BatchTrigger.class))
-			.withStart(LocalDate.now())
-			.withEnd(LocalDate.now())
-			.withTimestamp(LocalDateTime.now())
+			.withStart(LocalDate.of(2024, Month.JANUARY, 16))
+			.withEnd(LocalDate.of(2024, Month.JANUARY, 16))
+			.withTimestamp(LocalDateTime.of(2024, Month.JANUARY, 16, 12, 0))
 			.withArchiveStatus(getRandomEnumValue(ArchiveStatus.class))
 			.build();
 	}
@@ -43,9 +44,9 @@ public final class TestUtil {
 		return BatchHistoryResponse.builder()
 			.withId(randomLong())
 			.withBatchTrigger(getRandomEnumValue(BatchTrigger.class))
-			.withStart(LocalDate.now())
-			.withEnd(LocalDate.now())
-			.withTimestamp(LocalDateTime.now())
+			.withStart(LocalDate.of(2024, Month.JANUARY, 16))
+			.withEnd(LocalDate.of(2024, Month.JANUARY, 16))
+			.withTimestamp(LocalDateTime.of(2024, Month.JANUARY, 16, 12, 0))
 			.withArchiveStatus(getRandomEnumValue(ArchiveStatus.class))
 			.build();
 	}

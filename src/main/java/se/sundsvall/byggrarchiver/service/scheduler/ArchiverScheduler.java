@@ -1,7 +1,7 @@
 package se.sundsvall.byggrarchiver.service.scheduler;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,10 +16,12 @@ public class ArchiverScheduler {
 
 	private final ByggrArchiverService byggrArchiverService;
 	private final SchedulerProperties schedulerProperties;
+	private final Clock clock;
 
-	public ArchiverScheduler(final ByggrArchiverService byggrArchiverService, final SchedulerProperties schedulerProperties) {
+	public ArchiverScheduler(final ByggrArchiverService byggrArchiverService, final SchedulerProperties schedulerProperties, final Clock clock) {
 		this.byggrArchiverService = byggrArchiverService;
 		this.schedulerProperties = schedulerProperties;
+		this.clock = clock;
 
 		if ("-".equals(schedulerProperties.cron().expression())) {
 			LOG.info("ArchiverScheduler is DISABLED");
@@ -33,7 +35,7 @@ public class ArchiverScheduler {
 		lockAtMostFor = "${scheduler.shedlock-lock-at-most-for}",
 		maximumExecutionTime = "${scheduler.maximum-execution-time}")
 	public void archive() {
-		final var now = LocalDateTime.now(ZoneId.systemDefault());
+		final var now = LocalDateTime.now(clock);
 
 		LOG.info("Running archiving on schedule. Timestamp: {}", now);
 

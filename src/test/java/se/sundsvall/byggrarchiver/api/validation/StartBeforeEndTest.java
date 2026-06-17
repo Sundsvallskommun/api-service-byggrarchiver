@@ -2,6 +2,7 @@ package se.sundsvall.byggrarchiver.api.validation;
 
 import jakarta.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 class StartBeforeEndTest {
 
+	private static final LocalDate DATE = LocalDate.of(2024, Month.JANUARY, 16);
+
 	@Mock
 	private ConstraintValidatorContext constraintValidatorContextMock;
 
@@ -24,8 +27,8 @@ class StartBeforeEndTest {
 	@Test
 	void valid() {
 		var batchJob = BatchJob.builder()
-			.withStart(LocalDate.now().minusDays(3))
-			.withEnd(LocalDate.now())
+			.withStart(DATE.minusDays(3))
+			.withEnd(DATE)
 			.build();
 
 		assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isTrue();
@@ -34,8 +37,8 @@ class StartBeforeEndTest {
 	@Test
 	void validSameDate() {
 		var batchJob = BatchJob.builder()
-			.withStart(LocalDate.now())
-			.withEnd(LocalDate.now())
+			.withStart(DATE)
+			.withEnd(DATE)
 			.build();
 
 		assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isTrue();
@@ -44,8 +47,8 @@ class StartBeforeEndTest {
 	@Test
 	void invalid() {
 		var batchJob = BatchJob.builder()
-			.withStart(LocalDate.now())
-			.withEnd(LocalDate.now().minusDays(3))
+			.withStart(DATE)
+			.withEnd(DATE.minusDays(3))
 			.build();
 
 		assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isFalse();
@@ -54,13 +57,13 @@ class StartBeforeEndTest {
 	@Test
 	void nullValue() {
 		var batchJob = BatchJob.builder()
-			.withEnd(LocalDate.now().minusDays(3))
+			.withEnd(DATE.minusDays(3))
 			.build();
 
 		assertThat(validator.isValid(batchJob, constraintValidatorContextMock)).isTrue();
 
 		var batchJob2 = BatchJob.builder()
-			.withStart(LocalDate.now().minusDays(3))
+			.withStart(DATE.minusDays(3))
 			.build();
 
 		assertThat(validator.isValid(batchJob2, constraintValidatorContextMock)).isTrue();

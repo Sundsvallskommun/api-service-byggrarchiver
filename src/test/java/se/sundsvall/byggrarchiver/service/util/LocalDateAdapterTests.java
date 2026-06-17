@@ -1,6 +1,7 @@
 package se.sundsvall.byggrarchiver.service.util;
 
 import java.time.LocalDate;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import se.sundsvall.byggrarchiver.util.LocalDateAdapter;
 
@@ -31,7 +32,7 @@ class LocalDateAdapterTests {
 
 	@Test
 	void testMarshalWithNonNullInput() {
-		final var result = localDateAdapter.marshal(LocalDate.of(2023, 12, 24));
+		final var result = localDateAdapter.marshal(LocalDate.of(2023, Month.DECEMBER, 24));
 
 		assertThat(result).isEqualTo("2023-12-24");
 	}

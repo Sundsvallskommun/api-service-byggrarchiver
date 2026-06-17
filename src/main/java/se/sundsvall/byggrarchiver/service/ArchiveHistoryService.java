@@ -5,33 +5,31 @@ import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.BatchFilter;
 import generated.se.sundsvall.arendeexport.Dokument;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
-import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
-import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
-import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
 
+import static java.util.Optional.ofNullable;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.METADATA_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.UNKNOWN;
+import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.getAttachmentCategory;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArchiveHistory;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
 
@@ -40,30 +38,35 @@ public class ArchiveHistoryService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ArchiveHistoryService.class);
 
-	private final BatchHistoryRepository batchHistoryRepository;
 	private final ArchiveHistoryRepository archiveHistoryRepository;
 
 	private final ArendeExportIntegration arendeExportIntegration;
-	private final MessagingIntegration messagingIntegration;
-	private final FbIntegration fbIntegration;
 
 	private final ArchiveAttachmentService archiveAttachmentService;
+	private final BatchCompletionService batchCompletionService;
+	private final LantmaterietNotifier lantmaterietNotifier;
+
+	private final ArchiveFailureRecorder archiveFailureRecorder;
+
+	private final Clock clock;
 
 	private final Integer maximumFileSize;
 
-	public ArchiveHistoryService(final BatchHistoryRepository batchHistoryRepository,
-		final ArendeExportIntegration arendeExportIntegration,
+	public ArchiveHistoryService(final ArendeExportIntegration arendeExportIntegration,
 		final ArchiveHistoryRepository archiveHistoryRepository,
-		final MessagingIntegration messagingIntegration,
 		final ArchiveAttachmentService archiveAttachmentService,
-		final FbIntegration fbIntegration,
+		final BatchCompletionService batchCompletionService,
+		final LantmaterietNotifier lantmaterietNotifier,
+		final ArchiveFailureRecorder archiveFailureRecorder,
+		final Clock clock,
 		@Value("${integration.archive.maximum-file-size}") final Integer maximumFileSize) {
-		this.batchHistoryRepository = batchHistoryRepository;
 		this.arendeExportIntegration = arendeExportIntegration;
 		this.archiveHistoryRepository = archiveHistoryRepository;
-		this.messagingIntegration = messagingIntegration;
 		this.archiveAttachmentService = archiveAttachmentService;
-		this.fbIntegration = fbIntegration;
+		this.batchCompletionService = batchCompletionService;
+		this.lantmaterietNotifier = lantmaterietNotifier;
+		this.archiveFailureRecorder = archiveFailureRecorder;
+		this.clock = clock;
 		this.maximumFileSize = maximumFileSize;
 	}
 
@@ -101,60 +104,21 @@ public class ArchiveHistoryService {
 				.filter(handelse -> BYGGR_HANDELSETYP_ARKIV.equals(handelse.getHandelsetyp()))
 				.flatMap(handelse -> handelse.getHandlingLista().getHandling().stream())
 				.filter(handelseHandling -> handelseHandling.getDokument() != null)
-				.forEach(handling -> {
-					try {
-						processHandlingList(handling, closedCase, batchHistory, municipalityId);
-					} catch (final ApplicationException e) {
-						LOG.error("Error when archiving document with ID: {} in combination with Case-ID: {}", handling.getDokument().getDokId(), closedCase.getDnr(), e);
-					}
-				}));
+				.forEach(handling -> processHandlingList(handling, closedCase, batchHistory, municipalityId)));
 		} while (batchFilter.getLowerExclusiveBound().isBefore(end));
 
-		final var archiveHistoriesRelatedToBatch = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(batchHistory.getId(), municipalityId);
-		if (archiveHistoriesRelatedToBatch.stream().allMatch(archiveHistory -> COMPLETED.equals(archiveHistory.getArchiveStatus()))) {
-			// Persist that this batch is completed
-			batchHistory.setArchiveStatus(COMPLETED);
-			batchHistoryRepository.save(batchHistory);
-		} else {
-			// Send email when batch is not completed
-			messagingIntegration.sendStatusMail(archiveHistoriesRelatedToBatch, batchHistory.getId(), municipalityId);
-		}
-
-		LOG.info("Batch with ID: {} is {}", batchHistory.getId(), batchHistory.getArchiveStatus());
-		LOG.info("Batch with ID: {} has {} archive histories", batchHistory.getId(), archiveHistoriesRelatedToBatch.size());
-
-		updateStatusOfOldBatchHistories(municipalityId);
+		batchCompletionService.completeBatch(batchHistory, municipalityId);
 
 		return batchHistory;
 	}
 
-	/**
-	 * Update the status of NOT_COMPLETED old batch histories to COMPLETED if all archive histories are COMPLETED
-	 */
-	private void updateStatusOfOldBatchHistories(final String municipalityId) {
-		final var notCompletedBatchHistories = batchHistoryRepository.findBatchHistoriesByArchiveStatusAndMunicipalityId(NOT_COMPLETED, municipalityId);
-
-		notCompletedBatchHistories.forEach(batchHistory -> {
-			final boolean allCompleted = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(batchHistory.getId(), municipalityId)
-				.stream()
-				.allMatch(archiveHistory -> COMPLETED.equals(archiveHistory.getArchiveStatus()));
-
-			if (allCompleted) {
-				batchHistory.setArchiveStatus(COMPLETED);
-				batchHistoryRepository.save(batchHistory);
-
-				LOG.info("Old batch with ID: {} was NOT_COMPLETED but is now COMPLETED", batchHistory.getId());
-			}
-		});
-	}
-
 	private LocalDateTime getEnd(final LocalDate searchEnd) {
-		final var now = LocalDateTime.now(ZoneId.systemDefault());
+		final var now = LocalDateTime.now(clock);
 		if (searchEnd.isBefore(now.toLocalDate())) {
 			return searchEnd.atTime(23, 59, 59);
 		}
 
-		return LocalDateTime.now(ZoneId.systemDefault());
+		return now;
 	}
 
 	private void setLowerExclusiveBoundWithReturnedValue(final BatchFilter filter, final ArendeBatch arendeBatch) {
@@ -170,18 +134,14 @@ public class ArchiveHistoryService {
 		}
 	}
 
-	private AttachmentCategory getAttachmentCategory(final String handlingsTyp) {
-		try {
-			return AttachmentCategory.fromCode(handlingsTyp);
-		} catch (final IllegalArgumentException e) {
-			// All the "handlingstyper" we don't recognize, we set to AttachmentCategory.BIL, which
-			// means they get the archiveClassification D, which means that they are not public in
-			// the archive
-			return AttachmentCategory.BIL;
-		}
+	private static FailureCategory categoryForApplicationException(final ApplicationException e) {
+		return ofNullable(e.getMessage())
+			.filter(message -> message.contains("marshal"))
+			.map(message -> METADATA_ERROR)
+			.orElse(UNKNOWN);
 	}
 
-	private void processHandlingList(final HandelseHandling handling, final Arende2 arende, final BatchHistory batchHistory, final String municipalityId) throws ApplicationException {
+	private void processHandlingList(final HandelseHandling handling, final Arende2 arende, final BatchHistory batchHistory, final String municipalityId) {
 		final ArchiveHistory newArchiveHistory;
 		final var docId = handling.getDokument().getDokId();
 		final var oldArchiveHistory = archiveHistoryRepository.getArchiveHistoryByDocumentIdAndCaseIdAndMunicipalityId(docId, arende.getDnr(), municipalityId);
@@ -194,10 +154,25 @@ public class ArchiveHistoryService {
 		newArchiveHistory = toArchiveHistory(handling, batchHistory, arende.getDnr(), getAttachmentCategory(handling.getTyp()), NOT_COMPLETED, municipalityId);
 		archiveHistoryRepository.save(newArchiveHistory);
 		// Get documents from Byggr
-		final var dokumentList = arendeExportIntegration.getDocument(docId);
+		final List<Dokument> dokumentList;
+		try {
+			dokumentList = arendeExportIntegration.getDocument(docId);
+		} catch (final RuntimeException e) {
+			// A failed document fetch must not abort the whole batch - record it and continue with the next document.
+			// Catches both the Problem thrown on a SOAP fault and any other runtime failure from the Feign call
+			// (e.g. CircuitBreaker CallNotPermittedException when the arendeexport breaker is open).
+			LOG.error("Error when fetching document with ID: {} in combination with Case-ID: {}", docId, arende.getDnr(), e);
+			archiveFailureRecorder.recordFailure(BYGGR_FETCH_ERROR, newArchiveHistory, "ByggR getDocument failed", e.getMessage());
+			return;
+		}
 
-		// Archive documents
-		handleArchiving(dokumentList, arende, handling, newArchiveHistory, municipalityId);
+		// Archive documents - a failure for one document must not abort the rest of the batch
+		try {
+			handleArchiving(dokumentList, arende, handling, newArchiveHistory, municipalityId);
+		} catch (final ApplicationException e) {
+			LOG.error("Error when archiving document with ID: {} in combination with Case-ID: {}", docId, arende.getDnr(), e);
+			archiveFailureRecorder.recordFailure(categoryForApplicationException(e), newArchiveHistory, "Archiving failed", e.getMessage());
+		}
 	}
 
 	void handleArchiving(final List<Dokument> dokuments, final Arende2 arende, final HandelseHandling handling, final ArchiveHistory archiveHistory, final String municipalityId) throws ApplicationException {
@@ -215,6 +190,8 @@ public class ArchiveHistoryService {
 					NOT_COMPLETED_FILE_TO_LARGE);
 				archiveHistory.setArchiveStatus(NOT_COMPLETED_FILE_TO_LARGE);
 				archiveHistoryRepository.save(archiveHistory);
+				archiveFailureRecorder.recordFailure(FILE_TOO_LARGE, archiveHistory, "File too large",
+					"actual=" + dokument.getFil().getFilBuffer().length + " bytes, max=" + maximumFileSize + " bytes");
 				continue;
 			}
 
@@ -224,26 +201,12 @@ public class ArchiveHistoryService {
 
 			final var savedArchiveHistory = archiveAttachmentService.archiveAttachment(arende, handling, dokument, archiveHistory, municipalityId);
 
-			if (COMPLETED.equals(savedArchiveHistory.getArchiveStatus())
-				&& (savedArchiveHistory.getArchiveId() != null)
-				&& GEO.equals(getAttachmentCategory(handling.getTyp()))) {
-				// Send email to Lantmateriet with info about the archived attachment
-				final var arendeFastighetList = toArendeFastighetList(arende.getObjektLista().getAbstractArendeObjekt());
-
-				messagingIntegration.sendEmailToLantmateriet(
-					fbIntegration.getFastighet(arendeFastighetList).getFastighetsbeteckning(), savedArchiveHistory, municipalityId);
-			}
+			lantmaterietNotifier.notifyIfGeoDocument(arende, handling, savedArchiveHistory, municipalityId);
 		}
 	}
 
 	private boolean isArchived(final ArchiveHistory archiveHistory) {
 		return (archiveHistory != null) && (archiveHistory.getArchiveId() != null);
-	}
-
-	public List<ArchiveHistoryResponse> getArchiveHistories(final ArchiveStatus archiveStatus, final Long batchHistoryId, final String municipalityId) {
-
-		return archiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(archiveStatus, batchHistoryId, municipalityId).stream()
-			.map(ArchiverMapper::mapToArchiveHistoryResponse).toList();
 	}
 
 }

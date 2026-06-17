@@ -1,0 +1,19 @@
+{
+	"priority": 1,
+	"request": {
+		"method": "POST",
+		"urlPath": "/archive/2.0/2281/archive/byggr",
+		"bodyPatterns": [
+			{
+				"contains": "<Rubrik>Bilaga</Rubrik>"
+			}
+		]
+	},
+	"response": {
+		"headers": {
+			"Content-Type": "application/problem+json"
+		},
+		"bodyFileName": "test14_failingBatch/response/archive500FileFormat.json",
+		"status": 500
+	}
+}

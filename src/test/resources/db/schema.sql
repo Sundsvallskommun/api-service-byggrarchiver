@@ -1,4 +1,18 @@
 
+    create table archive_failure (
+        batch_history_id bigint not null,
+        id bigint not null auto_increment,
+        timestamp datetime(6) not null,
+        case_id varchar(255),
+        detail longtext,
+        document_id varchar(255),
+        document_name varchar(255),
+        message varchar(255),
+        municipality_id varchar(255),
+        failure_category varchar(255) not null,
+        primary key (id)
+    ) engine=InnoDB;
+
     create table archive_history (
         batch_history_id bigint not null,
         timestamp datetime(6) not null,
@@ -24,19 +38,28 @@
         primary key (id)
     ) engine=InnoDB;
 
-    create index archive_history_municipality_id_idx 
+    create index archive_failure_batch_history_id_idx
+       on archive_failure (batch_history_id);
+
+    create index archive_failure_municipality_id_idx
+       on archive_failure (municipality_id);
+
+    create index archive_failure_failure_category_idx
+       on archive_failure (failure_category);
+
+    create index archive_history_municipality_id_idx
        on archive_history (municipality_id);
 
-    create index archive_history_archive_status_idx 
+    create index archive_history_archive_status_idx
        on archive_history (archive_status);
 
-    create index batch_history_municipality_id_idx 
+    create index batch_history_municipality_id_idx
        on batch_history (municipality_id);
 
-    create index batch_history_archive_status_idx 
+    create index batch_history_archive_status_idx
        on batch_history (archive_status);
 
-    alter table if exists archive_history 
-       add constraint fk_archive_history_batch_history_id 
-       foreign key (batch_history_id) 
+    alter table if exists archive_history
+       add constraint fk_archive_history_batch_history_id
+       foreign key (batch_history_id)
        references batch_history (id);

@@ -12,6 +12,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_REJECTED_FORMAT;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,7 +25,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import se.sundsvall.byggrarchiver.Application;
+import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveFailureRepository;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
@@ -52,6 +56,9 @@ class IntegrationTest extends AbstractAppTest {
 	@Autowired
 	private BatchHistoryRepository batchHistoryRepository;
 
+	@Autowired
+	private ArchiveFailureRepository archiveFailureRepository;
+
 	@BeforeEach
 	void beforeEach() {
 		wiremock.resetAll();
@@ -59,6 +66,7 @@ class IntegrationTest extends AbstractAppTest {
 		// Clear db between tests
 		archiveHistoryRepository.deleteAll();
 		batchHistoryRepository.deleteAll();
+		archiveFailureRepository.deleteAll();
 	}
 
 	// POST batch and then GET batch history and archive histories - verify that the correct is returned
@@ -310,6 +318,104 @@ class IntegrationTest extends AbstractAppTest {
 			.withStart(LocalDate.now())
 			.withEnd(LocalDate.now())
 			.build());
+	}
+
+	// Batch where one document is rejected by the archive service (HTTP 500 "File format validation failed.") while the
+	// rest archive OK - verify one document is COMPLETED and that the rejection is recorded in the archive_failure table.
+	@Test
+	void test14_failingBatch() throws JsonProcessingException, ClassNotFoundException {
+		// Fixed date window whose GetUpdatedArenden fixture has BatchEnd == the window end, so the batch loop runs only
+		// two passes (avoids the failing document being re-archived enough times to trip the archive circuit breaker).
+		final var postBatchHistory = postBatchJob(BatchJob.builder()
+			.withStart(LocalDate.parse("2021-12-17"))
+			.withEnd(LocalDate.parse("2021-12-17"))
+			.build());
+
+		final var archiveHistories = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(postBatchHistory.getId(), MUNICIPALITY_ID);
+
+		// One document (431169) archived successfully, while the keyed document (433467) was rejected and not completed
+		assertThat(archiveHistories)
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("431169");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED);
+			})
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED);
+			});
+
+		// The rejection was recorded in the append-only audit table
+		final var archiveFailures = archiveFailureRepository.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(postBatchHistory.getId(), MUNICIPALITY_ID, null);
+
+		assertThat(archiveFailures)
+			.isNotEmpty()
+			.allSatisfy(archiveFailure -> {
+				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveFailure.getCaseId()).isEqualTo("BYGG 2018-000026");
+				assertThat(archiveFailure.getFailureCategory()).isEqualTo(ARCHIVE_REJECTED_FORMAT);
+			});
+
+		// ... and is readable through the fallout endpoint
+		final var fallout = setupCall()
+			.withHttpMethod(GET)
+			.withServicePath(BATCH_PATH + "/" + postBatchHistory.getId() + "/fallout")
+			.withExpectedResponseStatus(OK)
+			.sendRequestAndVerifyResponse()
+			.andReturnBody(ArchiveFailureResponse[].class);
+
+		assertThat(fallout)
+			.isNotEmpty()
+			.allSatisfy(archiveFailure -> {
+				assertThat(archiveFailure.getBatchHistoryId()).isEqualTo(postBatchHistory.getId());
+				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveFailure.getCaseId()).isEqualTo("BYGG 2018-000026");
+				assertThat(archiveFailure.getFailureCategory()).isEqualTo(ARCHIVE_REJECTED_FORMAT);
+			});
+
+		// The category filter excludes non-matching categories
+		final var noFileTooLargeFallout = setupCall()
+			.withHttpMethod(GET)
+			.withServicePath(BATCH_PATH + "/" + postBatchHistory.getId() + "/fallout?category=FILE_TOO_LARGE")
+			.withExpectedResponseStatus(OK)
+			.sendRequestAndVerifyResponse()
+			.andReturnBody(ArchiveFailureResponse[].class);
+
+		assertThat(noFileTooLargeFallout).isEmpty();
+	}
+
+	// One document's GetDocument call faults (ByggR SOAP 500). It must be recorded as BYGGR_FETCH_ERROR and must NOT
+	// abort the batch - the other document still archives successfully.
+	@Test
+	void test15_byggrFetchError() throws JsonProcessingException, ClassNotFoundException {
+		// Same fixed window as test14 so the batch loop runs only two passes (keeps the repeated fetch faults below the
+		// arendeexport circuit breaker threshold).
+		final var postBatchHistory = postBatchJob(BatchJob.builder()
+			.withStart(LocalDate.parse("2021-12-17"))
+			.withEnd(LocalDate.parse("2021-12-17"))
+			.build());
+
+		final var archiveHistories = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(postBatchHistory.getId(), MUNICIPALITY_ID);
+
+		// The batch was not aborted: the other document archived OK, while the one whose fetch failed is not completed
+		assertThat(archiveHistories)
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("431169");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED);
+			})
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED);
+			});
+
+		// The fetch failure was recorded as BYGGR_FETCH_ERROR
+		final var archiveFailures = archiveFailureRepository.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(postBatchHistory.getId(), MUNICIPALITY_ID, null);
+
+		assertThat(archiveFailures)
+			.isNotEmpty()
+			.allSatisfy(archiveFailure -> {
+				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveFailure.getFailureCategory()).isEqualTo(BYGGR_FETCH_ERROR);
+			});
 	}
 
 	private BatchHistory postBatchJob(final BatchJob batchJob) throws JsonProcessingException, ClassNotFoundException {

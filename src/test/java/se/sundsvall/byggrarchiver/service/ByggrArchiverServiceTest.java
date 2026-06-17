@@ -17,7 +17,7 @@ import generated.se.sundsvall.arendeexport.Handelse;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
 import generated.sokigo.fb.FastighetDto;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +74,7 @@ import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 class ByggrArchiverServiceTest {
 
 	private static final String MUNICIPALITY_ID = "2281";
+	private static final LocalDate TODAY = LocalDate.of(2024, Month.JANUARY, 16);
 
 	@Mock
 	ArchiveHistoryService mockArchiveHistoryService;
@@ -143,7 +144,7 @@ class ByggrArchiverServiceTest {
 	// Try to run scheduled batch for the same date and verify it doesn't run
 	@Test
 	void testRunScheduledBatchForSameDate() {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 		final var batchHistory = BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build();
 
 		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(batchHistory);
@@ -163,7 +164,7 @@ class ByggrArchiverServiceTest {
 
 	@Test
 	void testRunManualBatchForSameDate() {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build());
 
@@ -183,8 +184,8 @@ class ByggrArchiverServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testTimeGapScheduled(final BatchTrigger batchTrigger) {
-		final var aLongTimeAgo = LocalDate.now().minusDays(20);
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var aLongTimeAgo = TODAY.minusDays(20);
+		final var yesterday = TODAY.minusDays(1);
 		final var batchHistory = BatchHistory.builder().withStart(aLongTimeAgo).withEnd(aLongTimeAgo).withArchiveStatus(COMPLETED).build();
 
 		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(batchHistory);
@@ -208,14 +209,14 @@ class ByggrArchiverServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testTimeGapManual(final BatchTrigger batchTrigger) {
-		final var aLongTimeAgo = LocalDate.now().minusDays(20);
+		final var aLongTimeAgo = TODAY.minusDays(20);
 
 		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(BatchHistory.builder().withStart(aLongTimeAgo).withEnd(aLongTimeAgo).withArchiveStatus(COMPLETED).build());
 
 		// Run the first batch
 		byggrArchiverService.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger, MUNICIPALITY_ID);
 
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 		byggrArchiverService.runBatch(yesterday, yesterday, MANUAL, MUNICIPALITY_ID);
 
 		// First batch should have the same start and end date
@@ -228,7 +229,7 @@ class ByggrArchiverServiceTest {
 
 	@Test
 	void testRunBatchScheduledWhenLatestBatchIsAfterCurrent() {
-		final var today = LocalDate.now();
+		final var today = TODAY;
 
 		when(mockBatchHistoryRepository.findAll()).thenReturn(List.of(BatchHistory.builder().withStart(today.plusDays(1)).withEnd(today.plusDays(1)).withArchiveStatus(COMPLETED).build()));
 
@@ -242,7 +243,7 @@ class ByggrArchiverServiceTest {
 	// Rerun an earlier not_completed batch - GET batchhistory and verify it was completed
 	@Test
 	void testReRunNotCompletedBatch() {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 		final var arrayOfArende = new ArrayOfArende();
 		final var arende = createArendeObject(List.of(GEO, FASSIT2, TOMTPLBE));
 		arrayOfArende.getArende().add(arende);
@@ -278,8 +279,8 @@ class ByggrArchiverServiceTest {
 	@Test
 	void rerunBatch() {
 		final var randomId = randomLong();
-		final var start = LocalDate.now().minusDays(7);
-		final var end = LocalDate.now().minusDays(7);
+		final var start = TODAY.minusDays(7);
+		final var end = TODAY.minusDays(7);
 
 		when(mockBatchHistoryRepository.findById(randomId))
 			.thenReturn(Optional.of(BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(NOT_COMPLETED).build()));
@@ -306,8 +307,8 @@ class ByggrArchiverServiceTest {
 	@Test
 	void rerunBatchCompleted() {
 		final var randomId = randomLong();
-		final var start = LocalDate.now().minusDays(7);
-		final var end = LocalDate.now().minusDays(7);
+		final var start = TODAY.minusDays(7);
+		final var end = TODAY.minusDays(7);
 
 		when(mockBatchHistoryRepository.findById(randomId))
 			.thenReturn(Optional.of(BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(COMPLETED).build()));
@@ -334,7 +335,7 @@ class ByggrArchiverServiceTest {
 			final var dokumentFil = new DokumentFil();
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
-			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
+			dokument.setSkapadDatum(TODAY.minusDays(30).atStartOfDay());
 
 			dokumentList.add(dokument);
 

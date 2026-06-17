@@ -1,0 +1,5 @@
+{
+	"detail": "[500 Internal Server Error] during [POST] to [http://sdas026.sundsvall.se:8088/api/import] [FormpipeProxyClient#postImport(ImportRequest)]: [{\"Message\":\"File format validation failed.\"}]",
+	"status": 500,
+	"title": "Internal Server Error"
+}

@@ -198,13 +198,15 @@ public final class ArchiverMapper {
 
 	public static ArchiveFailure toArchiveFailure(final FailureCategory failureCategory, final String caseId, final String documentId, final String documentName, final Long batchHistoryId, final String municipalityId, final String message,
 		final String detail) {
+		// All but detail map to varchar(255) columns - truncate so an over-long value from ByggR can never make the
+		// audit insert fail (and get silently swallowed by the recorder). detail is longtext, so it is left intact.
 		return ArchiveFailure.builder()
 			.withFailureCategory(failureCategory)
-			.withCaseId(caseId)
-			.withDocumentId(documentId)
-			.withDocumentName(documentName)
+			.withCaseId(truncate(caseId))
+			.withDocumentId(truncate(documentId))
+			.withDocumentName(truncate(documentName))
 			.withBatchHistoryId(batchHistoryId)
-			.withMunicipalityId(municipalityId)
+			.withMunicipalityId(truncate(municipalityId))
 			.withMessage(truncate(message))
 			.withDetail(detail)
 			.build();

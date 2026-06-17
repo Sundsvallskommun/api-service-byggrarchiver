@@ -45,7 +45,9 @@ public class ArchiveFailure {
 	@Column(nullable = false)
 	private Long batchHistoryId;
 
-	@Column(nullable = false)
+	// Nullable on purpose: a failure whose case has no dnr is still worth auditing - never let a null caseId
+	// drop the audit row via a constraint violation.
+	@Column
 	private String caseId;
 
 	@Column

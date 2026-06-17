@@ -627,6 +627,38 @@ class ArchiveHistoryServiceTest {
 		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
 	}
 
+	@Test
+	void getDocumentNonProblemRuntimeFaultIsRecordedAndDoesNotAbortBatch() throws Exception {
+		final var yesterday = LocalDate.now().minusDays(1);
+
+		final var start = yesterday.atStartOfDay();
+		final var end = yesterday.atTime(23, 59, 59);
+
+		final var batchFilter = new BatchFilter();
+		batchFilter.setLowerExclusiveBound(start);
+		batchFilter.setUpperInclusiveBound(end);
+
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var arrayOfArende = new ArrayOfArende();
+		arrayOfArende.getArende().add(arende);
+		final var arendeBatch = new ArendeBatch();
+		arendeBatch.setBatchStart(start);
+		arendeBatch.setBatchEnd(end);
+		arendeBatch.setArenden(arrayOfArende);
+
+		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(argThat(new BatchFilterMatcher(batchFilter)));
+
+		// A non-Problem runtime failure (e.g. CircuitBreaker CallNotPermittedException) must also be caught and recorded
+		final var docId = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst().getDokument().getDokId();
+		doThrow(new IllegalStateException("circuit breaker open")).when(mockArendeExportIntegrationService).getDocument(docId);
+
+		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
+
+		assertThat(result).isNotNull();
+		verify(mockArchiveFailureRecorder).record(eq(BYGGR_FETCH_ERROR), eq(arende.getDnr()), eq(docId), any(), any(), eq(MUNICIPALITY_ID), any(), any());
+		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
+	}
+
 	private void verifyCalls(final int nrOfCallsToGetUpdatedArenden,
 		final int nrOfCallsToGetDocument,
 		final int nrOfCallsToArchiveAttachmentService,

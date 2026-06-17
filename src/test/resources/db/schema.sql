@@ -3,7 +3,7 @@
         batch_history_id bigint not null,
         id bigint not null auto_increment,
         timestamp datetime(6) not null,
-        case_id varchar(255) not null,
+        case_id varchar(255),
         detail longtext,
         document_id varchar(255),
         document_name varchar(255),

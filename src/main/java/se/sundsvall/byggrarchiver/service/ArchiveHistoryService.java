@@ -26,7 +26,6 @@ import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
-import se.sundsvall.dept44.problem.ThrowableProblem;
 
 import static java.util.Optional.ofNullable;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
@@ -216,8 +215,10 @@ public class ArchiveHistoryService {
 		final List<Dokument> dokumentList;
 		try {
 			dokumentList = arendeExportIntegration.getDocument(docId);
-		} catch (final ThrowableProblem e) {
-			// A failed document fetch must not abort the whole batch - record it and continue with the next document
+		} catch (final RuntimeException e) {
+			// A failed document fetch must not abort the whole batch - record it and continue with the next document.
+			// Catches both the Problem thrown on a SOAP fault and any other runtime failure from the Feign call
+			// (e.g. CircuitBreaker CallNotPermittedException when the arendeexport breaker is open).
 			LOG.error("Error when fetching document with ID: {} in combination with Case-ID: {}", docId, arende.getDnr(), e);
 			archiveFailureRecorder.record(BYGGR_FETCH_ERROR, arende.getDnr(), docId, handling.getDokument().getNamn(), batchHistory.getId(), municipalityId, "ByggR getDocument failed", e.getMessage());
 			return;

@@ -14,8 +14,10 @@ import generated.se.sundsvall.arendeexport.Fastighet;
 import generated.se.sundsvall.arendeexport.Handelse;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
 import generated.se.sundsvall.bygglov.FastighetTyp;
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -85,6 +87,8 @@ class ArchiveHistoryServiceTest {
 
 	private static final String ONGOING = "Pågående";
 	private static final String MUNICIPALITY_ID = "2281";
+	private static final LocalDate TODAY = LocalDate.of(2024, Month.JANUARY, 16);
+	private static final Clock CLOCK = Clock.fixed(TODAY.atStartOfDay(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
 
 	@Mock
 	private ArchiveAttachmentService mockArchiveAttachmentService;
@@ -132,6 +136,7 @@ class ArchiveHistoryServiceTest {
 			.when(mockMessagingIntegration).sendExtensionErrorEmail(any(ArchiveHistory.class), eq(MUNICIPALITY_ID));
 
 		ReflectionTestUtils.setField(archiveHistoryService, "maximumFileSize", 100000);
+		ReflectionTestUtils.setField(archiveHistoryService, "clock", CLOCK);
 
 		// FB
 		final var fastighetTyp = new FastighetTyp();
@@ -153,7 +158,7 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch0Cases0Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
@@ -168,7 +173,7 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch1Cases0Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -199,7 +204,7 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch1Cases3DocsGetDocumentReturnsEmpty(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -236,7 +241,7 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch1CaseWithWrongStatus3Docs(final BatchTrigger batchTrigger) throws ApplicationException {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -263,7 +268,7 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch2Cases1WithWrongHandelseslag2Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -298,14 +303,14 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch1Case3Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE, FASSIT2, TOMTPLBE));
 		final var arrayOfArende = new ArrayOfArende();
 		arrayOfArende.getArende().add(arende);
 		final var arendeBatch = new ArendeBatch();
-		arendeBatch.setBatchStart(LocalDateTime.now().minusDays(1).withHour(12).withMinute(0).withSecond(0));
-		arendeBatch.setBatchEnd(LocalDateTime.now().minusDays(1).withHour(23).withMinute(0).withSecond(0));
+		arendeBatch.setBatchStart(TODAY.minusDays(1).atTime(12, 0, 0));
+		arendeBatch.setBatchEnd(TODAY.minusDays(1).atTime(23, 0, 0));
 		arendeBatch.setArenden(arrayOfArende);
 
 		final var batchFilter = new BatchFilter();
@@ -328,7 +333,7 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch3Cases1Ended1Doc(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -363,7 +368,7 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch3Cases2Ended4Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -405,7 +410,7 @@ class ArchiveHistoryServiceTest {
 	// and connected to this case is removed and that the old batch is updated with status completed.
 	@Test
 	void testUpdateStatusOfOldBatchHistories_1() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -460,7 +465,7 @@ class ArchiveHistoryServiceTest {
 	// Verify an empty list also works in updateStatusOfOldBatchHistories
 	@Test
 	void testUpdateStatusOfOldBatchHistories_2() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -505,7 +510,7 @@ class ArchiveHistoryServiceTest {
 	// Run batch for attachmentCategory "GEO" and verify email was sent
 	@Test
 	void runBatchGeotekniskUndersokningMessageSentTrue() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -540,7 +545,7 @@ class ArchiveHistoryServiceTest {
 	// Run batch for attachmentCategory "GEO" and simulate the email was not sent.
 	@Test
 	void runBatchGeotekniskUndersokningMessageSentFalse() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -595,7 +600,7 @@ class ArchiveHistoryServiceTest {
 
 	@Test
 	void getDocumentFaultIsRecordedAndDoesNotAbortBatch() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -630,7 +635,7 @@ class ArchiveHistoryServiceTest {
 
 	@Test
 	void getDocumentNonProblemRuntimeFaultIsRecordedAndDoesNotAbortBatch() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -693,7 +698,7 @@ class ArchiveHistoryServiceTest {
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
 			dokumentFil.setFilBuffer(new byte[5]);
-			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
+			dokument.setSkapadDatum(TODAY.minusDays(30).atStartOfDay());
 
 			dokumentList.add(dokument);
 

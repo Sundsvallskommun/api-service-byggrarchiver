@@ -17,6 +17,7 @@ import generated.se.sundsvall.bygglov.ExtraID;
 import generated.se.sundsvall.bygglov.StatusArande;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -66,15 +67,15 @@ public final class ArchiverMapper {
 	}
 
 	static boolean isAfter1992(final LocalDate ankomstDatum) {
-		return ankomstDatum.isAfter(LocalDate.of(1992, 12, 31));
+		return ankomstDatum.isAfter(LocalDate.of(1992, Month.DECEMBER, 31));
 	}
 
 	static boolean isAfter2016(final LocalDate ankomstDatum) {
-		return ankomstDatum.isAfter(LocalDate.of(2016, 12, 31));
+		return ankomstDatum.isAfter(LocalDate.of(2016, Month.DECEMBER, 31));
 	}
 
 	static boolean isBefore1993(final LocalDate ankomstDatum) {
-		return ankomstDatum.isBefore(LocalDate.of(1993, 1, 1));
+		return ankomstDatum.isBefore(LocalDate.of(1993, Month.JANUARY, 1));
 	}
 
 	public static ArkivbildarStrukturTyp toArkivbildarStruktur(final LocalDate ankomstDatum) {

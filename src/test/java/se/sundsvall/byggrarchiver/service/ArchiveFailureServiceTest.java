@@ -1,6 +1,7 @@
 package se.sundsvall.byggrarchiver.service;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +56,7 @@ class ArchiveFailureServiceTest {
 			.withFailureCategory(FailureCategory.BYGGR_FETCH_ERROR)
 			.withMessage("message")
 			.withDetail("detail")
-			.withTimestamp(LocalDateTime.now())
+			.withTimestamp(LocalDateTime.of(2024, Month.JANUARY, 16, 12, 0))
 			.build();
 
 		when(archiveFailureRepositoryMock.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(5L, "2281", FailureCategory.BYGGR_FETCH_ERROR))

@@ -2,6 +2,7 @@ package se.sundsvall.byggrarchiver.api;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,10 @@ import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 class ByggrArchiverResourceTest {
 
 	private static final String MUNICIPALITY_ID = "2281";
+
+	private static final LocalDate DATE = LocalDate.of(2024, Month.JANUARY, 16);
+
+	private static final LocalDateTime DATE_TIME = LocalDateTime.of(2024, Month.JANUARY, 16, 12, 0);
 
 	private static final String BATCH_PATH = "/{municipalityId}/batch-jobs";
 
@@ -124,8 +129,8 @@ class ByggrArchiverResourceTest {
 	@Test
 	void postBatchJob() {
 		final var batchJob = BatchJob.builder()
-			.withStart(LocalDate.now().minusDays(3))
-			.withEnd(LocalDate.now())
+			.withStart(DATE.minusDays(3))
+			.withEnd(DATE)
 			.build();
 
 		final var batchHistory = BatchHistoryResponse.builder()
@@ -134,7 +139,7 @@ class ByggrArchiverResourceTest {
 			.withArchiveStatus(ArchiveStatus.COMPLETED)
 			.withStart(batchJob.getStart())
 			.withEnd(batchJob.getEnd())
-			.withTimestamp(LocalDateTime.now())
+			.withTimestamp(DATE_TIME)
 			.build();
 
 		when(mockByggrArchiverService.runBatch(any(LocalDate.class), any(LocalDate.class), any(BatchTrigger.class), eq(MUNICIPALITY_ID)))
@@ -172,7 +177,7 @@ class ByggrArchiverResourceTest {
 			.withFailureCategory(FailureCategory.ARCHIVE_ERROR)
 			.withMessage("Archive request failed")
 			.withDetail("detail")
-			.withTimestamp(LocalDateTime.now())
+			.withTimestamp(DATE_TIME)
 			.build();
 
 		when(mockArchiveFailureRepository.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(eq(5L), eq(MUNICIPALITY_ID), eq(FailureCategory.ARCHIVE_ERROR)))

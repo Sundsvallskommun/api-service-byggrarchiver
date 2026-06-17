@@ -5,9 +5,9 @@ import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.BatchFilter;
 import generated.se.sundsvall.arendeexport.Dokument;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +57,8 @@ public class ArchiveHistoryService {
 
 	private final ArchiveFailureRecorder archiveFailureRecorder;
 
+	private final Clock clock;
+
 	private final Integer maximumFileSize;
 
 	public ArchiveHistoryService(final BatchHistoryRepository batchHistoryRepository,
@@ -66,6 +68,7 @@ public class ArchiveHistoryService {
 		final ArchiveAttachmentService archiveAttachmentService,
 		final FbIntegration fbIntegration,
 		final ArchiveFailureRecorder archiveFailureRecorder,
+		final Clock clock,
 		@Value("${integration.archive.maximum-file-size}") final Integer maximumFileSize) {
 		this.batchHistoryRepository = batchHistoryRepository;
 		this.arendeExportIntegration = arendeExportIntegration;
@@ -74,6 +77,7 @@ public class ArchiveHistoryService {
 		this.archiveAttachmentService = archiveAttachmentService;
 		this.fbIntegration = fbIntegration;
 		this.archiveFailureRecorder = archiveFailureRecorder;
+		this.clock = clock;
 		this.maximumFileSize = maximumFileSize;
 	}
 
@@ -153,12 +157,12 @@ public class ArchiveHistoryService {
 	}
 
 	private LocalDateTime getEnd(final LocalDate searchEnd) {
-		final var now = LocalDateTime.now(ZoneId.systemDefault());
+		final var now = LocalDateTime.now(clock);
 		if (searchEnd.isBefore(now.toLocalDate())) {
 			return searchEnd.atTime(23, 59, 59);
 		}
 
-		return LocalDateTime.now(ZoneId.systemDefault());
+		return now;
 	}
 
 	private void setLowerExclusiveBoundWithReturnedValue(final BatchFilter filter, final ArendeBatch arendeBatch) {

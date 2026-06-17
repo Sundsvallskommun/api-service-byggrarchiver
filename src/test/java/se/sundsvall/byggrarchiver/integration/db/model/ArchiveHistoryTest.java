@@ -1,6 +1,7 @@
 package se.sundsvall.byggrarchiver.integration.db.model;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ class ArchiveHistoryTest {
 
 	@BeforeAll
 	static void setup() {
-		registerValueGenerator(() -> LocalDateTime.now().plusDays(randomInt()), LocalDateTime.class);
+		registerValueGenerator(() -> LocalDateTime.of(2000, Month.JANUARY, 1, 0, 0).plusDays(randomInt()), LocalDateTime.class);
 	}
 
 	@Test
@@ -43,7 +44,7 @@ class ArchiveHistoryTest {
 		final var archiveId = "archiveId";
 		final var archiveUrl = "archiveUrl";
 		final var archiveStatus = ArchiveStatus.COMPLETED;
-		final var timestamp = LocalDateTime.now();
+		final var timestamp = LocalDateTime.of(2024, Month.JANUARY, 16, 12, 0);
 		final var batchHistory = new BatchHistory();
 		final var municipalityId = "municipalityId";
 

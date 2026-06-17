@@ -10,6 +10,7 @@ import generated.se.sundsvall.bygglov.ObjectFactory;
 import jakarta.xml.bind.JAXBContext;
 import java.io.StringWriter;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Map;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -134,7 +135,7 @@ public class ArchiveAttachmentService {
 			arkivobjektArende.getFastighet().add(fbIntegration.getFastighet(arendeFastighetList));
 		}
 
-		if ((arende.getAnkomstDatum() == null) || arende.getAnkomstDatum().isAfter(LocalDate.of(2016, 12, 31))) {
+		if ((arende.getAnkomstDatum() == null) || arende.getAnkomstDatum().isAfter(LocalDate.of(2016, Month.DECEMBER, 31))) {
 			arkivobjektArende.getKlass().add(HANTERA_BYGGLOV);
 		} else {
 			arkivobjektArende.getKlass().add(F_2_BYGGLOV);

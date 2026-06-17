@@ -15,6 +15,7 @@ import generated.se.sundsvall.arendeexport.HandelseHandling;
 import generated.se.sundsvall.bygglov.FastighetTyp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -148,7 +149,7 @@ class ArchiveAttachmentServiceTest {
 	@Test
 	void archiveWhenAnkomstDatumBefore2017() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(2016, 12, 31));
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(2016, Month.DECEMBER, 31));
 		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var archiveResponse = new ArchiveResponse();
@@ -181,7 +182,7 @@ class ArchiveAttachmentServiceTest {
 	@Test
 	void archiveWhenAnkomstDatumBefore1993() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(1992, 12, 31));
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(1992, Month.DECEMBER, 31));
 		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var archiveResponse = new ArchiveResponse();
@@ -309,7 +310,7 @@ class ArchiveAttachmentServiceTest {
 			final var dokumentFil = new DokumentFil();
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
-			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
+			dokument.setSkapadDatum(LocalDateTime.of(2024, Month.JANUARY, 16, 0, 0).minusDays(30));
 			final var handling = new HandelseHandling();
 			handling.setTyp(category.name());
 			handling.setDokument(dokument);

@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveFailure;
@@ -41,13 +42,13 @@ class ArchiverMapperTest {
 	@Test
 	void testToArchiveHistory() {
 		final var handling = new Handling()
-			.withHandlingDatum(LocalDate.of(2023, 1, 1))
+			.withHandlingDatum(LocalDate.of(2023, Month.JANUARY, 1))
 			.withAnteckning("anteckning")
 			.withDokument(new Dokument().withDokId("dokId").withNamn("namn").withFil(new DokumentFil().withFilBuffer(new byte[] {
 				1, 2, 3
 			}).withFilAndelse("pdf")));
 
-		final var batchHistory = createBatchHistory(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 1), SCHEDULED, COMPLETED);
+		final var batchHistory = createBatchHistory(LocalDate.of(2023, Month.JANUARY, 1), LocalDate.of(2023, Month.JANUARY, 1), SCHEDULED, COMPLETED);
 
 		final var archiveHistory = ArchiverMapper.toArchiveHistory(handling, batchHistory, "caseId", FASSIT2, COMPLETED, "2281");
 
@@ -124,7 +125,7 @@ class ArchiverMapperTest {
 			.withFailureCategory(ARCHIVE_ERROR)
 			.withMessage("message")
 			.withDetail("detail")
-			.withTimestamp(LocalDateTime.of(2023, 1, 1, 12, 0))
+			.withTimestamp(LocalDateTime.of(2023, Month.JANUARY, 1, 12, 0))
 			.build();
 
 		final var response = ArchiverMapper.mapToArchiveFailureResponse(entity);
@@ -139,7 +140,7 @@ class ArchiverMapperTest {
 		assertThat(response.getFailureCategory()).isEqualTo(ARCHIVE_ERROR);
 		assertThat(response.getMessage()).isEqualTo("message");
 		assertThat(response.getDetail()).isEqualTo("detail");
-		assertThat(response.getTimestamp()).isEqualTo(LocalDateTime.of(2023, 1, 1, 12, 0));
+		assertThat(response.getTimestamp()).isEqualTo(LocalDateTime.of(2023, Month.JANUARY, 1, 12, 0));
 	}
 
 	@Test
@@ -260,7 +261,7 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToArkivbildarStrukturAfter2016() {
-		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.now());
+		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(2024, Month.JANUARY, 16));
 
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getNamn()).isEqualTo("Stadsbyggnadsnämnden");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidFran()).isEqualTo("2017");
@@ -273,7 +274,7 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToArkivbildarStrukturBefore1993() {
-		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1992, 12, 31));
+		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1992, Month.DECEMBER, 31));
 
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getNamn()).isEqualTo("Byggnadsnämnden");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidFran()).isEqualTo("1974");
@@ -286,7 +287,7 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToArkivbildarStrukturBetween1993And2016() {
-		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1993, 1, 1));
+		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1993, Month.JANUARY, 1));
 
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getNamn()).isEqualTo("Stadsbyggnadsnämnden");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidFran()).isEqualTo("1993");
@@ -299,13 +300,13 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToIsoDateLocalDate() {
-		assertThat(ArchiverMapper.toIsoDate(LocalDate.of(2023, 1, 1))).isEqualTo("2023-01-01");
+		assertThat(ArchiverMapper.toIsoDate(LocalDate.of(2023, Month.JANUARY, 1))).isEqualTo("2023-01-01");
 		assertThat(ArchiverMapper.toIsoDate((LocalDate) null)).isNull();
 	}
 
 	@Test
 	void testToIsoDateLocalDateTime() {
-		assertThat(ArchiverMapper.toIsoDate(LocalDate.of(2023, 1, 1).atStartOfDay())).isEqualTo("2023-01-01");
+		assertThat(ArchiverMapper.toIsoDate(LocalDate.of(2023, Month.JANUARY, 1).atStartOfDay())).isEqualTo("2023-01-01");
 		assertThat(ArchiverMapper.toIsoDate((LocalDateTime) null)).isNull();
 	}
 
@@ -322,9 +323,9 @@ class ArchiverMapperTest {
 			.withArendeId(1)
 			.withDnr("arendeId")
 			.withArendetyp("arendeTyp")
-			.withAnkomstDatum(LocalDate.of(2023, 1, 1))
-			.withRegistreradDatum(LocalDate.of(2022, 1, 2))
-			.withSlutDatum(LocalDate.of(2023, 1, 3))
+			.withAnkomstDatum(LocalDate.of(2023, Month.JANUARY, 1))
+			.withRegistreradDatum(LocalDate.of(2022, Month.JANUARY, 2))
+			.withSlutDatum(LocalDate.of(2023, Month.JANUARY, 3))
 			.withBeskrivning("beskrivning")
 			.withObjektLista(new ArrayOfAbstractArendeObjekt2()
 				.withAbstractArendeObjekt(new ArendeFastighet().withArendeObjektId(1))
@@ -332,7 +333,7 @@ class ArchiverMapperTest {
 			.withStatus("Stängt");
 
 		final var handling = new Handling()
-			.withHandlingDatum(LocalDate.of(2023, 1, 1))
+			.withHandlingDatum(LocalDate.of(2023, Month.JANUARY, 1))
 			.withAnteckning("anteckning")
 			.withTyp("handlingstyp")
 			.withDokument(new Dokument().withDokId("dokId")

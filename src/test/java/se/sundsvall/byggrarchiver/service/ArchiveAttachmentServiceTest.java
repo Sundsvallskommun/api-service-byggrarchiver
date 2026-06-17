@@ -263,7 +263,7 @@ class ArchiveAttachmentServiceTest {
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
 		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
-		verify(archiveFailureRecorderMock).record(eq(FailureCategory.ARCHIVE_ERROR), any(), any(), any(), any(), eq(MUNICIPALITY_ID), eq("No archive id returned"), any());
+		verify(archiveFailureRecorderMock).recordFailure(eq(FailureCategory.ARCHIVE_ERROR), eq(archiveHistory), eq("No archive id returned"), any());
 	}
 
 	@Test
@@ -291,7 +291,7 @@ class ArchiveAttachmentServiceTest {
 		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
 		verify(messagingIntegrationMock).sendExtensionErrorEmail(archiveHistory, MUNICIPALITY_ID);
-		verify(archiveFailureRecorderMock).record(eq(FailureCategory.ARCHIVE_REJECTED_FORMAT), any(), any(), any(), any(), eq(MUNICIPALITY_ID), eq("Archive rejected file format"), any());
+		verify(archiveFailureRecorderMock).recordFailure(eq(FailureCategory.ARCHIVE_REJECTED_FORMAT), eq(archiveHistory), eq("Archive rejected file format"), any());
 	}
 
 	/**

@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveFailureRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveFailure;
 import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
 
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
@@ -25,8 +26,8 @@ public class ArchiveFailureService {
 	 * the archiving pipeline.
 	 */
 	@Transactional(propagation = REQUIRES_NEW)
-	public void persist(final FailureCategory failureCategory, final String caseId, final String documentId, final String documentName, final Long batchHistoryId, final String municipalityId, final String message, final String detail) {
-		archiveFailureRepository.save(ArchiverMapper.toArchiveFailure(failureCategory, caseId, documentId, documentName, batchHistoryId, municipalityId, message, detail));
+	public void persist(final ArchiveFailure archiveFailure) {
+		archiveFailureRepository.save(archiveFailure);
 	}
 
 	public List<ArchiveFailureResponse> getFailures(final Long batchHistoryId, final FailureCategory failureCategory, final String municipalityId) {

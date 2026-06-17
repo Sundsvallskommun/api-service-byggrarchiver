@@ -590,7 +590,7 @@ class ArchiveHistoryServiceTest {
 		archiveHistoryService.handleArchiving(dokuments, arende, handling, archiveHistory, MUNICIPALITY_ID);
 
 		assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED_FILE_TO_LARGE);
-		verify(mockArchiveFailureRecorder).record(eq(FILE_TOO_LARGE), any(), any(), any(), eq(1L), eq(MUNICIPALITY_ID), eq("File too large"), any());
+		verify(mockArchiveFailureRecorder).recordFailure(eq(FILE_TOO_LARGE), eq(archiveHistory), eq("File too large"), any());
 	}
 
 	@Test
@@ -622,7 +622,8 @@ class ArchiveHistoryServiceTest {
 		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
 
 		assertThat(result).isNotNull();
-		verify(mockArchiveFailureRecorder).record(eq(BYGGR_FETCH_ERROR), eq(arende.getDnr()), eq(docId), any(), any(), eq(MUNICIPALITY_ID), any(), any());
+		verify(mockArchiveFailureRecorder).recordFailure(eq(BYGGR_FETCH_ERROR), argThat(ah -> docId.equals(ah.getDocumentId()) && arende.getDnr().equals(ah.getCaseId()) && MUNICIPALITY_ID.equals(ah.getMunicipalityId())), eq("ByggR getDocument failed"),
+			any());
 		// Archiving of the attachment is never attempted because the fetch failed
 		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
 	}
@@ -655,7 +656,8 @@ class ArchiveHistoryServiceTest {
 		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
 
 		assertThat(result).isNotNull();
-		verify(mockArchiveFailureRecorder).record(eq(BYGGR_FETCH_ERROR), eq(arende.getDnr()), eq(docId), any(), any(), eq(MUNICIPALITY_ID), any(), any());
+		verify(mockArchiveFailureRecorder).recordFailure(eq(BYGGR_FETCH_ERROR), argThat(ah -> docId.equals(ah.getDocumentId()) && arende.getDnr().equals(ah.getCaseId()) && MUNICIPALITY_ID.equals(ah.getMunicipalityId())), eq("ByggR getDocument failed"),
+			any());
 		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
 	}
 

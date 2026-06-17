@@ -86,8 +86,7 @@ public class ArchiveAttachmentService {
 				messagingIntegration.sendExtensionErrorEmail(archiveHistory, municipalityId);
 			}
 
-			archiveFailureRecorder.record(formatRejection ? ARCHIVE_REJECTED_FORMAT : ARCHIVE_ERROR, archiveHistory.getCaseId(), archiveHistory.getDocumentId(), archiveHistory.getDocumentName(), archiveHistory.getBatchHistory().getId(), municipalityId,
-				formatRejection ? "Archive rejected file format" : "Archive request failed", e.getMessage());
+			archiveFailureRecorder.recordFailure(formatRejection ? ARCHIVE_REJECTED_FORMAT : ARCHIVE_ERROR, archiveHistory, formatRejection ? "Archive rejected file format" : "Archive request failed", e.getMessage());
 			failureRecorded = true;
 		}
 
@@ -106,8 +105,7 @@ public class ArchiveAttachmentService {
 
 			// Only record here when the failure wasn't already recorded in the catch above (avoids a duplicate row)
 			if (!failureRecorded) {
-				archiveFailureRecorder.record(ARCHIVE_ERROR, archiveHistory.getCaseId(), archiveHistory.getDocumentId(), archiveHistory.getDocumentName(), archiveHistory.getBatchHistory().getId(), municipalityId, "No archive id returned",
-					"archiveResponse=" + archiveResponse);
+				archiveFailureRecorder.recordFailure(ARCHIVE_ERROR, archiveHistory, "No archive id returned", "archiveResponse=" + archiveResponse);
 			}
 		}
 

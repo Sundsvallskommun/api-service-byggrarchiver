@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
 
 /**
  * Best-effort recorder for the append-only archive failure audit log. Recording a failure must never break the
@@ -22,11 +24,16 @@ public class ArchiveFailureRecorder {
 		this.archiveFailureService = archiveFailureService;
 	}
 
-	public void record(final FailureCategory failureCategory, final String caseId, final String documentId, final String documentName, final Long batchHistoryId, final String municipalityId, final String message, final String detail) {
+	/**
+	 * Records a failure for the document the given {@link ArchiveHistory} represents. All identity (caseId, documentId,
+	 * documentName, batchHistoryId, municipalityId) is taken from the entity, so callers only supply the category and a
+	 * human-readable message + detail.
+	 */
+	public void recordFailure(final FailureCategory failureCategory, final ArchiveHistory archiveHistory, final String message, final String detail) {
 		try {
-			archiveFailureService.persist(failureCategory, caseId, documentId, documentName, batchHistoryId, municipalityId, message, detail);
+			archiveFailureService.persist(ArchiverMapper.toArchiveFailure(failureCategory, archiveHistory, message, detail));
 		} catch (final Exception e) {
-			LOG.error("Failed to record archive failure (category={}, caseId={}, documentId={})", failureCategory, caseId, documentId, e);
+			LOG.error("Failed to record archive failure (category={}, caseId={}, documentId={})", failureCategory, archiveHistory.getCaseId(), archiveHistory.getDocumentId(), e);
 		}
 	}
 

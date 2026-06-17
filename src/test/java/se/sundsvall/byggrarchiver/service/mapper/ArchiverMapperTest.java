@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveFailure;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,7 +61,15 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToArchiveFailure() {
-		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, "caseId", "documentId", "documentName", 5L, "2281", "message", "detail");
+		final var archiveHistory = ArchiveHistory.builder()
+			.withCaseId("caseId")
+			.withDocumentId("documentId")
+			.withDocumentName("documentName")
+			.withMunicipalityId("2281")
+			.withBatchHistory(BatchHistory.builder().withId(5L).build())
+			.build();
+
+		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, archiveHistory, "message", "detail");
 
 		assertThat(archiveFailure.getFailureCategory()).isEqualTo(ARCHIVE_ERROR);
 		assertThat(archiveFailure.getCaseId()).isEqualTo("caseId");
@@ -74,11 +84,30 @@ class ArchiverMapperTest {
 	}
 
 	@Test
-	void testToArchiveFailureTruncatesMessage() {
-		final var longMessage = "a".repeat(300);
+	void testToArchiveFailureWithNullBatchHistory() {
+		final var archiveHistory = ArchiveHistory.builder().withCaseId("caseId").build();
 
-		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, "caseId", "documentId", "documentName", 5L, "2281", longMessage, null);
+		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, archiveHistory, "message", "detail");
 
+		assertThat(archiveFailure.getBatchHistoryId()).isNull();
+		assertThat(archiveFailure.getCaseId()).isEqualTo("caseId");
+	}
+
+	@Test
+	void testToArchiveFailureTruncatesVarcharFields() {
+		final var longValue = "a".repeat(300);
+		final var archiveHistory = ArchiveHistory.builder()
+			.withCaseId("caseId")
+			.withDocumentId("documentId")
+			.withDocumentName(longValue)
+			.withMunicipalityId("2281")
+			.withBatchHistory(BatchHistory.builder().withId(5L).build())
+			.build();
+
+		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, archiveHistory, longValue, null);
+
+		// varchar(255) fields are truncated; detail (longtext) is left intact
+		assertThat(archiveFailure.getDocumentName()).hasSize(255);
 		assertThat(archiveFailure.getMessage()).hasSize(255);
 		assertThat(archiveFailure.getDetail()).isNull();
 	}

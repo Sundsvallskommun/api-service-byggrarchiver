@@ -111,14 +111,7 @@ public class ArchiveHistoryService {
 				.filter(handelse -> BYGGR_HANDELSETYP_ARKIV.equals(handelse.getHandelsetyp()))
 				.flatMap(handelse -> handelse.getHandlingLista().getHandling().stream())
 				.filter(handelseHandling -> handelseHandling.getDokument() != null)
-				.forEach(handling -> {
-					try {
-						processHandlingList(handling, closedCase, batchHistory, municipalityId);
-					} catch (final ApplicationException e) {
-						LOG.error("Error when archiving document with ID: {} in combination with Case-ID: {}", handling.getDokument().getDokId(), closedCase.getDnr(), e);
-						archiveFailureRecorder.record(categoryForApplicationException(e), closedCase.getDnr(), handling.getDokument().getDokId(), handling.getDokument().getNamn(), batchHistory.getId(), municipalityId, "Archiving failed", e.getMessage());
-					}
-				}));
+				.forEach(handling -> processHandlingList(handling, closedCase, batchHistory, municipalityId)));
 		} while (batchFilter.getLowerExclusiveBound().isBefore(end));
 
 		final var archiveHistoriesRelatedToBatch = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(batchHistory.getId(), municipalityId);
@@ -199,7 +192,7 @@ public class ArchiveHistoryService {
 			.orElse(UNKNOWN);
 	}
 
-	private void processHandlingList(final HandelseHandling handling, final Arende2 arende, final BatchHistory batchHistory, final String municipalityId) throws ApplicationException {
+	private void processHandlingList(final HandelseHandling handling, final Arende2 arende, final BatchHistory batchHistory, final String municipalityId) {
 		final ArchiveHistory newArchiveHistory;
 		final var docId = handling.getDokument().getDokId();
 		final var oldArchiveHistory = archiveHistoryRepository.getArchiveHistoryByDocumentIdAndCaseIdAndMunicipalityId(docId, arende.getDnr(), municipalityId);
@@ -220,12 +213,17 @@ public class ArchiveHistoryService {
 			// Catches both the Problem thrown on a SOAP fault and any other runtime failure from the Feign call
 			// (e.g. CircuitBreaker CallNotPermittedException when the arendeexport breaker is open).
 			LOG.error("Error when fetching document with ID: {} in combination with Case-ID: {}", docId, arende.getDnr(), e);
-			archiveFailureRecorder.record(BYGGR_FETCH_ERROR, arende.getDnr(), docId, handling.getDokument().getNamn(), batchHistory.getId(), municipalityId, "ByggR getDocument failed", e.getMessage());
+			archiveFailureRecorder.recordFailure(BYGGR_FETCH_ERROR, newArchiveHistory, "ByggR getDocument failed", e.getMessage());
 			return;
 		}
 
-		// Archive documents
-		handleArchiving(dokumentList, arende, handling, newArchiveHistory, municipalityId);
+		// Archive documents - a failure for one document must not abort the rest of the batch
+		try {
+			handleArchiving(dokumentList, arende, handling, newArchiveHistory, municipalityId);
+		} catch (final ApplicationException e) {
+			LOG.error("Error when archiving document with ID: {} in combination with Case-ID: {}", docId, arende.getDnr(), e);
+			archiveFailureRecorder.recordFailure(categoryForApplicationException(e), newArchiveHistory, "Archiving failed", e.getMessage());
+		}
 	}
 
 	void handleArchiving(final List<Dokument> dokuments, final Arende2 arende, final HandelseHandling handling, final ArchiveHistory archiveHistory, final String municipalityId) throws ApplicationException {
@@ -243,7 +241,7 @@ public class ArchiveHistoryService {
 					NOT_COMPLETED_FILE_TO_LARGE);
 				archiveHistory.setArchiveStatus(NOT_COMPLETED_FILE_TO_LARGE);
 				archiveHistoryRepository.save(archiveHistory);
-				archiveFailureRecorder.record(FILE_TOO_LARGE, arende.getDnr(), dokument.getDokId(), dokument.getNamn(), archiveHistory.getBatchHistory().getId(), municipalityId, "File too large",
+				archiveFailureRecorder.recordFailure(FILE_TOO_LARGE, archiveHistory, "File too large",
 					"actual=" + dokument.getFil().getFilBuffer().length + " bytes, max=" + maximumFileSize + " bytes");
 				continue;
 			}

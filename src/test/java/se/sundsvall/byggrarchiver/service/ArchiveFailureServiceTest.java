@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,24 +27,19 @@ class ArchiveFailureServiceTest {
 	private ArchiveFailureService archiveFailureService;
 
 	@Test
-	void persistSavesMappedEntity() {
+	void persistSavesEntity() {
+		// Arrange
+		final var archiveFailure = ArchiveFailure.builder()
+			.withFailureCategory(FailureCategory.ARCHIVE_ERROR)
+			.withCaseId("caseId")
+			.build();
+
 		// Act
-		archiveFailureService.persist(FailureCategory.ARCHIVE_ERROR, "caseId", "documentId", "documentName", 5L, "2281", "message", "detail");
+		archiveFailureService.persist(archiveFailure);
 
 		// Assert
-		final var captor = ArgumentCaptor.forClass(ArchiveFailure.class);
-		verify(archiveFailureRepositoryMock).save(captor.capture());
+		verify(archiveFailureRepositoryMock).save(archiveFailure);
 		verifyNoMoreInteractions(archiveFailureRepositoryMock);
-
-		final var saved = captor.getValue();
-		assertThat(saved.getFailureCategory()).isEqualTo(FailureCategory.ARCHIVE_ERROR);
-		assertThat(saved.getCaseId()).isEqualTo("caseId");
-		assertThat(saved.getDocumentId()).isEqualTo("documentId");
-		assertThat(saved.getDocumentName()).isEqualTo("documentName");
-		assertThat(saved.getBatchHistoryId()).isEqualTo(5L);
-		assertThat(saved.getMunicipalityId()).isEqualTo("2281");
-		assertThat(saved.getMessage()).isEqualTo("message");
-		assertThat(saved.getDetail()).isEqualTo("detail");
 	}
 
 	@Test

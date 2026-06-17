@@ -119,7 +119,7 @@ public final class ArchiverMapper {
 		return date.format(ISO_DATE);
 	}
 
-	public static AttachmentCategory toAttachmentCategory(final String handlingsTyp) {
+	public static AttachmentCategory getAttachmentCategory(final String handlingsTyp) {
 		try {
 			return AttachmentCategory.fromCode(handlingsTyp);
 		} catch (final IllegalArgumentException e) {
@@ -277,7 +277,7 @@ public final class ArchiverMapper {
 			.withBilaga(toBilaga(document));
 
 		if (handling.getTyp() != null) {
-			final var attachmentCategory = toAttachmentCategory(handling.getTyp());
+			final var attachmentCategory = getAttachmentCategory(handling.getTyp());
 			arkivobjektHandling.setHandlingstyp(attachmentCategory.getArchiveClassification());
 			arkivobjektHandling.setRubrik(attachmentCategory.getDescription());
 		}

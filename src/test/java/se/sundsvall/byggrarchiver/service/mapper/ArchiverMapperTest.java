@@ -311,9 +311,9 @@ class ArchiverMapperTest {
 	}
 
 	@Test
-	void testToAttachmentCategory() {
-		assertThat(ArchiverMapper.toAttachmentCategory(FAS.toString())).isEqualTo(FAS);
-		assertThat(ArchiverMapper.toAttachmentCategory("NonExistingCategory")).isEqualTo(BIL);
+	void testGetAttachmentCategory() {
+		assertThat(ArchiverMapper.getAttachmentCategory(FAS.toString())).isEqualTo(FAS);
+		assertThat(ArchiverMapper.getAttachmentCategory("NonExistingCategory")).isEqualTo(BIL);
 	}
 
 	@Test

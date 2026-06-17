@@ -13,6 +13,7 @@ import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_REJECTED_FORMAT;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import se.sundsvall.byggrarchiver.Application;
+import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveFailureRepository;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
@@ -351,6 +353,68 @@ class IntegrationTest extends AbstractAppTest {
 				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
 				assertThat(archiveFailure.getCaseId()).isEqualTo("BYGG 2018-000026");
 				assertThat(archiveFailure.getFailureCategory()).isEqualTo(ARCHIVE_REJECTED_FORMAT);
+			});
+
+		// ... and is readable through the fallout endpoint
+		final var fallout = setupCall()
+			.withHttpMethod(GET)
+			.withServicePath(BATCH_PATH + "/" + postBatchHistory.getId() + "/fallout")
+			.withExpectedResponseStatus(OK)
+			.sendRequestAndVerifyResponse()
+			.andReturnBody(ArchiveFailureResponse[].class);
+
+		assertThat(fallout)
+			.isNotEmpty()
+			.allSatisfy(archiveFailure -> {
+				assertThat(archiveFailure.getBatchHistoryId()).isEqualTo(postBatchHistory.getId());
+				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveFailure.getCaseId()).isEqualTo("BYGG 2018-000026");
+				assertThat(archiveFailure.getFailureCategory()).isEqualTo(ARCHIVE_REJECTED_FORMAT);
+			});
+
+		// The category filter excludes non-matching categories
+		final var noFileTooLargeFallout = setupCall()
+			.withHttpMethod(GET)
+			.withServicePath(BATCH_PATH + "/" + postBatchHistory.getId() + "/fallout?category=FILE_TOO_LARGE")
+			.withExpectedResponseStatus(OK)
+			.sendRequestAndVerifyResponse()
+			.andReturnBody(ArchiveFailureResponse[].class);
+
+		assertThat(noFileTooLargeFallout).isEmpty();
+	}
+
+	// One document's GetDocument call faults (ByggR SOAP 500). It must be recorded as BYGGR_FETCH_ERROR and must NOT
+	// abort the batch - the other document still archives successfully.
+	@Test
+	void test15_byggrFetchError() throws JsonProcessingException, ClassNotFoundException {
+		// Same fixed window as test14 so the batch loop runs only two passes (keeps the repeated fetch faults below the
+		// arendeexport circuit breaker threshold).
+		final var postBatchHistory = postBatchJob(BatchJob.builder()
+			.withStart(LocalDate.parse("2021-12-17"))
+			.withEnd(LocalDate.parse("2021-12-17"))
+			.build());
+
+		final var archiveHistories = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(postBatchHistory.getId(), MUNICIPALITY_ID);
+
+		// The batch was not aborted: the other document archived OK, while the one whose fetch failed is not completed
+		assertThat(archiveHistories)
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("431169");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED);
+			})
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED);
+			});
+
+		// The fetch failure was recorded as BYGGR_FETCH_ERROR
+		final var archiveFailures = archiveFailureRepository.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(postBatchHistory.getId(), MUNICIPALITY_ID, null);
+
+		assertThat(archiveFailures)
+			.isNotEmpty()
+			.allSatisfy(archiveFailure -> {
+				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveFailure.getFailureCategory()).isEqualTo(BYGGR_FETCH_ERROR);
 			});
 	}
 

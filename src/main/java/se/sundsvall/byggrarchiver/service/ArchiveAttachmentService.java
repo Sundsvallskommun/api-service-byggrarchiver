@@ -87,7 +87,7 @@ public class ArchiveAttachmentService {
 				messagingIntegration.sendExtensionErrorEmail(archiveHistory, municipalityId);
 			}
 
-			archiveFailureRecorder.recordFailure(formatRejection ? ARCHIVE_REJECTED_FORMAT : ARCHIVE_ERROR, archiveHistory, formatRejection ? "Archive rejected file format" : "Archive request failed", e.getMessage());
+			recordArchiveFailure(formatRejection, archiveHistory, e.getMessage());
 			failureRecorded = true;
 		}
 
@@ -111,6 +111,14 @@ public class ArchiveAttachmentService {
 		}
 
 		return archiveHistoryRepository.save(archiveHistory);
+	}
+
+	private void recordArchiveFailure(final boolean formatRejection, final ArchiveHistory archiveHistory, final String detail) {
+		if (formatRejection) {
+			archiveFailureRecorder.recordFailure(ARCHIVE_REJECTED_FORMAT, archiveHistory, "Archive rejected file format", detail);
+		} else {
+			archiveFailureRecorder.recordFailure(ARCHIVE_ERROR, archiveHistory, "Archive request failed", detail);
+		}
 	}
 
 	private String createArchiveUrl(final String archiveId) {

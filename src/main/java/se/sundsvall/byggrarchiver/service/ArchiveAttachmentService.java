@@ -28,6 +28,8 @@ import se.sundsvall.dept44.exception.ServerProblem;
 import static java.util.Optional.ofNullable;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_REJECTED_FORMAT;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivbildarStruktur;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArkivobjektArendeTyp;
@@ -50,33 +52,43 @@ public class ArchiveAttachmentService {
 
 	private final FbIntegration fbIntegration;
 
+	private final ArchiveFailureRecorder archiveFailureRecorder;
+
 	LongTermArchiveProperties longTermArchiveProperties;
 
 	public ArchiveAttachmentService(final LongTermArchiveProperties longTermArchiveProperties, final ArchiveHistoryRepository archiveHistoryRepository,
-		final MessagingIntegration messagingIntegration, final ArchiveIntegration archiveIntegration, final FbIntegration fbIntegration) {
+		final MessagingIntegration messagingIntegration, final ArchiveIntegration archiveIntegration, final FbIntegration fbIntegration, final ArchiveFailureRecorder archiveFailureRecorder) {
 		this.longTermArchiveProperties = longTermArchiveProperties;
 		this.archiveHistoryRepository = archiveHistoryRepository;
 		this.messagingIntegration = messagingIntegration;
 		this.archiveIntegration = archiveIntegration;
 		this.fbIntegration = fbIntegration;
+		this.archiveFailureRecorder = archiveFailureRecorder;
 	}
 
 	public ArchiveHistory archiveAttachment(final Arende2 arende, final Handling handling, final Dokument document, final ArchiveHistory archiveHistory, final String municipalityId) throws ApplicationException {
 
 		// Request to Archive
 		ArchiveResponse archiveResponse = null;
+		var failureRecorded = false;
 		try {
 			archiveResponse = archiveIntegration.archive(toByggRArchiveRequest(document, createMetadata(arende, handling, document)), municipalityId);
 		} catch (final ClientProblem | ServerProblem e) {
 			LOG.error("Request to Archive failed. Continue with the rest.", e);
 
-			if (e.getMessage().contains("extension must be valid") ||
+			final var formatRejection = e.getMessage().contains("extension must be valid") ||
 				e.getMessage().contains("File format") ||
-				e.getMessage().contains("PreservationObjectConversionException")) {
+				e.getMessage().contains("PreservationObjectConversionException");
+
+			if (formatRejection) {
 				LOG.debug("The problem was related to the file extension. Send email with the information.");
 
 				messagingIntegration.sendExtensionErrorEmail(archiveHistory, municipalityId);
 			}
+
+			archiveFailureRecorder.record(formatRejection ? ARCHIVE_REJECTED_FORMAT : ARCHIVE_ERROR, archiveHistory.getCaseId(), archiveHistory.getDocumentId(), archiveHistory.getDocumentName(), archiveHistory.getBatchHistory().getId(), municipalityId,
+				formatRejection ? "Archive rejected file format" : "Archive request failed", e.getMessage());
+			failureRecorded = true;
 		}
 
 		if ((archiveResponse != null) && (archiveResponse.getArchiveId() != null)) {
@@ -91,6 +103,12 @@ public class ArchiveAttachmentService {
 			LOG.info("The archive-process of document with ID: {} did not succeed.", archiveHistory.getDocumentId());
 
 			archiveHistory.setArchiveStatus(NOT_COMPLETED);
+
+			// Only record here when the failure wasn't already recorded in the catch above (avoids a duplicate row)
+			if (!failureRecorded) {
+				archiveFailureRecorder.record(ARCHIVE_ERROR, archiveHistory.getCaseId(), archiveHistory.getDocumentId(), archiveHistory.getDocumentName(), archiveHistory.getBatchHistory().getId(), municipalityId, "No archive id returned",
+					"archiveResponse=" + archiveResponse);
+			}
 		}
 
 		return archiveHistoryRepository.save(archiveHistory);

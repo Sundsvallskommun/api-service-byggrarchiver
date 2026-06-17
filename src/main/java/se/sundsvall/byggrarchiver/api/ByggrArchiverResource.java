@@ -16,12 +16,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 import se.sundsvall.byggrarchiver.api.validation.StartBeforeEnd;
+import se.sundsvall.byggrarchiver.service.ArchiveFailureService;
 import se.sundsvall.byggrarchiver.service.ArchiveHistoryService;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
 import se.sundsvall.dept44.common.validators.annotation.ValidMunicipalityId;
@@ -47,11 +50,16 @@ class ByggrArchiverResource {
 
 	private final ArchiveHistoryService archiveHistoryService;
 
+	private final ArchiveFailureService archiveFailureService;
+
 	ByggrArchiverResource(final ByggrArchiverService byggrArchiverService,
 
-		final ArchiveHistoryService archiveHistoryService) {
+		final ArchiveHistoryService archiveHistoryService,
+
+		final ArchiveFailureService archiveFailureService) {
 		this.byggrArchiverService = byggrArchiverService;
 		this.archiveHistoryService = archiveHistoryService;
+		this.archiveFailureService = archiveFailureService;
 	}
 
 	@GetMapping("/archived/attachments")
@@ -83,6 +91,14 @@ class ByggrArchiverResource {
 		final var result = byggrArchiverService.reRunBatch(batchHistoryId, municipalityId);
 
 		return ResponseEntity.ok((result));
+	}
+
+	@GetMapping("/batch-jobs/{batchHistoryId}/fallout")
+	ResponseEntity<List<ArchiveFailureResponse>> getFallout(
+		@Parameter(name = "municipalityId", description = "Municipality id", example = "2281") @ValidMunicipalityId @PathVariable final String municipalityId,
+		@PathVariable("batchHistoryId") final Long batchHistoryId,
+		@RequestParam(value = "category", required = false) final FailureCategory category) {
+		return ResponseEntity.ok(archiveFailureService.getFailures(batchHistoryId, category, municipalityId));
 	}
 
 }

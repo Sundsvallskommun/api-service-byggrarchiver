@@ -45,6 +45,7 @@ import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.testutils.BatchFilterMatcher;
+import se.sundsvall.dept44.problem.Problem;
 
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,10 +55,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
@@ -69,6 +73,8 @@ import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFA
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.RUE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
@@ -100,6 +106,9 @@ class ArchiveHistoryServiceTest {
 
 	@Mock
 	private LongTermArchiveProperties mockLongTermArchiveProperties;
+
+	@Mock
+	private ArchiveFailureRecorder mockArchiveFailureRecorder;
 
 	@InjectMocks
 	private ArchiveHistoryService archiveHistoryService;
@@ -576,11 +585,46 @@ class ArchiveHistoryServiceTest {
 		var arende = new Arende();
 		var handling = new HandelseHandling();
 		var archiveHistory = new ArchiveHistory();
+		archiveHistory.setBatchHistory(BatchHistory.builder().withId(1L).build());
 
 		archiveHistoryService.handleArchiving(dokuments, arende, handling, archiveHistory, MUNICIPALITY_ID);
 
 		assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED_FILE_TO_LARGE);
+		verify(mockArchiveFailureRecorder).record(eq(FILE_TOO_LARGE), any(), any(), any(), eq(1L), eq(MUNICIPALITY_ID), eq("File too large"), any());
+	}
 
+	@Test
+	void getDocumentFaultIsRecordedAndDoesNotAbortBatch() throws Exception {
+		final var yesterday = LocalDate.now().minusDays(1);
+
+		final var start = yesterday.atStartOfDay();
+		final var end = yesterday.atTime(23, 59, 59);
+
+		final var batchFilter = new BatchFilter();
+		batchFilter.setLowerExclusiveBound(start);
+		batchFilter.setUpperInclusiveBound(end);
+
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var arrayOfArende = new ArrayOfArende();
+		arrayOfArende.getArende().add(arende);
+		final var arendeBatch = new ArendeBatch();
+		arendeBatch.setBatchStart(start);
+		arendeBatch.setBatchEnd(end);
+		arendeBatch.setArenden(arrayOfArende);
+
+		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(argThat(new BatchFilterMatcher(batchFilter)));
+
+		// The single document fails to be fetched from ByggR
+		final var docId = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst().getDokument().getDokId();
+		doThrow(Problem.valueOf(SERVICE_UNAVAILABLE, "ByggR down")).when(mockArendeExportIntegrationService).getDocument(docId);
+
+		// The fault must not propagate / abort the batch
+		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
+
+		assertThat(result).isNotNull();
+		verify(mockArchiveFailureRecorder).record(eq(BYGGR_FETCH_ERROR), eq(arende.getDnr()), eq(docId), any(), any(), eq(MUNICIPALITY_ID), any(), any());
+		// Archiving of the attachment is never attempted because the fetch failed
+		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
 	}
 
 	private void verifyCalls(final int nrOfCallsToGetUpdatedArenden,

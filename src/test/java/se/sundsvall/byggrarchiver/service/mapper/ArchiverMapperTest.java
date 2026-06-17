@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveFailure;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +29,7 @@ import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.BIL;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FAS;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_ERROR;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createBatchHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
@@ -53,6 +55,67 @@ class ArchiverMapperTest {
 		assertThat(archiveHistory.getDocumentId()).isEqualTo("dokId");
 		assertThat(archiveHistory.getDocumentType()).isEqualTo(FASSIT2.getDescription());
 		assertThat(archiveHistory.getMunicipalityId()).isEqualTo("2281");
+	}
+
+	@Test
+	void testToArchiveFailure() {
+		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, "caseId", "documentId", "documentName", 5L, "2281", "message", "detail");
+
+		assertThat(archiveFailure.getFailureCategory()).isEqualTo(ARCHIVE_ERROR);
+		assertThat(archiveFailure.getCaseId()).isEqualTo("caseId");
+		assertThat(archiveFailure.getDocumentId()).isEqualTo("documentId");
+		assertThat(archiveFailure.getDocumentName()).isEqualTo("documentName");
+		assertThat(archiveFailure.getBatchHistoryId()).isEqualTo(5L);
+		assertThat(archiveFailure.getMunicipalityId()).isEqualTo("2281");
+		assertThat(archiveFailure.getMessage()).isEqualTo("message");
+		assertThat(archiveFailure.getDetail()).isEqualTo("detail");
+		assertThat(archiveFailure.getId()).isNull();
+		assertThat(archiveFailure.getTimestamp()).isNull();
+	}
+
+	@Test
+	void testToArchiveFailureTruncatesMessage() {
+		final var longMessage = "a".repeat(300);
+
+		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, "caseId", "documentId", "documentName", 5L, "2281", longMessage, null);
+
+		assertThat(archiveFailure.getMessage()).hasSize(255);
+		assertThat(archiveFailure.getDetail()).isNull();
+	}
+
+	@Test
+	void testMapToArchiveFailureResponse() {
+		final var entity = ArchiveFailure.builder()
+			.withId(1L)
+			.withBatchHistoryId(5L)
+			.withCaseId("caseId")
+			.withDocumentId("documentId")
+			.withMunicipalityId("2281")
+			.withDocumentName("documentName")
+			.withFailureCategory(ARCHIVE_ERROR)
+			.withMessage("message")
+			.withDetail("detail")
+			.withTimestamp(LocalDateTime.of(2023, 1, 1, 12, 0))
+			.build();
+
+		final var response = ArchiverMapper.mapToArchiveFailureResponse(entity);
+
+		assertThat(response).isNotNull();
+		assertThat(response.getId()).isEqualTo(1L);
+		assertThat(response.getBatchHistoryId()).isEqualTo(5L);
+		assertThat(response.getCaseId()).isEqualTo("caseId");
+		assertThat(response.getDocumentId()).isEqualTo("documentId");
+		assertThat(response.getMunicipalityId()).isEqualTo("2281");
+		assertThat(response.getDocumentName()).isEqualTo("documentName");
+		assertThat(response.getFailureCategory()).isEqualTo(ARCHIVE_ERROR);
+		assertThat(response.getMessage()).isEqualTo("message");
+		assertThat(response.getDetail()).isEqualTo("detail");
+		assertThat(response.getTimestamp()).isEqualTo(LocalDateTime.of(2023, 1, 1, 12, 0));
+	}
+
+	@Test
+	void testMapToArchiveFailureResponseWithNull() {
+		assertThat(ArchiverMapper.mapToArchiveFailureResponse(null)).isNull();
 	}
 
 	@Test

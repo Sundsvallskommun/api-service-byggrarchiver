@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
 import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
@@ -70,6 +71,9 @@ class ArchiveAttachmentServiceTest {
 
 	@Mock
 	private FbIntegration fastighetService;
+
+	@Mock
+	private ArchiveFailureRecorder archiveFailureRecorderMock;
 
 	@Captor
 	private ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestCaptor;
@@ -259,6 +263,7 @@ class ArchiveAttachmentServiceTest {
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
 		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
+		verify(archiveFailureRecorderMock).record(eq(FailureCategory.ARCHIVE_ERROR), any(), any(), any(), any(), eq(MUNICIPALITY_ID), eq("No archive id returned"), any());
 	}
 
 	@Test
@@ -286,6 +291,7 @@ class ArchiveAttachmentServiceTest {
 		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
 		verify(messagingIntegrationMock).sendExtensionErrorEmail(archiveHistory, MUNICIPALITY_ID);
+		verify(archiveFailureRecorderMock).record(eq(FailureCategory.ARCHIVE_REJECTED_FORMAT), any(), any(), any(), any(), eq(MUNICIPALITY_ID), eq("Archive rejected file format"), any());
 	}
 
 	/**

@@ -20,11 +20,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveFailure;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
@@ -191,6 +194,46 @@ public final class ArchiverMapper {
 			.withBatchTrigger(batchHistory.getBatchTrigger())
 			.withTimestamp(batchHistory.getTimestamp())
 			.build();
+	}
+
+	public static ArchiveFailure toArchiveFailure(final FailureCategory failureCategory, final String caseId, final String documentId, final String documentName, final Long batchHistoryId, final String municipalityId, final String message,
+		final String detail) {
+		return ArchiveFailure.builder()
+			.withFailureCategory(failureCategory)
+			.withCaseId(caseId)
+			.withDocumentId(documentId)
+			.withDocumentName(documentName)
+			.withBatchHistoryId(batchHistoryId)
+			.withMunicipalityId(municipalityId)
+			.withMessage(truncate(message))
+			.withDetail(detail)
+			.build();
+	}
+
+	public static ArchiveFailureResponse mapToArchiveFailureResponse(final ArchiveFailure archiveFailure) {
+		if (archiveFailure == null) {
+			return null;
+		}
+
+		return ArchiveFailureResponse.builder()
+			.withId(archiveFailure.getId())
+			.withBatchHistoryId(archiveFailure.getBatchHistoryId())
+			.withCaseId(archiveFailure.getCaseId())
+			.withDocumentId(archiveFailure.getDocumentId())
+			.withMunicipalityId(archiveFailure.getMunicipalityId())
+			.withDocumentName(archiveFailure.getDocumentName())
+			.withFailureCategory(archiveFailure.getFailureCategory())
+			.withMessage(archiveFailure.getMessage())
+			.withDetail(archiveFailure.getDetail())
+			.withTimestamp(archiveFailure.getTimestamp())
+			.build();
+	}
+
+	private static String truncate(final String message) {
+		return ofNullable(message)
+			.filter(value -> value.length() > 255)
+			.map(value -> value.substring(0, 255))
+			.orElse(message);
 	}
 
 	public static BatchHistory createBatchHistory(final LocalDate actualStart, final LocalDate end, final BatchTrigger batchTrigger, final ArchiveStatus archiveStatus, final String municipalityId) {

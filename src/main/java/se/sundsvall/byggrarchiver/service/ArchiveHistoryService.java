@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
@@ -25,11 +26,17 @@ import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper;
+import se.sundsvall.dept44.problem.ThrowableProblem;
 
+import static java.util.Optional.ofNullable;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.METADATA_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.UNKNOWN;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArchiveHistory;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
@@ -49,6 +56,8 @@ public class ArchiveHistoryService {
 
 	private final ArchiveAttachmentService archiveAttachmentService;
 
+	private final ArchiveFailureRecorder archiveFailureRecorder;
+
 	private final Integer maximumFileSize;
 
 	public ArchiveHistoryService(final BatchHistoryRepository batchHistoryRepository,
@@ -57,6 +66,7 @@ public class ArchiveHistoryService {
 		final MessagingIntegration messagingIntegration,
 		final ArchiveAttachmentService archiveAttachmentService,
 		final FbIntegration fbIntegration,
+		final ArchiveFailureRecorder archiveFailureRecorder,
 		@Value("${integration.archive.maximum-file-size}") final Integer maximumFileSize) {
 		this.batchHistoryRepository = batchHistoryRepository;
 		this.arendeExportIntegration = arendeExportIntegration;
@@ -64,6 +74,7 @@ public class ArchiveHistoryService {
 		this.messagingIntegration = messagingIntegration;
 		this.archiveAttachmentService = archiveAttachmentService;
 		this.fbIntegration = fbIntegration;
+		this.archiveFailureRecorder = archiveFailureRecorder;
 		this.maximumFileSize = maximumFileSize;
 	}
 
@@ -106,6 +117,7 @@ public class ArchiveHistoryService {
 						processHandlingList(handling, closedCase, batchHistory, municipalityId);
 					} catch (final ApplicationException e) {
 						LOG.error("Error when archiving document with ID: {} in combination with Case-ID: {}", handling.getDokument().getDokId(), closedCase.getDnr(), e);
+						archiveFailureRecorder.record(categoryForApplicationException(e), closedCase.getDnr(), handling.getDokument().getDokId(), handling.getDokument().getNamn(), batchHistory.getId(), municipalityId, "Archiving failed", e.getMessage());
 					}
 				}));
 		} while (batchFilter.getLowerExclusiveBound().isBefore(end));
@@ -181,6 +193,13 @@ public class ArchiveHistoryService {
 		}
 	}
 
+	private static FailureCategory categoryForApplicationException(final ApplicationException e) {
+		return ofNullable(e.getMessage())
+			.filter(message -> message.contains("marshal"))
+			.map(message -> METADATA_ERROR)
+			.orElse(UNKNOWN);
+	}
+
 	private void processHandlingList(final HandelseHandling handling, final Arende2 arende, final BatchHistory batchHistory, final String municipalityId) throws ApplicationException {
 		final ArchiveHistory newArchiveHistory;
 		final var docId = handling.getDokument().getDokId();
@@ -194,7 +213,15 @@ public class ArchiveHistoryService {
 		newArchiveHistory = toArchiveHistory(handling, batchHistory, arende.getDnr(), getAttachmentCategory(handling.getTyp()), NOT_COMPLETED, municipalityId);
 		archiveHistoryRepository.save(newArchiveHistory);
 		// Get documents from Byggr
-		final var dokumentList = arendeExportIntegration.getDocument(docId);
+		final List<Dokument> dokumentList;
+		try {
+			dokumentList = arendeExportIntegration.getDocument(docId);
+		} catch (final ThrowableProblem e) {
+			// A failed document fetch must not abort the whole batch - record it and continue with the next document
+			LOG.error("Error when fetching document with ID: {} in combination with Case-ID: {}", docId, arende.getDnr(), e);
+			archiveFailureRecorder.record(BYGGR_FETCH_ERROR, arende.getDnr(), docId, handling.getDokument().getNamn(), batchHistory.getId(), municipalityId, "ByggR getDocument failed", e.getMessage());
+			return;
+		}
 
 		// Archive documents
 		handleArchiving(dokumentList, arende, handling, newArchiveHistory, municipalityId);
@@ -215,6 +242,8 @@ public class ArchiveHistoryService {
 					NOT_COMPLETED_FILE_TO_LARGE);
 				archiveHistory.setArchiveStatus(NOT_COMPLETED_FILE_TO_LARGE);
 				archiveHistoryRepository.save(archiveHistory);
+				archiveFailureRecorder.record(FILE_TOO_LARGE, arende.getDnr(), dokument.getDokId(), dokument.getNamn(), archiveHistory.getBatchHistory().getId(), municipalityId, "File too large",
+					"actual=" + dokument.getFil().getFilBuffer().length + " bytes, max=" + maximumFileSize + " bytes");
 				continue;
 			}
 

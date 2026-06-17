@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.db.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,7 +37,6 @@ public class ArchiveFailure {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Schema(accessMode = Schema.AccessMode.READ_ONLY)
 	@Column(nullable = false)
 	private Long id;
 
@@ -69,7 +67,6 @@ public class ArchiveFailure {
 	@Column(columnDefinition = "longtext")
 	private String detail;
 
-	@Schema(accessMode = Schema.AccessMode.READ_ONLY)
 	@Column(nullable = false)
 	private LocalDateTime timestamp;
 

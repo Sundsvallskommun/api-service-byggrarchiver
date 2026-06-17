@@ -18,22 +18,18 @@ import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegrati
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import static java.util.Optional.ofNullable;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.METADATA_ERROR;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.UNKNOWN;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.getAttachmentCategory;
 import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArchiveHistory;
-import static se.sundsvall.byggrarchiver.service.mapper.ArchiverMapper.toArendeFastighetList;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
 
@@ -45,11 +41,10 @@ public class ArchiveHistoryService {
 	private final ArchiveHistoryRepository archiveHistoryRepository;
 
 	private final ArendeExportIntegration arendeExportIntegration;
-	private final MessagingIntegration messagingIntegration;
-	private final FbIntegration fbIntegration;
 
 	private final ArchiveAttachmentService archiveAttachmentService;
 	private final BatchCompletionService batchCompletionService;
+	private final LantmaterietNotifier lantmaterietNotifier;
 
 	private final ArchiveFailureRecorder archiveFailureRecorder;
 
@@ -59,19 +54,17 @@ public class ArchiveHistoryService {
 
 	public ArchiveHistoryService(final ArendeExportIntegration arendeExportIntegration,
 		final ArchiveHistoryRepository archiveHistoryRepository,
-		final MessagingIntegration messagingIntegration,
 		final ArchiveAttachmentService archiveAttachmentService,
 		final BatchCompletionService batchCompletionService,
-		final FbIntegration fbIntegration,
+		final LantmaterietNotifier lantmaterietNotifier,
 		final ArchiveFailureRecorder archiveFailureRecorder,
 		final Clock clock,
 		@Value("${integration.archive.maximum-file-size}") final Integer maximumFileSize) {
 		this.arendeExportIntegration = arendeExportIntegration;
 		this.archiveHistoryRepository = archiveHistoryRepository;
-		this.messagingIntegration = messagingIntegration;
 		this.archiveAttachmentService = archiveAttachmentService;
 		this.batchCompletionService = batchCompletionService;
-		this.fbIntegration = fbIntegration;
+		this.lantmaterietNotifier = lantmaterietNotifier;
 		this.archiveFailureRecorder = archiveFailureRecorder;
 		this.clock = clock;
 		this.maximumFileSize = maximumFileSize;
@@ -208,15 +201,7 @@ public class ArchiveHistoryService {
 
 			final var savedArchiveHistory = archiveAttachmentService.archiveAttachment(arende, handling, dokument, archiveHistory, municipalityId);
 
-			if (COMPLETED.equals(savedArchiveHistory.getArchiveStatus())
-				&& (savedArchiveHistory.getArchiveId() != null)
-				&& GEO.equals(getAttachmentCategory(handling.getTyp()))) {
-				// Send email to Lantmateriet with info about the archived attachment
-				final var arendeFastighetList = toArendeFastighetList(arende.getObjektLista().getAbstractArendeObjekt());
-
-				messagingIntegration.sendEmailToLantmateriet(
-					fbIntegration.getFastighet(arendeFastighetList).getFastighetsbeteckning(), savedArchiveHistory, municipalityId);
-			}
+			lantmaterietNotifier.notifyIfGeoDocument(arende, handling, savedArchiveHistory, municipalityId);
 		}
 	}
 

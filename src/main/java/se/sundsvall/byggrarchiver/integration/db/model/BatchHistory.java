@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.db.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,7 +37,6 @@ public class BatchHistory {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Schema(accessMode = Schema.AccessMode.READ_ONLY)
 	@Column(nullable = false)
 	private Long id;
 
@@ -59,7 +57,6 @@ public class BatchHistory {
 	@Enumerated(EnumType.STRING)
 	private BatchTrigger batchTrigger;
 
-	@Schema(accessMode = Schema.AccessMode.READ_ONLY)
 	@Column(nullable = false)
 	private LocalDateTime timestamp;
 

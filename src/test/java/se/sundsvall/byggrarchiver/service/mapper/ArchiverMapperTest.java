@@ -17,8 +17,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveFailure;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
+import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +32,7 @@ import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.BIL;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FAS;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_ERROR;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createBatchHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomArchiveHistory;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.createRandomBatchHistory;
@@ -37,13 +42,13 @@ class ArchiverMapperTest {
 	@Test
 	void testToArchiveHistory() {
 		final var handling = new Handling()
-			.withHandlingDatum(LocalDate.of(2023, 1, 1))
+			.withHandlingDatum(LocalDate.of(2023, Month.JANUARY, 1))
 			.withAnteckning("anteckning")
 			.withDokument(new Dokument().withDokId("dokId").withNamn("namn").withFil(new DokumentFil().withFilBuffer(new byte[] {
 				1, 2, 3
 			}).withFilAndelse("pdf")));
 
-		final var batchHistory = createBatchHistory(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 1), SCHEDULED, COMPLETED);
+		final var batchHistory = createBatchHistory(LocalDate.of(2023, Month.JANUARY, 1), LocalDate.of(2023, Month.JANUARY, 1), SCHEDULED, COMPLETED);
 
 		final var archiveHistory = ArchiverMapper.toArchiveHistory(handling, batchHistory, "caseId", FASSIT2, COMPLETED, "2281");
 
@@ -53,6 +58,94 @@ class ArchiverMapperTest {
 		assertThat(archiveHistory.getDocumentId()).isEqualTo("dokId");
 		assertThat(archiveHistory.getDocumentType()).isEqualTo(FASSIT2.getDescription());
 		assertThat(archiveHistory.getMunicipalityId()).isEqualTo("2281");
+	}
+
+	@Test
+	void testToArchiveFailure() {
+		final var archiveHistory = ArchiveHistory.builder()
+			.withCaseId("caseId")
+			.withDocumentId("documentId")
+			.withDocumentName("documentName")
+			.withMunicipalityId("2281")
+			.withBatchHistory(BatchHistory.builder().withId(5L).build())
+			.build();
+
+		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, archiveHistory, "message", "detail");
+
+		assertThat(archiveFailure.getFailureCategory()).isEqualTo(ARCHIVE_ERROR);
+		assertThat(archiveFailure.getCaseId()).isEqualTo("caseId");
+		assertThat(archiveFailure.getDocumentId()).isEqualTo("documentId");
+		assertThat(archiveFailure.getDocumentName()).isEqualTo("documentName");
+		assertThat(archiveFailure.getBatchHistoryId()).isEqualTo(5L);
+		assertThat(archiveFailure.getMunicipalityId()).isEqualTo("2281");
+		assertThat(archiveFailure.getMessage()).isEqualTo("message");
+		assertThat(archiveFailure.getDetail()).isEqualTo("detail");
+		assertThat(archiveFailure.getId()).isNull();
+		assertThat(archiveFailure.getTimestamp()).isNull();
+	}
+
+	@Test
+	void testToArchiveFailureWithNullBatchHistory() {
+		final var archiveHistory = ArchiveHistory.builder().withCaseId("caseId").build();
+
+		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, archiveHistory, "message", "detail");
+
+		assertThat(archiveFailure.getBatchHistoryId()).isNull();
+		assertThat(archiveFailure.getCaseId()).isEqualTo("caseId");
+	}
+
+	@Test
+	void testToArchiveFailureTruncatesVarcharFields() {
+		final var longValue = "a".repeat(300);
+		final var archiveHistory = ArchiveHistory.builder()
+			.withCaseId("caseId")
+			.withDocumentId("documentId")
+			.withDocumentName(longValue)
+			.withMunicipalityId("2281")
+			.withBatchHistory(BatchHistory.builder().withId(5L).build())
+			.build();
+
+		final var archiveFailure = ArchiverMapper.toArchiveFailure(ARCHIVE_ERROR, archiveHistory, longValue, null);
+
+		// varchar(255) fields are truncated; detail (longtext) is left intact
+		assertThat(archiveFailure.getDocumentName()).hasSize(255);
+		assertThat(archiveFailure.getMessage()).hasSize(255);
+		assertThat(archiveFailure.getDetail()).isNull();
+	}
+
+	@Test
+	void testMapToArchiveFailureResponse() {
+		final var entity = ArchiveFailure.builder()
+			.withId(1L)
+			.withBatchHistoryId(5L)
+			.withCaseId("caseId")
+			.withDocumentId("documentId")
+			.withMunicipalityId("2281")
+			.withDocumentName("documentName")
+			.withFailureCategory(ARCHIVE_ERROR)
+			.withMessage("message")
+			.withDetail("detail")
+			.withTimestamp(LocalDateTime.of(2023, Month.JANUARY, 1, 12, 0))
+			.build();
+
+		final var response = ArchiverMapper.mapToArchiveFailureResponse(entity);
+
+		assertThat(response).isNotNull();
+		assertThat(response.getId()).isEqualTo(1L);
+		assertThat(response.getBatchHistoryId()).isEqualTo(5L);
+		assertThat(response.getCaseId()).isEqualTo("caseId");
+		assertThat(response.getDocumentId()).isEqualTo("documentId");
+		assertThat(response.getMunicipalityId()).isEqualTo("2281");
+		assertThat(response.getDocumentName()).isEqualTo("documentName");
+		assertThat(response.getFailureCategory()).isEqualTo(ARCHIVE_ERROR);
+		assertThat(response.getMessage()).isEqualTo("message");
+		assertThat(response.getDetail()).isEqualTo("detail");
+		assertThat(response.getTimestamp()).isEqualTo(LocalDateTime.of(2023, Month.JANUARY, 1, 12, 0));
+	}
+
+	@Test
+	void testMapToArchiveFailureResponseWithNull() {
+		assertThat(ArchiverMapper.mapToArchiveFailureResponse(null)).isNull();
 	}
 
 	@Test
@@ -168,7 +261,7 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToArkivbildarStrukturAfter2016() {
-		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.now());
+		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(2024, Month.JANUARY, 16));
 
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getNamn()).isEqualTo("Stadsbyggnadsnämnden");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidFran()).isEqualTo("2017");
@@ -181,7 +274,7 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToArkivbildarStrukturBefore1993() {
-		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1992, 12, 31));
+		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1992, Month.DECEMBER, 31));
 
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getNamn()).isEqualTo("Byggnadsnämnden");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidFran()).isEqualTo("1974");
@@ -194,7 +287,7 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToArkivbildarStrukturBetween1993And2016() {
-		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1993, 1, 1));
+		final var arkivbildarStruktur = ArchiverMapper.toArkivbildarStruktur(LocalDate.of(1993, Month.JANUARY, 1));
 
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getNamn()).isEqualTo("Stadsbyggnadsnämnden");
 		assertThat(arkivbildarStruktur.getArkivbildare().getArkivbildare().getVerksamhetstidFran()).isEqualTo("1993");
@@ -207,20 +300,20 @@ class ArchiverMapperTest {
 
 	@Test
 	void testToIsoDateLocalDate() {
-		assertThat(ArchiverMapper.toIsoDate(LocalDate.of(2023, 1, 1))).isEqualTo("2023-01-01");
+		assertThat(ArchiverMapper.toIsoDate(LocalDate.of(2023, Month.JANUARY, 1))).isEqualTo("2023-01-01");
 		assertThat(ArchiverMapper.toIsoDate((LocalDate) null)).isNull();
 	}
 
 	@Test
 	void testToIsoDateLocalDateTime() {
-		assertThat(ArchiverMapper.toIsoDate(LocalDate.of(2023, 1, 1).atStartOfDay())).isEqualTo("2023-01-01");
+		assertThat(ArchiverMapper.toIsoDate(LocalDate.of(2023, Month.JANUARY, 1).atStartOfDay())).isEqualTo("2023-01-01");
 		assertThat(ArchiverMapper.toIsoDate((LocalDateTime) null)).isNull();
 	}
 
 	@Test
-	void testToAttachmentCategory() {
-		assertThat(ArchiverMapper.toAttachmentCategory(FAS.toString())).isEqualTo(FAS);
-		assertThat(ArchiverMapper.toAttachmentCategory("NonExistingCategory")).isEqualTo(BIL);
+	void testGetAttachmentCategory() {
+		assertThat(ArchiverMapper.getAttachmentCategory(FAS.toString())).isEqualTo(FAS);
+		assertThat(ArchiverMapper.getAttachmentCategory("NonExistingCategory")).isEqualTo(BIL);
 	}
 
 	@Test
@@ -230,9 +323,9 @@ class ArchiverMapperTest {
 			.withArendeId(1)
 			.withDnr("arendeId")
 			.withArendetyp("arendeTyp")
-			.withAnkomstDatum(LocalDate.of(2023, 1, 1))
-			.withRegistreradDatum(LocalDate.of(2022, 1, 2))
-			.withSlutDatum(LocalDate.of(2023, 1, 3))
+			.withAnkomstDatum(LocalDate.of(2023, Month.JANUARY, 1))
+			.withRegistreradDatum(LocalDate.of(2022, Month.JANUARY, 2))
+			.withSlutDatum(LocalDate.of(2023, Month.JANUARY, 3))
 			.withBeskrivning("beskrivning")
 			.withObjektLista(new ArrayOfAbstractArendeObjekt2()
 				.withAbstractArendeObjekt(new ArendeFastighet().withArendeObjektId(1))
@@ -240,7 +333,7 @@ class ArchiverMapperTest {
 			.withStatus("Stängt");
 
 		final var handling = new Handling()
-			.withHandlingDatum(LocalDate.of(2023, 1, 1))
+			.withHandlingDatum(LocalDate.of(2023, Month.JANUARY, 1))
 			.withAnteckning("anteckning")
 			.withTyp("handlingstyp")
 			.withDokument(new Dokument().withDokId("dokId")

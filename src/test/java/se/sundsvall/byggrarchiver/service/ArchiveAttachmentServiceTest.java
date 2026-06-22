@@ -15,6 +15,7 @@ import generated.se.sundsvall.arendeexport.HandelseHandling;
 import generated.se.sundsvall.bygglov.FastighetTyp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
 import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
@@ -70,6 +72,9 @@ class ArchiveAttachmentServiceTest {
 
 	@Mock
 	private FbIntegration fastighetService;
+
+	@Mock
+	private ArchiveFailureRecorder archiveFailureRecorderMock;
 
 	@Captor
 	private ArgumentCaptor<ByggRArchiveRequest> byggRArchiveRequestCaptor;
@@ -144,7 +149,7 @@ class ArchiveAttachmentServiceTest {
 	@Test
 	void archiveWhenAnkomstDatumBefore2017() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(2016, 12, 31));
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(2016, Month.DECEMBER, 31));
 		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var archiveResponse = new ArchiveResponse();
@@ -177,7 +182,7 @@ class ArchiveAttachmentServiceTest {
 	@Test
 	void archiveWhenAnkomstDatumBefore1993() throws Exception {
 		// Arrange
-		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(1992, 12, 31));
+		final var arende = createArendeObject(List.of(AttachmentCategory.ANS)).withAnkomstDatum(LocalDate.of(1992, Month.DECEMBER, 31));
 		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
 		final var document = handling.getDokument();
 		final var archiveResponse = new ArchiveResponse();
@@ -259,6 +264,7 @@ class ArchiveAttachmentServiceTest {
 		verify(archiveHistoryRepositoryMock).save(any(ArchiveHistory.class));
 		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
+		verify(archiveFailureRecorderMock).recordFailure(eq(FailureCategory.ARCHIVE_ERROR), eq(archiveHistory), eq("No archive id returned"), any());
 	}
 
 	@Test
@@ -286,6 +292,7 @@ class ArchiveAttachmentServiceTest {
 		verify(archiveIntegrationMock).archive(any(ByggRArchiveRequest.class), eq(MUNICIPALITY_ID));
 		verify(fastighetService).getFastighet(any());
 		verify(messagingIntegrationMock).sendExtensionErrorEmail(archiveHistory, MUNICIPALITY_ID);
+		verify(archiveFailureRecorderMock).recordFailure(eq(FailureCategory.ARCHIVE_REJECTED_FORMAT), eq(archiveHistory), eq("Archive rejected file format"), any());
 	}
 
 	/**
@@ -303,7 +310,7 @@ class ArchiveAttachmentServiceTest {
 			final var dokumentFil = new DokumentFil();
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
-			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
+			dokument.setSkapadDatum(LocalDateTime.of(2024, Month.JANUARY, 16, 0, 0).minusDays(30));
 			final var handling = new HandelseHandling();
 			handling.setTyp(category.name());
 			handling.setDokument(dokument);

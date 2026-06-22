@@ -1,6 +1,7 @@
 package se.sundsvall.byggrarchiver.api.model;
 
 import java.time.LocalDate;
+import java.time.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,7 @@ class BatchJobTest {
 
 	@BeforeAll
 	static void setup() {
-		registerValueGenerator(() -> LocalDate.now().plusDays(randomInt()), LocalDate.class);
+		registerValueGenerator(() -> LocalDate.of(2000, Month.JANUARY, 1).plusDays(randomInt()), LocalDate.class);
 	}
 
 	@Test

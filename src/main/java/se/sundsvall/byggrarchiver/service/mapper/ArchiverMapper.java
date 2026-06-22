@@ -17,14 +17,18 @@ import generated.se.sundsvall.bygglov.ExtraID;
 import generated.se.sundsvall.bygglov.StatusArande;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveFailure;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
@@ -63,15 +67,15 @@ public final class ArchiverMapper {
 	}
 
 	static boolean isAfter1992(final LocalDate ankomstDatum) {
-		return ankomstDatum.isAfter(LocalDate.of(1992, 12, 31));
+		return ankomstDatum.isAfter(LocalDate.of(1992, Month.DECEMBER, 31));
 	}
 
 	static boolean isAfter2016(final LocalDate ankomstDatum) {
-		return ankomstDatum.isAfter(LocalDate.of(2016, 12, 31));
+		return ankomstDatum.isAfter(LocalDate.of(2016, Month.DECEMBER, 31));
 	}
 
 	static boolean isBefore1993(final LocalDate ankomstDatum) {
-		return ankomstDatum.isBefore(LocalDate.of(1993, 1, 1));
+		return ankomstDatum.isBefore(LocalDate.of(1993, Month.JANUARY, 1));
 	}
 
 	public static ArkivbildarStrukturTyp toArkivbildarStruktur(final LocalDate ankomstDatum) {
@@ -115,7 +119,7 @@ public final class ArchiverMapper {
 		return date.format(ISO_DATE);
 	}
 
-	public static AttachmentCategory toAttachmentCategory(final String handlingsTyp) {
+	public static AttachmentCategory getAttachmentCategory(final String handlingsTyp) {
 		try {
 			return AttachmentCategory.fromCode(handlingsTyp);
 		} catch (final IllegalArgumentException e) {
@@ -193,6 +197,47 @@ public final class ArchiverMapper {
 			.build();
 	}
 
+	public static ArchiveFailure toArchiveFailure(final FailureCategory failureCategory, final ArchiveHistory archiveHistory, final String message, final String detail) {
+		// All but detail map to varchar(255) columns - truncate so an over-long value from ByggR can never make the
+		// audit insert fail (and get silently swallowed by the recorder). detail is longtext, so it is left intact.
+		return ArchiveFailure.builder()
+			.withFailureCategory(failureCategory)
+			.withCaseId(truncate(archiveHistory.getCaseId()))
+			.withDocumentId(truncate(archiveHistory.getDocumentId()))
+			.withDocumentName(truncate(archiveHistory.getDocumentName()))
+			.withBatchHistoryId(ofNullable(archiveHistory.getBatchHistory()).map(BatchHistory::getId).orElse(null))
+			.withMunicipalityId(truncate(archiveHistory.getMunicipalityId()))
+			.withMessage(truncate(message))
+			.withDetail(detail)
+			.build();
+	}
+
+	public static ArchiveFailureResponse mapToArchiveFailureResponse(final ArchiveFailure archiveFailure) {
+		if (archiveFailure == null) {
+			return null;
+		}
+
+		return ArchiveFailureResponse.builder()
+			.withId(archiveFailure.getId())
+			.withBatchHistoryId(archiveFailure.getBatchHistoryId())
+			.withCaseId(archiveFailure.getCaseId())
+			.withDocumentId(archiveFailure.getDocumentId())
+			.withMunicipalityId(archiveFailure.getMunicipalityId())
+			.withDocumentName(archiveFailure.getDocumentName())
+			.withFailureCategory(archiveFailure.getFailureCategory())
+			.withMessage(archiveFailure.getMessage())
+			.withDetail(archiveFailure.getDetail())
+			.withTimestamp(archiveFailure.getTimestamp())
+			.build();
+	}
+
+	private static String truncate(final String message) {
+		return ofNullable(message)
+			.filter(value -> value.length() > 255)
+			.map(value -> value.substring(0, 255))
+			.orElse(message);
+	}
+
 	public static BatchHistory createBatchHistory(final LocalDate actualStart, final LocalDate end, final BatchTrigger batchTrigger, final ArchiveStatus archiveStatus, final String municipalityId) {
 		return BatchHistory.builder()
 			.withMunicipalityId(municipalityId)
@@ -232,7 +277,7 @@ public final class ArchiverMapper {
 			.withBilaga(toBilaga(document));
 
 		if (handling.getTyp() != null) {
-			final var attachmentCategory = toAttachmentCategory(handling.getTyp());
+			final var attachmentCategory = getAttachmentCategory(handling.getTyp());
 			arkivobjektHandling.setHandlingstyp(attachmentCategory.getArchiveClassification());
 			arkivobjektHandling.setRubrik(attachmentCategory.getDescription());
 		}

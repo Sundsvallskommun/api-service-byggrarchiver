@@ -13,21 +13,18 @@ import generated.se.sundsvall.arendeexport.DokumentFil;
 import generated.se.sundsvall.arendeexport.Fastighet;
 import generated.se.sundsvall.arendeexport.Handelse;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
-import generated.se.sundsvall.bygglov.FastighetTyp;
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.hibernate.service.spi.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -38,39 +35,37 @@ import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
 import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
-import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
-import se.sundsvall.byggrarchiver.integration.fb.FbIntegration;
-import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 import se.sundsvall.byggrarchiver.testutils.BatchFilterMatcher;
+import se.sundsvall.dept44.problem.Problem;
 
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.ANS;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.FASSIT2;
-import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.GEO;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.LUTE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.PLFASE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.RUE;
 import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMTPLBE;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomLong;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
 
@@ -79,21 +74,20 @@ class ArchiveHistoryServiceTest {
 
 	private static final String ONGOING = "Pågående";
 	private static final String MUNICIPALITY_ID = "2281";
+	private static final LocalDate TODAY = LocalDate.of(2024, Month.JANUARY, 16);
+	private static final Clock CLOCK = Clock.fixed(TODAY.atStartOfDay(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
 
 	@Mock
 	private ArchiveAttachmentService mockArchiveAttachmentService;
 
 	@Mock
-	private MessagingIntegration mockMessagingIntegration;
-
-	@Mock
 	private ArchiveHistoryRepository mockArchiveHistoryRepository;
 
 	@Mock
-	private BatchHistoryRepository mockBatchHistoryRepository;
+	private BatchCompletionService mockBatchCompletionService;
 
 	@Mock
-	private FbIntegration mockFastighetService;
+	private LantmaterietNotifier mockLantmaterietNotifier;
 
 	@Mock
 	private ArendeExportIntegration mockArendeExportIntegrationService;
@@ -101,11 +95,11 @@ class ArchiveHistoryServiceTest {
 	@Mock
 	private LongTermArchiveProperties mockLongTermArchiveProperties;
 
+	@Mock
+	private ArchiveFailureRecorder mockArchiveFailureRecorder;
+
 	@InjectMocks
 	private ArchiveHistoryService archiveHistoryService;
-
-	@Captor
-	private ArgumentCaptor<BatchHistory> batchHistoryCaptor;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -114,25 +108,8 @@ class ArchiveHistoryServiceTest {
 			.when(mockArendeExportIntegrationService.getUpdatedArenden(any(BatchFilter.class)))
 			.thenReturn(new ArendeBatch().withArenden(new ArrayOfArende()));
 
-		// Messaging
-		lenient()
-			.doNothing()
-			.when(mockMessagingIntegration).sendEmailToLantmateriet(anyString(), any(ArchiveHistory.class), eq(MUNICIPALITY_ID));
-		lenient()
-			.doNothing()
-			.when(mockMessagingIntegration).sendExtensionErrorEmail(any(ArchiveHistory.class), eq(MUNICIPALITY_ID));
-
 		ReflectionTestUtils.setField(archiveHistoryService, "maximumFileSize", 100000);
-
-		// FB
-		final var fastighetTyp = new FastighetTyp();
-		fastighetTyp.setFastighetsbeteckning("Sundsvall Test beteckning 1");
-		fastighetTyp.setTrakt("Test trakt");
-		fastighetTyp.setObjektidentitet(UUID.randomUUID().toString());
-
-		lenient()
-			.when(mockFastighetService.getFastighet(any()))
-			.thenReturn(fastighetTyp);
+		ReflectionTestUtils.setField(archiveHistoryService, "clock", CLOCK);
 
 		// Long-term archive
 		lenient()
@@ -144,22 +121,23 @@ class ArchiveHistoryServiceTest {
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch0Cases0Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
 		assertThat(result.getStart()).isEqualTo(yesterday);
 		assertThat(result.getEnd()).isEqualTo(yesterday);
 		assertThat(result.getBatchTrigger()).isEqualTo(batchTrigger);
-		assertThat(result.getArchiveStatus()).isEqualTo(COMPLETED);
 
-		verifyCalls(25, 0, 0, 0);
+		// Closing out the batch is delegated to BatchCompletionService
+		verify(mockBatchCompletionService).completeBatch(result, MUNICIPALITY_ID);
+		verifyCalls(25, 0, 0);
 	}
 
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch1Cases0Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -183,14 +161,14 @@ class ArchiveHistoryServiceTest {
 
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
-		verifyCalls(2, 0, 0, 0);
+		verifyCalls(2, 0, 0);
 	}
 
 	// GetDocument returns empty list for one of the documents
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch1Cases3DocsGetDocumentReturnsEmpty(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -221,13 +199,13 @@ class ArchiveHistoryServiceTest {
 
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
-		verifyCalls(2, 3, 2, 0);
+		verifyCalls(2, 3, 2);
 	}
 
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch1CaseWithWrongStatus3Docs(final BatchTrigger batchTrigger) throws ApplicationException {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -248,13 +226,13 @@ class ArchiveHistoryServiceTest {
 
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
-		verifyCalls(2, 0, 0, 0);
+		verifyCalls(2, 0, 0);
 	}
 
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch2Cases1WithWrongHandelseslag2Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -282,21 +260,21 @@ class ArchiveHistoryServiceTest {
 
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
-		verifyCalls(2, 2, 2, 0);
+		verifyCalls(2, 2, 2);
 	}
 
 	// Standard scenario - Run batch for yesterday - 1 case and 3 documents found
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch1Case3Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE, FASSIT2, TOMTPLBE));
 		final var arrayOfArende = new ArrayOfArende();
 		arrayOfArende.getArende().add(arende);
 		final var arendeBatch = new ArendeBatch();
-		arendeBatch.setBatchStart(LocalDateTime.now().minusDays(1).withHour(12).withMinute(0).withSecond(0));
-		arendeBatch.setBatchEnd(LocalDateTime.now().minusDays(1).withHour(23).withMinute(0).withSecond(0));
+		arendeBatch.setBatchStart(TODAY.minusDays(1).atTime(12, 0, 0));
+		arendeBatch.setBatchEnd(TODAY.minusDays(1).atTime(23, 0, 0));
 		arendeBatch.setArenden(arrayOfArende);
 
 		final var batchFilter = new BatchFilter();
@@ -313,13 +291,15 @@ class ArchiveHistoryServiceTest {
 
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
-		verifyCalls(3, 3, 3, 0);
+		// Stale NOT_COMPLETED histories for the closed case are removed before re-archiving
+		verify(mockArchiveHistoryRepository).deleteArchiveHistoriesByCaseIdAndArchiveStatus(arende.getDnr(), NOT_COMPLETED);
+		verifyCalls(3, 3, 3);
 	}
 
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch3Cases1Ended1Doc(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -348,13 +328,13 @@ class ArchiveHistoryServiceTest {
 
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
-		verifyCalls(2, 1, 1, 0);
+		verifyCalls(2, 1, 1);
 	}
 
 	@ParameterizedTest
 	@EnumSource(BatchTrigger.class)
 	void testBatch3Cases2Ended4Docs(final BatchTrigger batchTrigger) throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
+		final var yesterday = TODAY.minusDays(1);
 
 		final var start = yesterday.atStartOfDay();
 		final var end = yesterday.atTime(23, 59, 59);
@@ -389,181 +369,7 @@ class ArchiveHistoryServiceTest {
 
 		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, batchTrigger), MUNICIPALITY_ID);
 
-		verifyCalls(2, 4, 4, 0);
-	}
-
-	// Test run a batch with a case that has already been archived. Verify that every archive history that is not completed
-	// and connected to this case is removed and that the old batch is updated with status completed.
-	@Test
-	void testUpdateStatusOfOldBatchHistories_1() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
-
-		final var start = yesterday.atStartOfDay();
-		final var end = yesterday.atTime(23, 59, 59);
-
-		final var arrayOfArende = new ArrayOfArende();
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(ANS, FASSIT2, TOMTPLBE));
-		arrayOfArende.getArende().add(arende);
-		final var arendeBatch = new ArendeBatch();
-		arendeBatch.setBatchStart(start);
-		arendeBatch.setBatchEnd(end);
-		arendeBatch.setArenden(arrayOfArende);
-
-		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(any());
-		doReturn(Optional.empty()).when(mockArchiveHistoryRepository).getArchiveHistoryByDocumentIdAndCaseIdAndMunicipalityId(any(), any(), eq(MUNICIPALITY_ID));
-
-		doReturn(List.of(ArchiveHistory.builder()
-			.withArchiveStatus(COMPLETED)
-			.build()))
-			.when(mockArchiveHistoryRepository).getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(any(), eq(MUNICIPALITY_ID));
-
-		final var batch1 = BatchHistory.builder()
-			.withId(randomLong())
-			.withArchiveStatus(NOT_COMPLETED)
-			.build();
-		doReturn(List.of(batch1)).when(mockBatchHistoryRepository).findBatchHistoriesByArchiveStatusAndMunicipalityId(NOT_COMPLETED, MUNICIPALITY_ID);
-
-		final var archiveHistory1 = ArchiveHistory.builder()
-			.withArchiveStatus(COMPLETED)
-			.withBatchHistory(batch1)
-			.build();
-
-		final var archiveHistory2 = ArchiveHistory.builder()
-			.withArchiveStatus(COMPLETED)
-			.withBatchHistory(batch1)
-			.build();
-
-		doReturn(List.of(archiveHistory1, archiveHistory2)).when(mockArchiveHistoryRepository).getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(batch1.getId(), MUNICIPALITY_ID);
-
-		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID)))
-			.thenReturn(archiveHistory1);
-
-		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
-
-		// verify deleteArchiveHistoriesByCaseIdAndArchiveStatus
-		verify(mockArchiveHistoryRepository, times(2)).deleteArchiveHistoriesByCaseIdAndArchiveStatus(arende.getDnr(), NOT_COMPLETED);
-		verify(mockBatchHistoryRepository, times(2)).save(batchHistoryCaptor.capture());
-
-		final var batchHistory1 = batchHistoryCaptor.getAllValues().stream().filter(bh -> batch1.getId().equals(bh.getId())).findFirst().orElseThrow();
-		assertThat(batchHistory1.getArchiveStatus()).isEqualTo(COMPLETED);
-	}
-
-	// Verify an empty list also works in updateStatusOfOldBatchHistories
-	@Test
-	void testUpdateStatusOfOldBatchHistories_2() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
-
-		final var start = yesterday.atStartOfDay();
-		final var end = yesterday.atTime(23, 59, 59);
-
-		final var arrayOfArende = new ArrayOfArende();
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(ANS, FASSIT2, TOMTPLBE));
-		arrayOfArende.getArende().add(arende);
-		final var arendeBatch = new ArendeBatch();
-		arendeBatch.setBatchStart(start);
-		arendeBatch.setBatchEnd(end);
-		arendeBatch.setArenden(arrayOfArende);
-
-		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(any());
-		doReturn(Optional.empty()).when(mockArchiveHistoryRepository).getArchiveHistoryByDocumentIdAndCaseIdAndMunicipalityId(any(), any(), eq(MUNICIPALITY_ID));
-
-		doReturn(new ArrayList<>()).when(mockArchiveHistoryRepository).getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(any(), eq(MUNICIPALITY_ID));
-
-		final var batch1 = BatchHistory.builder()
-			.withArchiveStatus(NOT_COMPLETED)
-			.withId(randomLong())
-			.build();
-		doReturn(List.of(batch1)).when(mockBatchHistoryRepository).findBatchHistoriesByArchiveStatusAndMunicipalityId(NOT_COMPLETED, MUNICIPALITY_ID);
-		doReturn(new ArrayList<>()).when(mockArchiveHistoryRepository).getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(batch1.getId(), MUNICIPALITY_ID);
-
-		final var archiveHistory = new ArchiveHistory();
-		archiveHistory.setArchiveStatus(COMPLETED);
-		archiveHistory.setBatchHistory(batch1);
-
-		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID)))
-			.thenReturn(archiveHistory);
-
-		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
-
-		// verify deleteArchiveHistoriesByCaseIdAndArchiveStatus
-		verify(mockArchiveHistoryRepository, times(2)).deleteArchiveHistoriesByCaseIdAndArchiveStatus(arende.getDnr(), NOT_COMPLETED);
-		verify(mockBatchHistoryRepository, times(2)).save(batchHistoryCaptor.capture());
-
-		final var batchHistory1 = batchHistoryCaptor.getAllValues().stream().filter(bh -> batch1.getId().equals(bh.getId())).findFirst().orElseThrow();
-		assertThat(batchHistory1.getArchiveStatus()).isEqualTo(COMPLETED);
-	}
-
-	// Run batch for attachmentCategory "GEO" and verify email was sent
-	@Test
-	void runBatchGeotekniskUndersokningMessageSentTrue() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
-
-		final var start = yesterday.atStartOfDay();
-		final var end = yesterday.atTime(23, 59, 59);
-
-		final var batchFilter = new BatchFilter();
-		batchFilter.setLowerExclusiveBound(start);
-		batchFilter.setUpperInclusiveBound(end);
-
-		final var arrayOfArende = new ArrayOfArende();
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(GEO, FASSIT2, GEO));
-		arrayOfArende.getArende().add(arende);
-		final var arendeBatch = new ArendeBatch();
-		arendeBatch.setBatchStart(start);
-		arendeBatch.setBatchEnd(end);
-		arendeBatch.setArenden(arrayOfArende);
-
-		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(argThat(new BatchFilterMatcher(batchFilter)));
-
-		final var archiveHistory = new ArchiveHistory();
-		archiveHistory.setArchiveStatus(COMPLETED);
-		archiveHistory.setArchiveId(valueOf(randomLong()));
-
-		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID)))
-			.thenReturn(archiveHistory);
-
-		// Test
-		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
-
-		verifyCalls(2, 3, 3, 2);
-	}
-
-	// Run batch for attachmentCategory "GEO" and simulate the email was not sent.
-	@Test
-	void runBatchGeotekniskUndersokningMessageSentFalse() throws Exception {
-		final var yesterday = LocalDate.now().minusDays(1);
-
-		final var start = yesterday.atStartOfDay();
-		final var end = yesterday.atTime(23, 59, 59);
-
-		final var batchFilter = new BatchFilter();
-		batchFilter.setLowerExclusiveBound(start);
-		batchFilter.setUpperInclusiveBound(end);
-
-		final var arrayOfArende = new ArrayOfArende();
-		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(GEO, FASSIT2, TOMTPLBE));
-		arrayOfArende.getArende().add(arende);
-		final var arendeBatch = new ArendeBatch();
-		arendeBatch.setBatchStart(start);
-		arendeBatch.setBatchEnd(end);
-		arendeBatch.setArenden(arrayOfArende);
-
-		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(argThat(new BatchFilterMatcher(batchFilter)));
-
-		// mocks messaging
-		doNothing().when(mockMessagingIntegration).sendEmailToLantmateriet(anyString(), any(ArchiveHistory.class), eq(MUNICIPALITY_ID));
-
-		final var archiveHistory = new ArchiveHistory();
-		archiveHistory.setArchiveStatus(COMPLETED);
-		archiveHistory.setArchiveId(valueOf(randomLong()));
-
-		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID)))
-			.thenReturn(archiveHistory);
-
-		// Test
-		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
-
-		verifyCalls(2, 3, 3, 1);
+		verifyCalls(2, 4, 4);
 	}
 
 	@Test
@@ -576,23 +382,91 @@ class ArchiveHistoryServiceTest {
 		var arende = new Arende();
 		var handling = new HandelseHandling();
 		var archiveHistory = new ArchiveHistory();
+		archiveHistory.setBatchHistory(BatchHistory.builder().withId(1L).build());
 
 		archiveHistoryService.handleArchiving(dokuments, arende, handling, archiveHistory, MUNICIPALITY_ID);
 
 		assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED_FILE_TO_LARGE);
+		verify(mockArchiveFailureRecorder).recordFailure(eq(FILE_TOO_LARGE), eq(archiveHistory), eq("File too large"), any());
+	}
 
+	@Test
+	void getDocumentFaultIsRecordedAndDoesNotAbortBatch() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+
+		final var start = yesterday.atStartOfDay();
+		final var end = yesterday.atTime(23, 59, 59);
+
+		final var batchFilter = new BatchFilter();
+		batchFilter.setLowerExclusiveBound(start);
+		batchFilter.setUpperInclusiveBound(end);
+
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var arrayOfArende = new ArrayOfArende();
+		arrayOfArende.getArende().add(arende);
+		final var arendeBatch = new ArendeBatch();
+		arendeBatch.setBatchStart(start);
+		arendeBatch.setBatchEnd(end);
+		arendeBatch.setArenden(arrayOfArende);
+
+		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(argThat(new BatchFilterMatcher(batchFilter)));
+
+		// The single document fails to be fetched from ByggR
+		final var docId = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst().getDokument().getDokId();
+		doThrow(Problem.valueOf(SERVICE_UNAVAILABLE, "ByggR down")).when(mockArendeExportIntegrationService).getDocument(docId);
+
+		// The fault must not propagate / abort the batch
+		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
+
+		assertThat(result).isNotNull();
+		verify(mockArchiveFailureRecorder).recordFailure(eq(BYGGR_FETCH_ERROR), argThat(ah -> docId.equals(ah.getDocumentId()) && arende.getDnr().equals(ah.getCaseId()) && MUNICIPALITY_ID.equals(ah.getMunicipalityId())), eq("ByggR getDocument failed"),
+			any());
+		// Archiving of the attachment is never attempted because the fetch failed
+		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
+	}
+
+	@Test
+	void getDocumentNonProblemRuntimeFaultIsRecordedAndDoesNotAbortBatch() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+
+		final var start = yesterday.atStartOfDay();
+		final var end = yesterday.atTime(23, 59, 59);
+
+		final var batchFilter = new BatchFilter();
+		batchFilter.setLowerExclusiveBound(start);
+		batchFilter.setUpperInclusiveBound(end);
+
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var arrayOfArende = new ArrayOfArende();
+		arrayOfArende.getArende().add(arende);
+		final var arendeBatch = new ArendeBatch();
+		arendeBatch.setBatchStart(start);
+		arendeBatch.setBatchEnd(end);
+		arendeBatch.setArenden(arrayOfArende);
+
+		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(argThat(new BatchFilterMatcher(batchFilter)));
+
+		// A non-Problem runtime failure (e.g. CircuitBreaker CallNotPermittedException) must also be caught and recorded
+		final var docId = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst().getDokument().getDokId();
+		doThrow(new IllegalStateException("circuit breaker open")).when(mockArendeExportIntegrationService).getDocument(docId);
+
+		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
+
+		assertThat(result).isNotNull();
+		verify(mockArchiveFailureRecorder).recordFailure(eq(BYGGR_FETCH_ERROR), argThat(ah -> docId.equals(ah.getDocumentId()) && arende.getDnr().equals(ah.getCaseId()) && MUNICIPALITY_ID.equals(ah.getMunicipalityId())), eq("ByggR getDocument failed"),
+			any());
+		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
 	}
 
 	private void verifyCalls(final int nrOfCallsToGetUpdatedArenden,
 		final int nrOfCallsToGetDocument,
-		final int nrOfCallsToArchiveAttachmentService,
-		final int nrOfCallsToSendEmailToLantmateriet) throws ServiceException, ApplicationException {
+		final int nrOfCallsToArchiveAttachmentService) throws ServiceException, ApplicationException {
 		verify(mockArendeExportIntegrationService, times(nrOfCallsToGetUpdatedArenden)).getUpdatedArenden(any());
 		verify(mockArendeExportIntegrationService, times(nrOfCallsToGetDocument)).getDocument(any());
 		verify(mockArchiveAttachmentService, times(nrOfCallsToArchiveAttachmentService)).archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID));
 
-		verify(mockMessagingIntegration, times(nrOfCallsToSendEmailToLantmateriet))
-			.sendEmailToLantmateriet(anyString(), any(ArchiveHistory.class), eq(MUNICIPALITY_ID));
+		// notifyIfGeoDocument is invoked once per archived attachment (it no-ops for non-GEO documents)
+		verify(mockLantmaterietNotifier, times(nrOfCallsToArchiveAttachmentService)).notifyIfGeoDocument(any(), any(), any(), eq(MUNICIPALITY_ID));
 	}
 
 	/**
@@ -615,7 +489,7 @@ class ArchiveHistoryServiceTest {
 			dokumentFil.setFilAndelse("pdf");
 			dokument.setFil(dokumentFil);
 			dokumentFil.setFilBuffer(new byte[5]);
-			dokument.setSkapadDatum(LocalDateTime.now().minusDays(30));
+			dokument.setSkapadDatum(TODAY.minusDays(30).atStartOfDay());
 
 			dokumentList.add(dokument);
 

@@ -36,8 +36,9 @@ logbook:
     jsonPath:
       - key: '$..file'
         value: '[base64]'
-  logs:
-    maxBodySizeToLog: 1000000
+  # NOTE: do NOT set logbook.logs.maxBodySizeToLog. dept44 registers truncate() before the body filters, so any body
+  # larger than the limit is cut into malformed XML/JSON and the filters below silently stop redacting (the filBuffer
+  # base64 / file contents then leak into the logs). The filters already shrink the logged payload by redacting binary.
 scheduler:
   name: archive
   cron:

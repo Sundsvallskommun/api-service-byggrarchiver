@@ -2,6 +2,7 @@ package se.sundsvall.byggrarchiver.api;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +13,17 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import se.sundsvall.byggrarchiver.Application;
+import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.ArchiveHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchHistoryResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
 import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
+import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
+import se.sundsvall.byggrarchiver.integration.db.ArchiveFailureRepository;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
+import se.sundsvall.byggrarchiver.integration.db.model.ArchiveFailure;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.ByggrArchiverService;
@@ -41,6 +46,10 @@ class ByggrArchiverResourceTest {
 
 	private static final String MUNICIPALITY_ID = "2281";
 
+	private static final LocalDate DATE = LocalDate.of(2024, Month.JANUARY, 16);
+
+	private static final LocalDateTime DATE_TIME = LocalDateTime.of(2024, Month.JANUARY, 16, 12, 0);
+
 	private static final String BATCH_PATH = "/{municipalityId}/batch-jobs";
 
 	private static final String ARCHIVED_PATH = "/{municipalityId}/archived/attachments?archiveStatus={archiveStatus}&batchHistoryId={batchHistoryId}";
@@ -53,6 +62,9 @@ class ByggrArchiverResourceTest {
 
 	@MockitoBean
 	private BatchHistoryRepository mockBatchHistoryRepository;
+
+	@MockitoBean
+	private ArchiveFailureRepository mockArchiveFailureRepository;
 
 	@Autowired
 	private ByggrArchiverResource resource;
@@ -117,8 +129,8 @@ class ByggrArchiverResourceTest {
 	@Test
 	void postBatchJob() {
 		final var batchJob = BatchJob.builder()
-			.withStart(LocalDate.now().minusDays(3))
-			.withEnd(LocalDate.now())
+			.withStart(DATE.minusDays(3))
+			.withEnd(DATE)
 			.build();
 
 		final var batchHistory = BatchHistoryResponse.builder()
@@ -127,7 +139,7 @@ class ByggrArchiverResourceTest {
 			.withArchiveStatus(ArchiveStatus.COMPLETED)
 			.withStart(batchJob.getStart())
 			.withEnd(batchJob.getEnd())
-			.withTimestamp(LocalDateTime.now())
+			.withTimestamp(DATE_TIME)
 			.build();
 
 		when(mockByggrArchiverService.runBatch(any(LocalDate.class), any(LocalDate.class), any(BatchTrigger.class), eq(MUNICIPALITY_ID)))
@@ -151,6 +163,53 @@ class ByggrArchiverResourceTest {
 			.exchange()
 			.expectStatus().isOk()
 			.expectBody(BatchHistory.class);
+	}
+
+	@Test
+	void getFallout() {
+		final var archiveFailure = ArchiveFailure.builder()
+			.withId(1L)
+			.withBatchHistoryId(5L)
+			.withCaseId("BYGG 2021-1")
+			.withDocumentId("doc-1")
+			.withMunicipalityId(MUNICIPALITY_ID)
+			.withDocumentName("documentName")
+			.withFailureCategory(FailureCategory.ARCHIVE_ERROR)
+			.withMessage("Archive request failed")
+			.withDetail("detail")
+			.withTimestamp(DATE_TIME)
+			.build();
+
+		when(mockArchiveFailureRepository.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(eq(5L), eq(MUNICIPALITY_ID), eq(FailureCategory.ARCHIVE_ERROR)))
+			.thenReturn(List.of(archiveFailure));
+
+		final var result = webTestClient.get()
+			.uri(BATCH_PATH + "/{batchHistoryId}/fallout?category={category}", MUNICIPALITY_ID, 5L, FailureCategory.ARCHIVE_ERROR)
+			.exchange()
+			.expectStatus().isOk()
+			.expectBodyList(ArchiveFailureResponse.class)
+			.returnResult()
+			.getResponseBody();
+
+		assertThat(result).hasSize(1);
+		assertThat(result.getFirst().getFailureCategory()).isEqualTo(FailureCategory.ARCHIVE_ERROR);
+		assertThat(result.getFirst().getCaseId()).isEqualTo("BYGG 2021-1");
+	}
+
+	@Test
+	void getFalloutEmpty() {
+		when(mockArchiveFailureRepository.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(anyLong(), eq(MUNICIPALITY_ID), any()))
+			.thenReturn(List.of());
+
+		final var result = webTestClient.get()
+			.uri(BATCH_PATH + "/{batchHistoryId}/fallout", MUNICIPALITY_ID, randomLong())
+			.exchange()
+			.expectStatus().isOk()
+			.expectBodyList(ArchiveFailureResponse.class)
+			.returnResult()
+			.getResponseBody();
+
+		assertThat(result).isEmpty();
 	}
 
 }

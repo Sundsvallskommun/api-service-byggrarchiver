@@ -17,6 +17,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,6 +27,7 @@ import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 @Builder(setterPrefix = "with")
 @Getter
 @Setter
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "archive_failure", indexes = {

@@ -11,6 +11,11 @@ resilience4j.circuitbreaker:
     messaging:
       ignore-exceptions:
         - se.sundsvall.dept44.exception.ClientProblem
+    arendeExport:
+      # A SOAP fault means ByggR answered (e.g. "Item not found") - a business condition, not an outage.
+      # Don't let it open the breaker. Real unavailability surfaces as connection/timeout errors, which still count.
+      ignore-exceptions:
+        - jakarta.xml.ws.soap.SOAPFaultException
 resilience4j.retry:
   instances:
     archive:

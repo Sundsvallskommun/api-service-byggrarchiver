@@ -1,6 +1,5 @@
 package se.sundsvall.byggrarchiver.integration.db.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
@@ -61,7 +60,6 @@ public class ArchiveHistory {
 	@Enumerated(EnumType.STRING)
 	private ArchiveStatus archiveStatus;
 
-	@Schema(accessMode = Schema.AccessMode.READ_ONLY)
 	@Column(nullable = false)
 	private LocalDateTime timestamp;
 

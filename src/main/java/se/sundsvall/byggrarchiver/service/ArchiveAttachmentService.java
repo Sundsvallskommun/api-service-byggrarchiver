@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
+import se.sundsvall.byggrarchiver.integration.archive.ArchiveFormatRejectionPredicate;
 import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
@@ -77,9 +78,7 @@ public class ArchiveAttachmentService {
 		} catch (final ClientProblem | ServerProblem e) {
 			LOG.error("Request to Archive failed. Continue with the rest.", e);
 
-			final var formatRejection = e.getMessage().contains("extension must be valid") ||
-				e.getMessage().contains("File format") ||
-				e.getMessage().contains("PreservationObjectConversionException");
+			final var formatRejection = ArchiveFormatRejectionPredicate.isFormatRejection(e.getMessage());
 
 			if (formatRejection) {
 				LOG.debug("The problem was related to the file extension. Send email with the information.");

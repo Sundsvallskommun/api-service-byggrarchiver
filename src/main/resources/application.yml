@@ -8,6 +8,9 @@ resilience4j.circuitbreaker:
     archive:
       ignore-exceptions:
         - se.sundsvall.dept44.exception.ClientProblem
+      # Archive returns 500 (should be 422) for per-document content/format rejection - a business
+      # condition, not an outage. Don't let it open the breaker. Remove when Archive returns 4xx.
+      ignore-exception-predicate: se.sundsvall.byggrarchiver.integration.archive.ArchiveFormatRejectionPredicate
     messaging:
       ignore-exceptions:
         - se.sundsvall.dept44.exception.ClientProblem
@@ -21,6 +24,8 @@ resilience4j.retry:
     archive:
       ignore-exceptions:
         - se.sundsvall.dept44.exception.ClientProblem
+      # Retrying a deterministic format rejection never succeeds and re-uploads the payload each attempt. See breaker note.
+      ignore-exception-predicate: se.sundsvall.byggrarchiver.integration.archive.ArchiveFormatRejectionPredicate
     messaging:
       ignore-exceptions:
         - se.sundsvall.dept44.exception.ClientProblem

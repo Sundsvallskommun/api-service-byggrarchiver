@@ -11,9 +11,11 @@ import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_REJECTED_FORMAT;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -415,6 +417,38 @@ class IntegrationTest extends AbstractAppTest {
 			.allSatisfy(archiveFailure -> {
 				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
 				assertThat(archiveFailure.getFailureCategory()).isEqualTo(BYGGR_FETCH_ERROR);
+			});
+	}
+
+	// A GetDocument response larger than maximum-file-size is rejected by the decoder before it is read. The document is
+	// set to NOT_COMPLETED_FILE_TO_LARGE with a FILE_TOO_LARGE failure, and the rest of the batch still archives.
+	@Test
+	void test16_documentTooLarge() throws JsonProcessingException, ClassNotFoundException {
+		final var postBatchHistory = postBatchJob(BatchJob.builder()
+			.withStart(LocalDate.parse("2021-12-17"))
+			.withEnd(LocalDate.parse("2021-12-17"))
+			.build());
+
+		final var archiveHistories = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(postBatchHistory.getId(), MUNICIPALITY_ID);
+
+		assertThat(archiveHistories)
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("431169");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED);
+			})
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED_FILE_TO_LARGE);
+			});
+
+		// Recorded once: unlike NOT_COMPLETED, a NOT_COMPLETED_FILE_TO_LARGE document is not fetched again
+		final var archiveFailures = archiveFailureRepository.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(postBatchHistory.getId(), MUNICIPALITY_ID, null);
+
+		assertThat(archiveFailures)
+			.singleElement()
+			.satisfies(archiveFailure -> {
+				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveFailure.getFailureCategory()).isEqualTo(FILE_TOO_LARGE);
 			});
 	}
 

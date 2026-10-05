@@ -40,7 +40,7 @@ class ArendeExportConfigurationTest {
 		try (var feignMultiCustomizerMock = Mockito.mockStatic(FeignMultiCustomizer.class)) {
 			feignMultiCustomizerMock.when(FeignMultiCustomizer::create).thenReturn(feignMultiCustomizerSpy);
 
-			final var customizer = configuration.feignBuilderCustomizer(propertiesMock);
+			final var customizer = configuration.feignBuilderCustomizer(propertiesMock, 1000);
 
 			var soapEncoderCaptor = ArgumentCaptor.forClass(SOAPEncoder.class);
 			var soapDecoderCaptor = ArgumentCaptor.forClass(SOAPJAXBDecoder.class);

@@ -17,8 +17,10 @@ resilience4j.circuitbreaker:
     arendeExport:
       # A SOAP fault means ByggR answered (e.g. "Item not found") - a business condition, not an outage.
       # Don't let it open the breaker. Real unavailability surfaces as connection/timeout errors, which still count.
+      # The same goes for a document rejected as too large by SOAPJAXBDecoder.
       ignore-exceptions:
         - jakarta.xml.ws.soap.SOAPFaultException
+        - se.sundsvall.byggrarchiver.integration.arendeexport.DocumentTooLargeException
 resilience4j.retry:
   instances:
     archive:

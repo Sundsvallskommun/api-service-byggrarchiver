@@ -1,5 +1,6 @@
 package se.sundsvall.byggrarchiver.service;
 
+import feign.Request;
 import generated.se.sundsvall.arendeexport.Arende;
 import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.ArendeFastighet;
@@ -19,6 +20,7 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.hibernate.service.spi.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,13 +29,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory;
 import se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger;
 import se.sundsvall.byggrarchiver.configuration.LongTermArchiveProperties;
 import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
+import se.sundsvall.byggrarchiver.integration.arendeexport.DocumentTooLargeException;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
@@ -42,6 +44,7 @@ import se.sundsvall.byggrarchiver.testutils.BatchFilterMatcher;
 import se.sundsvall.dept44.problem.Problem;
 
 import static java.lang.String.valueOf;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,6 +52,7 @@ import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -102,7 +106,7 @@ class ArchiveHistoryServiceTest {
 	private ArchiveHistoryService archiveHistoryService;
 
 	@BeforeEach
-	void beforeEach() throws Exception {
+	void beforeEach() {
 		// ArendeExport
 		lenient()
 			.when(mockArendeExportIntegrationService.getUpdatedArenden(any(BatchFilter.class)))
@@ -374,8 +378,8 @@ class ArchiveHistoryServiceTest {
 
 	@Test
 	void handleArchiving_tooLargeFileSize() throws ApplicationException {
-		var dokument = Mockito.mock(Dokument.class);
-		var fil = Mockito.mock(DokumentFil.class);
+		var dokument = mock(Dokument.class);
+		var fil = mock(DokumentFil.class);
 		when(dokument.getFil()).thenReturn(fil);
 		when(fil.getFilBuffer()).thenReturn(new byte[100001]);
 		var dokuments = List.of(dokument);
@@ -455,6 +459,42 @@ class ArchiveHistoryServiceTest {
 		assertThat(result).isNotNull();
 		verify(mockArchiveFailureRecorder).recordFailure(eq(BYGGR_FETCH_ERROR), argThat(ah -> docId.equals(ah.getDocumentId()) && arende.getDnr().equals(ah.getCaseId()) && MUNICIPALITY_ID.equals(ah.getMunicipalityId())), eq("ByggR getDocument failed"),
 			any());
+		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
+	}
+
+	@Test
+	void getDocumentTooLargeIsRecordedAsFileTooLargeAndDoesNotAbortBatch() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+
+		final var start = yesterday.atStartOfDay();
+		final var end = yesterday.atTime(23, 59, 59);
+
+		final var batchFilter = new BatchFilter();
+		batchFilter.setLowerExclusiveBound(start);
+		batchFilter.setUpperInclusiveBound(end);
+
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var arrayOfArende = new ArrayOfArende();
+		arrayOfArende.getArende().add(arende);
+		final var arendeBatch = new ArendeBatch();
+		arendeBatch.setBatchStart(start);
+		arendeBatch.setBatchEnd(end);
+		arendeBatch.setArenden(arrayOfArende);
+
+		doReturn(arendeBatch).when(mockArendeExportIntegrationService).getUpdatedArenden(argThat(new BatchFilterMatcher(batchFilter)));
+
+		// The decoder rejects the GetDocument response as too large before reading it
+		final var docId = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst().getDokument().getDokId();
+		final var request = Request.create(Request.HttpMethod.POST, "http://byggr", Map.of(), null, UTF_8, null);
+		doThrow(new DocumentTooLargeException(200, "too large", request)).when(mockArendeExportIntegrationService).getDocument(docId);
+
+		final var result = archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
+
+		assertThat(result).isNotNull();
+		// Saved once as NOT_COMPLETED before the fetch, then again with the new status
+		verify(mockArchiveHistoryRepository, times(2)).save(argThat(ah -> docId.equals(ah.getDocumentId())));
+		verify(mockArchiveFailureRecorder).recordFailure(eq(FILE_TOO_LARGE), argThat(ah -> docId.equals(ah.getDocumentId()) && NOT_COMPLETED_FILE_TO_LARGE.equals(ah.getArchiveStatus())),
+			eq("File too large"), eq("too large"));
 		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
 	}
 

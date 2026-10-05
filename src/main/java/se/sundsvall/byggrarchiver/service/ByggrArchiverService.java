@@ -75,12 +75,7 @@ public class ByggrArchiverService {
 	}
 
 	private BatchHistory getLatestCompletedBatch(final String municipalityId) {
-		var batchHistoryList = batchHistoryRepository.findAllByMunicipalityId(municipalityId);
-
-		// Filter completed batches
-		batchHistoryList = batchHistoryList.stream()
-			.filter(b -> b.getArchiveStatus().equals(COMPLETED))
-			.toList();
+		var batchHistoryList = batchHistoryRepository.findBatchHistoriesByArchiveStatusAndMunicipalityId(COMPLETED, municipalityId);
 
 		// Sort by end-date of batch
 		batchHistoryList = batchHistoryList.stream()

@@ -152,7 +152,7 @@ class ByggrArchiverServiceTest {
 		// Run the first batch
 		byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
 
-		when(mockBatchHistoryRepository.findAllByMunicipalityId(MUNICIPALITY_ID)).thenReturn(List.of(batchHistory));
+		when(mockBatchHistoryRepository.findBatchHistoriesByArchiveStatusAndMunicipalityId(COMPLETED, MUNICIPALITY_ID)).thenReturn(List.of(batchHistory));
 
 		// Run second batch with the same date
 		final var secondBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
@@ -171,7 +171,7 @@ class ByggrArchiverServiceTest {
 
 		// The table holds a completed batch for MUNICIPALITY_ID only
 		lenient().when(mockBatchHistoryRepository.findAll()).thenReturn(List.of(batchHistory));
-		lenient().when(mockBatchHistoryRepository.findAllByMunicipalityId(MUNICIPALITY_ID)).thenReturn(List.of(batchHistory));
+		lenient().when(mockBatchHistoryRepository.findBatchHistoriesByArchiveStatusAndMunicipalityId(COMPLETED, MUNICIPALITY_ID)).thenReturn(List.of(batchHistory));
 		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(otherMunicipalityId))).thenReturn(batchHistory);
 
 		final var result = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, otherMunicipalityId);
@@ -212,7 +212,7 @@ class ByggrArchiverServiceTest {
 		// Run the first batch
 		byggrArchiverService.runBatch(aLongTimeAgo, aLongTimeAgo, batchTrigger, MUNICIPALITY_ID);
 
-		when(mockBatchHistoryRepository.findAllByMunicipalityId(MUNICIPALITY_ID)).thenReturn(List.of(batchHistory));
+		when(mockBatchHistoryRepository.findBatchHistoriesByArchiveStatusAndMunicipalityId(COMPLETED, MUNICIPALITY_ID)).thenReturn(List.of(batchHistory));
 
 		byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
 
@@ -250,7 +250,8 @@ class ByggrArchiverServiceTest {
 	void testRunBatchScheduledWhenLatestBatchIsAfterCurrent() {
 		final var today = TODAY;
 
-		when(mockBatchHistoryRepository.findAllByMunicipalityId(MUNICIPALITY_ID)).thenReturn(List.of(BatchHistory.builder().withStart(today.plusDays(1)).withEnd(today.plusDays(1)).withArchiveStatus(COMPLETED).build()));
+		when(mockBatchHistoryRepository.findBatchHistoriesByArchiveStatusAndMunicipalityId(COMPLETED, MUNICIPALITY_ID)).thenReturn(List.of(BatchHistory.builder().withStart(today.plusDays(1)).withEnd(today.plusDays(1)).withArchiveStatus(COMPLETED)
+			.build()));
 
 		final var result = byggrArchiverService.runBatch(today, today, SCHEDULED, MUNICIPALITY_ID);
 

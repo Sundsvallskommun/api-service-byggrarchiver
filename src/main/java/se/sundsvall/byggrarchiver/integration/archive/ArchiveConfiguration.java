@@ -29,7 +29,7 @@ class ArchiveConfiguration {
 				.clientSecret(archiveProperties.oauth2().clientSecret())
 				.authorizationGrantType(new AuthorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS.getValue()))
 				.build())
-			.withErrorDecoder(new ProblemErrorDecoder(INTEGRATION_NAME))
+			.withErrorDecoder(new BufferingErrorDecoder(new ProblemErrorDecoder(INTEGRATION_NAME)))
 			.composeCustomizersToOne();
 	}
 }

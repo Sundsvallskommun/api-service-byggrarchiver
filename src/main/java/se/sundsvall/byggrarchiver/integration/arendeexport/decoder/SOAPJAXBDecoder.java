@@ -21,6 +21,8 @@ public class SOAPJAXBDecoder implements Decoder {
 
 	private static final String FETCH_INFORMATION_ERROR = "Couldn't fetch information from ByggR";
 
+	private final long maximumFileSize;
+
 	private final long maxDocumentResponseSize;
 
 	/**
@@ -29,6 +31,7 @@ public class SOAPJAXBDecoder implements Decoder {
 	 *                        rejected as too large anyway is never read into memory.
 	 */
 	public SOAPJAXBDecoder(final long maximumFileSize) {
+		this.maximumFileSize = maximumFileSize;
 		final var base64Size = (maximumFileSize + 2) / 3 * 4;
 		this.maxDocumentResponseSize = base64Size + base64Size / 10;
 	}
@@ -105,7 +108,7 @@ public class SOAPJAXBDecoder implements Decoder {
 
 	private DocumentTooLargeException documentTooLarge(final Response response, final String detail) {
 		return new DocumentTooLargeException(response.status(),
-			"ByggR GetDocument response is larger than the limit of %d bytes (%s)".formatted(maxDocumentResponseSize, detail),
+			"ByggR GetDocument response is larger than %d bytes, the limit for a maximum file size of %d bytes (%s)".formatted(maxDocumentResponseSize, maximumFileSize, detail),
 			response.request());
 	}
 

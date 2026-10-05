@@ -155,7 +155,7 @@ class SOAPJAXBDecoderTest {
 
 		Assertions.assertThatExceptionOfType(DocumentTooLargeException.class)
 			.isThrownBy(() -> decoder.decode(mockResponse, GetDocumentResponse.class))
-			.withMessage("ByggR GetDocument response is larger than the limit of 4400 bytes (Content-Length: %d)".formatted(xml.length()));
+			.withMessage("ByggR GetDocument response is larger than 4400 bytes, the limit for a maximum file size of 3000 bytes (Content-Length: %d)".formatted(xml.length()));
 
 		assertThat(inputStream.available()).isEqualTo(xml.length());
 	}
@@ -169,7 +169,7 @@ class SOAPJAXBDecoderTest {
 
 		Assertions.assertThatExceptionOfType(DocumentTooLargeException.class)
 			.isThrownBy(() -> decoder.decode(mockResponse, GetDocumentResponse.class))
-			.withMessage("ByggR GetDocument response is larger than the limit of 4400 bytes (more than 4400 bytes read)");
+			.withMessage("ByggR GetDocument response is larger than 4400 bytes, the limit for a maximum file size of 3000 bytes (more than 4400 bytes read)");
 	}
 
 	@Test

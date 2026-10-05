@@ -63,6 +63,30 @@ class ArendeExportIntegrationTest {
 	}
 
 	@Test
+	void getUpdatedArendenNonSoapErrorIsRethrown() {
+		final var exception = new IllegalStateException("connection reset");
+		when(mockClient.getUpdatedArenden(any(GetUpdatedArenden.class))).thenThrow(exception);
+
+		final var batchFilter = new BatchFilter();
+
+		assertThatExceptionOfType(IllegalStateException.class)
+			.isThrownBy(() -> integration.getUpdatedArenden(batchFilter))
+			.isSameAs(exception);
+	}
+
+	@Test
+	void getDocumentNonSoapErrorIsRethrown() {
+		final var exception = new IllegalStateException("connection reset");
+		when(mockClient.getDocument(any(GetDocument.class))).thenThrow(exception);
+
+		final var randomUuid = UUID.randomUUID().toString();
+
+		assertThatExceptionOfType(IllegalStateException.class)
+			.isThrownBy(() -> integration.getDocument(randomUuid))
+			.isSameAs(exception);
+	}
+
+	@Test
 	void getDocument() {
 		// Arrange
 		final var documentResponse = new GetDocumentResponse().withGetDocumentResult(new Dokument());

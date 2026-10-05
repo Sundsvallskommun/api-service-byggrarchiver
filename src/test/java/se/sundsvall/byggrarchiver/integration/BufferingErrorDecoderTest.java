@@ -1,8 +1,10 @@
-package se.sundsvall.byggrarchiver.integration.archive;
+package se.sundsvall.byggrarchiver.integration;
 
+import feign.FeignException;
 import feign.Request;
 import feign.Response;
 import feign.codec.ErrorDecoder;
+import feign.soap.SOAPErrorDecoder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
@@ -19,23 +21,26 @@ import static org.mockito.Mockito.when;
 
 class BufferingErrorDecoderTest {
 
-	private static final String BODY = """
+	private static final String PROBLEM_BODY = """
 		{"detail": "File format validation failed.", "status": 500, "title": "Internal Server Error"}""";
 
+	private static final String HTML_BODY = "<html><body>Service Unavailable</body></html>";
+
 	@Test
-	void decodeKeepsBodyOfUnbufferedResponse() {
-		final var result = new BufferingErrorDecoder(new ProblemErrorDecoder("archive")).decode("methodKey", unbufferedResponse());
+	void decodeKeepsBodyOfUnbufferedProblemResponse() {
+		final var result = new BufferingErrorDecoder(new ProblemErrorDecoder("archive")).decode("methodKey", unbufferedResponse("application/problem+json", PROBLEM_BODY));
 
 		assertThat(result).isInstanceOf(ServerProblem.class);
 		assertThat(result.getMessage()).contains("File format validation failed.");
 	}
 
 	@Test
-	void problemErrorDecoderAloneLosesBodyOfUnbufferedResponse() {
-		// Documents why BufferingErrorDecoder exists: ProblemErrorDecoder reads the body twice
-		final var result = new ProblemErrorDecoder("archive").decode("methodKey", unbufferedResponse());
+	void decodeKeepsBodyOfUnbufferedNonSoapResponse() {
+		// SOAPErrorDecoder first tries to parse a SOAP fault, then falls back to Feign's default decoder
+		final var result = new BufferingErrorDecoder(new SOAPErrorDecoder()).decode("methodKey", unbufferedResponse("text/html", HTML_BODY));
 
-		assertThat(result.getMessage()).doesNotContain("File format validation failed.");
+		assertThat(result).isInstanceOf(FeignException.class);
+		assertThat(result.getMessage()).contains("Service Unavailable");
 	}
 
 	@Test
@@ -67,18 +72,18 @@ class BufferingErrorDecoderTest {
 	}
 
 	// Like an OkHttp response body when Feign logging is off: the stream can only be read once
-	private static Response unbufferedResponse() {
-		final var body = BODY.getBytes(UTF_8);
+	private static Response unbufferedResponse(final String contentType, final String content) {
+		final var body = content.getBytes(UTF_8);
 		return Response.builder()
 			.status(500)
-			.headers(Map.of("Content-Type", List.of("application/problem+json")))
+			.headers(Map.of("Content-Type", List.of(contentType)))
 			.request(request())
 			.body(new ByteArrayInputStream(body), body.length)
 			.build();
 	}
 
 	private static Request request() {
-		return Request.create(Request.HttpMethod.POST, "http://archive", Map.of(), null, UTF_8, null);
+		return Request.create(Request.HttpMethod.POST, "http://localhost", Map.of(), null, UTF_8, null);
 	}
 
 }

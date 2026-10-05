@@ -1,7 +1,6 @@
 package se.sundsvall.byggrarchiver.integration.archive;
 
 import generated.se.sundsvall.archive.ArchiveResponse;
-import generated.se.sundsvall.archive.Attachment;
 import generated.se.sundsvall.archive.ByggRArchiveRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,21 +17,26 @@ public class ArchiveIntegration {
 
 	private final ArchiveClient archiveClient;
 
-	public ArchiveIntegration(final ArchiveClient archiveClient) {
+	ArchiveIntegration(final ArchiveClient archiveClient) {
 		this.archiveClient = archiveClient;
 	}
 
 	public ArchiveResponse archive(final ByggRArchiveRequest archiveRequest, final String municipalityId) {
-		final var attachmentName = ofNullable(archiveRequest.getAttachment()).map(Attachment::getName).orElse(null);
-		LOG.info("Calling Archive for municipalityId: {} with attachment: {} ({} bytes base64-encoded)", municipalityId, attachmentName,
-			ofNullable(archiveRequest.getAttachment()).map(Attachment::getFile).map(String::length).orElse(0));
+		final var attachment = archiveRequest.getAttachment();
+		LOG.info("Calling Archive for municipalityId: {} with attachment: {} ({} bytes base64-encoded)", municipalityId, attachment.getName(),
+			ofNullable(attachment.getFile()).map(String::length).orElse(0));
 		final var startTime = System.currentTimeMillis();
 
-		final var response = archiveClient.postArchive(municipalityId, archiveRequest);
+		try {
+			final var response = archiveClient.postArchive(municipalityId, archiveRequest);
+			final var archiveId = ofNullable(response).map(ArchiveResponse::getArchiveId).orElse(null);
 
-		LOG.info("Archive returned archiveId: {} for attachment: {} in {} ms", ofNullable(response).map(ArchiveResponse::getArchiveId).orElse(null), attachmentName,
-			System.currentTimeMillis() - startTime);
-		return response;
+			LOG.info("Archive returned archiveId: {} for attachment: {} in {} ms", archiveId, attachment.getName(), System.currentTimeMillis() - startTime);
+			return response;
+		} catch (final RuntimeException e) {
+			LOG.warn("Archive call for attachment: {} failed after {} ms", attachment.getName(), System.currentTimeMillis() - startTime);
+			throw e;
+		}
 	}
 
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import se.sundsvall.byggrarchiver.integration.BufferingErrorDecoder;
 import se.sundsvall.byggrarchiver.integration.arendeexport.decoder.SOAPJAXBDecoder;
 import se.sundsvall.dept44.configuration.feign.FeignConfiguration;
 import se.sundsvall.dept44.configuration.feign.FeignMultiCustomizer;
@@ -30,7 +31,7 @@ public class ArendeExportConfiguration {
 		return FeignMultiCustomizer.create()
 			.withDecoder(new SOAPJAXBDecoder(maximumFileSize))
 			.withEncoder(SOAP_ENCODER_BUILDER.build())
-			.withErrorDecoder(new SOAPErrorDecoder())
+			.withErrorDecoder(new BufferingErrorDecoder(new SOAPErrorDecoder()))
 			.withRequestTimeoutsInSeconds(properties.connectTimeout(), properties.readTimeout())
 			.composeCustomizersToOne();
 	}

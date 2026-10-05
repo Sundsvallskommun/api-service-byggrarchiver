@@ -43,9 +43,12 @@ public class ArendeExportIntegration {
 				System.currentTimeMillis() - startTime);
 			return result;
 		} catch (final SOAPFaultException e) {
-			LOG.warn("ArendeExport integration failed ('GetUpdatedArenden')", e);
+			LOG.warn("ArendeExport integration failed ('GetUpdatedArenden') after {} ms", System.currentTimeMillis() - startTime, e);
 
 			throw Problem.valueOf(SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetUpdatedArenden')");
+		} catch (final RuntimeException e) {
+			LOG.warn("ByggR GetUpdatedArenden failed after {} ms", System.currentTimeMillis() - startTime);
+			throw e;
 		}
 	}
 
@@ -64,9 +67,12 @@ public class ArendeExportIntegration {
 				System.currentTimeMillis() - startTime);
 			return result;
 		} catch (final SOAPFaultException e) {
-			LOG.warn("ArendeExport integration failed ('GetDocument')", e);
+			LOG.warn("ArendeExport integration failed ('GetDocument') for Document-ID: {} after {} ms", dokId, System.currentTimeMillis() - startTime, e);
 
 			throw Problem.valueOf(SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetDocument')");
+		} catch (final RuntimeException e) {
+			LOG.warn("ByggR GetDocument for Document-ID: {} failed after {} ms", dokId, System.currentTimeMillis() - startTime);
+			throw e;
 		}
 	}
 

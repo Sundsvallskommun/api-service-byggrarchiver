@@ -1,5 +1,8 @@
 package apptest;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpMethod.GET;
@@ -30,9 +33,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewInterceptor;
 import se.sundsvall.byggrarchiver.Application;
 import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
 import se.sundsvall.byggrarchiver.api.model.BatchJob;
+import se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveFailureRepository;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.BatchHistoryRepository;
@@ -53,6 +59,8 @@ class IntegrationTest extends AbstractAppTest {
 
 	private static final String ARCHIVED_PATH = "/2281/archived/attachments";
 
+	private static final String BYGGR_PATH = "/TekisArende/ArendeExportWS.svc";
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -64,6 +72,9 @@ class IntegrationTest extends AbstractAppTest {
 
 	@Autowired
 	private ArchiveFailureRepository archiveFailureRepository;
+
+	@Autowired
+	private ApplicationContext applicationContext;
 
 	@BeforeEach
 	void beforeEach() {
@@ -179,6 +190,7 @@ class IntegrationTest extends AbstractAppTest {
 			.withStart(LocalDate.now().minusDays(2))
 			.withEnd(LocalDate.now())
 			.withBatchTrigger(SCHEDULED)
+			.withMunicipalityId(MUNICIPALITY_ID)
 			.build();
 
 		batchHistoryRepository.save(batchHistory);
@@ -485,6 +497,59 @@ class IntegrationTest extends AbstractAppTest {
 			.anyMatch(message -> message.contains(BATCH_PATH))
 			.noneMatch(message -> message.contains("/TekisArende/"))
 			.noneMatch(message -> message.contains("/archive/"));
+	}
+
+	// Rerun retries only the batch's NOT_COMPLETED documents. The case is read with GetArende, so the batch's date window is
+	// not scanned again and the COMPLETED document is not fetched again.
+	@Test
+	void test18_rerunRetriesOnlyNotCompletedDocuments() {
+		final var batchHistory = batchHistoryRepository.save(BatchHistory.builder()
+			.withArchiveStatus(NOT_COMPLETED)
+			.withStart(LocalDate.parse("2021-12-17"))
+			.withEnd(LocalDate.parse("2021-12-17"))
+			.withBatchTrigger(SCHEDULED)
+			.withMunicipalityId(MUNICIPALITY_ID)
+			.build());
+		archiveHistoryRepository.saveAll(List.of(
+			createArchiveHistory("431169", COMPLETED, batchHistory),
+			createArchiveHistory("433467", NOT_COMPLETED, batchHistory)));
+
+		// POST rerun
+		setupCall()
+			.withHttpMethod(POST)
+			.withServicePath(BATCH_PATH + "/" + batchHistory.getId() + "/rerun")
+			.withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+			.withExpectedResponseStatus(OK)
+			.sendRequest();
+
+		// Checked before verifyStubs(), which resets WireMock's request journal
+		wiremock.verify(0, postRequestedFor(urlEqualTo(BYGGR_PATH)).withRequestBody(containing("GetUpdatedArenden")));
+		wiremock.verify(1, postRequestedFor(urlEqualTo(BYGGR_PATH)).withRequestBody(containing("GetDocument")));
+		wiremock.verify(1, postRequestedFor(urlEqualTo(BYGGR_PATH)).withRequestBody(containing("GetDocument")).withRequestBody(containing("433467")));
+		verifyStubs();
+
+		assertThat(archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(batchHistory.getId(), MUNICIPALITY_ID))
+			.hasSize(2)
+			.allSatisfy(archiveHistory -> assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED));
+		assertThat(batchHistoryRepository.findById(batchHistory.getId()))
+			.hasValueSatisfying(rerunBatch -> assertThat(rerunBatch.getArchiveStatus()).isEqualTo(COMPLETED));
+	}
+
+	// Open-in-view is off (application.yml). With it, a batch run over REST held one JDBC connection for the whole request
+	// and kept every loaded entity managed, dirty-checking all of them at each commit.
+	@Test
+	void test19_noOpenEntityManagerInView() {
+		assertThat(applicationContext.getBeanNamesForType(OpenEntityManagerInViewInterceptor.class)).isEmpty();
+	}
+
+	private static ArchiveHistory createArchiveHistory(final String documentId, final ArchiveStatus archiveStatus, final BatchHistory batchHistory) {
+		return ArchiveHistory.builder()
+			.withDocumentId(documentId)
+			.withCaseId("BYGG 2018-000026")
+			.withMunicipalityId(MUNICIPALITY_ID)
+			.withArchiveStatus(archiveStatus)
+			.withBatchHistory(batchHistory)
+			.build();
 	}
 
 	private BatchHistory postBatchJob(final BatchJob batchJob) throws JsonProcessingException, ClassNotFoundException {

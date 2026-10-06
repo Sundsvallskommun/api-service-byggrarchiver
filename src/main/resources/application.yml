@@ -36,6 +36,11 @@ spring:
     name: api-byggrarchiver
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    # Open-in-view binds one EntityManager to the whole request, and Spring has Hibernate hold its JDBC connection
+    # (DELAYED_ACQUISITION_AND_HOLD) until then. A batch run over REST kept one connection for minutes, and every entity it
+    # loaded stayed managed and was dirty-checked at each commit.
+    open-in-view: false
   flyway:
     enabled: false
   cloud:

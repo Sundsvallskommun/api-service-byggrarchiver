@@ -2,7 +2,6 @@ package se.sundsvall.byggrarchiver.integration.db;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +13,7 @@ import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 @CircuitBreaker(name = "archiveHistoryRepository")
 public interface ArchiveHistoryRepository extends JpaRepository<ArchiveHistory, Long> {
 
-	Optional<ArchiveHistory> getArchiveHistoryByDocumentIdAndCaseIdAndMunicipalityId(String documentId, String caseId, String municipalityId);
+	List<ArchiveHistory> getArchiveHistoriesByCaseIdAndMunicipalityId(String caseId, String municipalityId);
 
 	List<ArchiveHistory> getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(Long batchHistoryId, String municipalityId);
 

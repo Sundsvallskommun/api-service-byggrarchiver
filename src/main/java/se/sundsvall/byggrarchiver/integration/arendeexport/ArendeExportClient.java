@@ -1,5 +1,7 @@
 package se.sundsvall.byggrarchiver.integration.arendeexport;
 
+import generated.se.sundsvall.arendeexport.GetArende;
+import generated.se.sundsvall.arendeexport.GetArendeResponse;
 import generated.se.sundsvall.arendeexport.GetDocument;
 import generated.se.sundsvall.arendeexport.GetDocumentResponse;
 import generated.se.sundsvall.arendeexport.GetUpdatedArenden;
@@ -25,5 +27,10 @@ public interface ArendeExportClient {
 		"SOAPAction=www.tekis.se/ServiceContract/V4/IExportArenden/GetDocument"
 	})
 	GetDocumentResponse getDocument(GetDocument request);
+
+	@PostMapping(consumes = TEXT_XML_UTF8, produces = TEXT_XML_UTF8, headers = {
+		"SOAPAction=www.tekis.se/ServiceContract/V4/IExportArenden/GetArende"
+	})
+	GetArendeResponse getArende(GetArende request);
 
 }

@@ -1,10 +1,12 @@
 package se.sundsvall.byggrarchiver.integration.arendeexport;
 
+import generated.se.sundsvall.arendeexport.Arende;
 import generated.se.sundsvall.arendeexport.ArendeBatch;
 import generated.se.sundsvall.arendeexport.ArrayOfArende;
 import generated.se.sundsvall.arendeexport.BatchFilter;
 import generated.se.sundsvall.arendeexport.Dokument;
 import generated.se.sundsvall.arendeexport.DokumentFil;
+import generated.se.sundsvall.arendeexport.GetArende;
 import generated.se.sundsvall.arendeexport.GetDocument;
 import generated.se.sundsvall.arendeexport.GetUpdatedArenden;
 import jakarta.xml.ws.soap.SOAPFaultException;
@@ -72,6 +74,24 @@ public class ArendeExportIntegration {
 			throw Problem.valueOf(SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetDocument')");
 		} catch (final RuntimeException e) {
 			LOG.warn("ByggR GetDocument for Document-ID: {} failed after {} ms", dokId, System.currentTimeMillis() - startTime);
+			throw e;
+		}
+	}
+
+	public Arende getArende(final String dnr) {
+		LOG.info("Calling ByggR GetArende for Case-ID: {}", dnr);
+		final var startTime = System.currentTimeMillis();
+		try {
+			final var result = arendeExportClient.getArende(new GetArende().withDnr(dnr)).getGetArendeResult();
+
+			LOG.info("ByggR GetArende for Case-ID: {} returned status {} in {} ms", dnr, ofNullable(result).map(Arende::getStatus).orElse(null), System.currentTimeMillis() - startTime);
+			return result;
+		} catch (final SOAPFaultException e) {
+			LOG.warn("ArendeExport integration failed ('GetArende') for Case-ID: {} after {} ms", dnr, System.currentTimeMillis() - startTime, e);
+
+			throw Problem.valueOf(SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetArende')");
+		} catch (final RuntimeException e) {
+			LOG.warn("ByggR GetArende for Case-ID: {} failed after {} ms", dnr, System.currentTimeMillis() - startTime);
 			throw e;
 		}
 	}

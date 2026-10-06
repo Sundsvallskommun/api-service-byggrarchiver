@@ -30,7 +30,6 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
@@ -259,14 +258,6 @@ public class ArchiveHistoryService {
 	}
 
 	void handleArchiving(final List<Dokument> dokuments, final Arende2 arende, final HandelseHandling handling, final ArchiveHistory archiveHistory, final String municipalityId) throws ApplicationException {
-		if (isArchived(archiveHistory)) {
-			LOG.info("ArchiveHistory already got a archive-ID. Set status to {}", COMPLETED);
-
-			archiveHistory.setArchiveStatus(COMPLETED);
-			archiveHistoryRepository.save(archiveHistory);
-			return;
-		}
-
 		for (final var dokument : dokuments) {
 			if (dokument.getFil().getFilBuffer().length > maximumFileSize) {
 				LOG.info("Document-ID: {} is too large ({} bytes) to be archived, maximum file size is set to {} bytes. Setting archive history status to {}", dokument.getDokId(), dokument.getFil().getFilBuffer().length, maximumFileSize,
@@ -289,10 +280,6 @@ public class ArchiveHistoryService {
 		archiveHistory.setArchiveStatus(NOT_COMPLETED_FILE_TO_LARGE);
 		archiveHistoryRepository.save(archiveHistory);
 		archiveFailureRecorder.recordFailure(FILE_TOO_LARGE, archiveHistory, "File too large", detail);
-	}
-
-	private boolean isArchived(final ArchiveHistory archiveHistory) {
-		return (archiveHistory != null) && (archiveHistory.getArchiveId() != null);
 	}
 
 }

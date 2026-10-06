@@ -56,7 +56,7 @@ public class ArchiveAttachmentService {
 
 	private final ArchiveFailureRecorder archiveFailureRecorder;
 
-	LongTermArchiveProperties longTermArchiveProperties;
+	private final LongTermArchiveProperties longTermArchiveProperties;
 
 	public ArchiveAttachmentService(final LongTermArchiveProperties longTermArchiveProperties, final ArchiveHistoryRepository archiveHistoryRepository,
 		final MessagingIntegration messagingIntegration, final ArchiveIntegration archiveIntegration, final FbIntegration fbIntegration, final ArchiveFailureRecorder archiveFailureRecorder) {

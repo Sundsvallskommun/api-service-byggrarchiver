@@ -83,8 +83,9 @@ public class ArendeExportIntegration {
 		final var startTime = System.currentTimeMillis();
 		try {
 			final var result = arendeExportClient.getArende(new GetArende().withDnr(dnr)).getGetArendeResult();
+			final var status = ofNullable(result).map(Arende::getStatus).orElse(null);
 
-			LOG.info("ByggR GetArende for Case-ID: {} returned status {} in {} ms", dnr, ofNullable(result).map(Arende::getStatus).orElse(null), System.currentTimeMillis() - startTime);
+			LOG.info("ByggR GetArende for Case-ID: {} returned status {} in {} ms", dnr, status, System.currentTimeMillis() - startTime);
 			return result;
 		} catch (final SOAPFaultException e) {
 			LOG.warn("ArendeExport integration failed ('GetArende') for Case-ID: {} after {} ms", dnr, System.currentTimeMillis() - startTime, e);

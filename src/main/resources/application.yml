@@ -60,5 +60,6 @@ scheduler:
   name: archive
   cron:
     expression: '-'
-  shedlock-lock-at-most-for: PT2M
-  maximum-execution-time: PT2M
+  # A run that outlives the lock lets another replica start the same run. Keep it above the longest run.
+  shedlock-lock-at-most-for: PT15M
+  maximum-execution-time: PT15M

@@ -4,9 +4,11 @@ import feign.jaxb.JAXBContextFactory;
 import feign.soap.SOAPEncoder;
 import feign.soap.SOAPErrorDecoder;
 import jakarta.xml.soap.SOAPConstants;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import se.sundsvall.byggrarchiver.integration.BufferingErrorDecoder;
 import se.sundsvall.byggrarchiver.integration.arendeexport.decoder.SOAPJAXBDecoder;
 import se.sundsvall.dept44.configuration.feign.FeignConfiguration;
 import se.sundsvall.dept44.configuration.feign.FeignMultiCustomizer;
@@ -24,11 +26,12 @@ public class ArendeExportConfiguration {
 		.withWriteXmlDeclaration(true);
 
 	@Bean
-	FeignBuilderCustomizer feignBuilderCustomizer(final ArendeExportProperties properties) {
+	FeignBuilderCustomizer feignBuilderCustomizer(final ArendeExportProperties properties,
+		@Value("${integration.archive.maximum-file-size}") final int maximumFileSize) {
 		return FeignMultiCustomizer.create()
-			.withDecoder(new SOAPJAXBDecoder())
+			.withDecoder(new SOAPJAXBDecoder(maximumFileSize))
 			.withEncoder(SOAP_ENCODER_BUILDER.build())
-			.withErrorDecoder(new SOAPErrorDecoder())
+			.withErrorDecoder(new BufferingErrorDecoder(new SOAPErrorDecoder()))
 			.withRequestTimeoutsInSeconds(properties.connectTimeout(), properties.readTimeout())
 			.composeCustomizersToOne();
 	}

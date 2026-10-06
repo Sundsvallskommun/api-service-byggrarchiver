@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import se.sundsvall.byggrarchiver.integration.BufferingErrorDecoder;
 import se.sundsvall.dept44.configuration.feign.FeignConfiguration;
 import se.sundsvall.dept44.configuration.feign.FeignMultiCustomizer;
 import se.sundsvall.dept44.configuration.feign.decoder.ProblemErrorDecoder;
@@ -29,7 +30,7 @@ class ArchiveConfiguration {
 				.clientSecret(archiveProperties.oauth2().clientSecret())
 				.authorizationGrantType(new AuthorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS.getValue()))
 				.build())
-			.withErrorDecoder(new ProblemErrorDecoder(INTEGRATION_NAME))
+			.withErrorDecoder(new BufferingErrorDecoder(new ProblemErrorDecoder(INTEGRATION_NAME)))
 			.composeCustomizersToOne();
 	}
 }

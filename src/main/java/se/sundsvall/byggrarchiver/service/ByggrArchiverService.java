@@ -43,7 +43,7 @@ public class ByggrArchiverService {
 		var actualStart = originalStart;
 
 		if (batchTrigger.equals(BatchTrigger.SCHEDULED)) {
-			actualStart = getBatchStartOfScheduledJob(originalStart, end);
+			actualStart = getBatchStartOfScheduledJob(originalStart, end, municipalityId);
 		}
 		// If actualStart is null, we don't need to run the batch again and we return null.
 		BatchHistory result = null;
@@ -74,13 +74,8 @@ public class ByggrArchiverService {
 		return mapToBatchHistoryResponse(archiveHistoryService.archive(batchHistory.getStart(), batchHistory.getEnd(), batchHistory, municipalityId));
 	}
 
-	private BatchHistory getLatestCompletedBatch() {
-		var batchHistoryList = batchHistoryRepository.findAll();
-
-		// Filter completed batches
-		batchHistoryList = batchHistoryList.stream()
-			.filter(b -> b.getArchiveStatus().equals(COMPLETED))
-			.toList();
+	private BatchHistory getLatestCompletedBatch(final String municipalityId) {
+		var batchHistoryList = batchHistoryRepository.findBatchHistoriesByArchiveStatusAndMunicipalityId(COMPLETED, municipalityId);
 
 		// Sort by end-date of batch
 		batchHistoryList = batchHistoryList.stream()
@@ -98,8 +93,8 @@ public class ByggrArchiverService {
 			.orElse(null);
 	}
 
-	private LocalDate getBatchStartOfScheduledJob(LocalDate start, final LocalDate end) {
-		final var latestBatch = getLatestCompletedBatch();
+	private LocalDate getBatchStartOfScheduledJob(LocalDate start, final LocalDate end, final String municipalityId) {
+		final var latestBatch = getLatestCompletedBatch(municipalityId);
 
 		if (latestBatch != null) {
 			// If this batch end-date is not after the latest batch end date, we don't need to run it again

@@ -17,8 +17,10 @@ resilience4j.circuitbreaker:
     arendeExport:
       # A SOAP fault means ByggR answered (e.g. "Item not found") - a business condition, not an outage.
       # Don't let it open the breaker. Real unavailability surfaces as connection/timeout errors, which still count.
+      # The same goes for a document rejected as too large by SOAPJAXBDecoder.
       ignore-exceptions:
         - jakarta.xml.ws.soap.SOAPFaultException
+        - se.sundsvall.byggrarchiver.integration.arendeexport.DocumentTooLargeException
 resilience4j.retry:
   instances:
     archive:
@@ -36,19 +38,19 @@ spring:
     driver-class-name: org.mariadb.jdbc.Driver
   flyway:
     enabled: false
-logbook:
-  body-filters:
-    xPath:
-      - key: '//*[contains(local-name(), "filBuffer")]'
-        value: '[binary]'
-      - key: '//*[contains(local-name(), "GetUpdatedArendenResponse")]'
-        value: '[filtered-xml]'
-    jsonPath:
-      - key: '$..file'
-        value: '[base64]'
-  # NOTE: do NOT set logbook.logs.maxBodySizeToLog. dept44 registers truncate() before the body filters, so any body
-  # larger than the limit is cut into malformed XML/JSON and the filters below silently stop redacting (the filBuffer
-  # base64 / file contents then leak into the logs). The filters already shrink the logged payload by redacting binary.
+  cloud:
+    openfeign:
+      client:
+        config:
+          # No Feign/Logbook logging towards ByggR and Archive. Logbook buffers the whole body and runs its body filters
+          # on it, which for base64-encoded documents costs ~15x the file size in heap (OOM on documents of ~50 MB).
+          # ArendeExportIntegration and ArchiveIntegration log the calls instead.
+          arendeExport:
+            logger-level: none
+          archive:
+            logger-level: none
+# NOTE: do NOT set logbook.logs.maxBodySizeToLog. dept44 registers truncate() before its body filters, so a body larger
+# than the limit is cut into malformed JSON and the filters (e.g. password masking) silently stop redacting.
 scheduler:
   name: archive
   cron:

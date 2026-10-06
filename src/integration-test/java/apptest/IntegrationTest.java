@@ -11,11 +11,16 @@ import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_REJECTED_FORMAT;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
@@ -23,6 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import se.sundsvall.byggrarchiver.Application;
 import se.sundsvall.byggrarchiver.api.model.ArchiveFailureResponse;
@@ -416,6 +422,69 @@ class IntegrationTest extends AbstractAppTest {
 				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
 				assertThat(archiveFailure.getFailureCategory()).isEqualTo(BYGGR_FETCH_ERROR);
 			});
+	}
+
+	// A GetDocument response larger than maximum-file-size is rejected by the decoder before it is read. The document is
+	// set to NOT_COMPLETED_FILE_TO_LARGE with a FILE_TOO_LARGE failure, and the rest of the batch still archives.
+	@Test
+	void test16_documentTooLarge() throws JsonProcessingException, ClassNotFoundException {
+		final var postBatchHistory = postBatchJob(BatchJob.builder()
+			.withStart(LocalDate.parse("2021-12-17"))
+			.withEnd(LocalDate.parse("2021-12-17"))
+			.build());
+
+		final var archiveHistories = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(postBatchHistory.getId(), MUNICIPALITY_ID);
+
+		assertThat(archiveHistories)
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("431169");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED);
+			})
+			.anySatisfy(archiveHistory -> {
+				assertThat(archiveHistory.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveHistory.getArchiveStatus()).isEqualTo(NOT_COMPLETED_FILE_TO_LARGE);
+			});
+
+		// Recorded once: unlike NOT_COMPLETED, a NOT_COMPLETED_FILE_TO_LARGE document is not fetched again
+		final var archiveFailures = archiveFailureRepository.findByBatchHistoryIdAndMunicipalityIdAndOptionalFailureCategory(postBatchHistory.getId(), MUNICIPALITY_ID, null);
+
+		assertThat(archiveFailures)
+			.singleElement()
+			.satisfies(archiveFailure -> {
+				assertThat(archiveFailure.getDocumentId()).isEqualTo("433467");
+				assertThat(archiveFailure.getFailureCategory()).isEqualTo(FILE_TOO_LARGE);
+			});
+	}
+
+	// Feign logging is off for ByggR and Archive (application.yml). Logbook buffers and filters whole documents, which ran
+	// the service out of memory, and the body filters that kept documents out of the logs are gone. Guards against the
+	// logging coming back, e.g. through a renamed integration name or an added contextId.
+	@Test
+	void test17_noPayloadLoggingForByggrAndArchive() throws JsonProcessingException, ClassNotFoundException {
+		final var logbookLogger = (Logger) LoggerFactory.getLogger("se.sundsvall.dept44.payload");
+		final var appender = new ListAppender<ILoggingEvent>();
+		appender.start();
+		logbookLogger.addAppender(appender);
+		final BatchHistory postBatchHistory;
+		try {
+			postBatchHistory = postBatchJob(BatchJob.builder()
+				.withStart(LocalDate.now().minusDays(1))
+				.withEnd(LocalDate.now().minusDays(1))
+				.build());
+		} finally {
+			logbookLogger.detachAppender(appender);
+		}
+
+		// ByggR and Archive were called (a COMPLETED document has been fetched and archived) ...
+		assertThat(archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(postBatchHistory.getId(), MUNICIPALITY_ID))
+			.anySatisfy(archiveHistory -> assertThat(archiveHistory.getArchiveStatus()).isEqualTo(COMPLETED));
+
+		// ... but Logbook only logged the incoming request
+		assertThat(appender.list)
+			.extracting(ILoggingEvent::getFormattedMessage)
+			.anyMatch(message -> message.contains(BATCH_PATH))
+			.noneMatch(message -> message.contains("/TekisArende/"))
+			.noneMatch(message -> message.contains("/archive/"));
 	}
 
 	private BatchHistory postBatchJob(final BatchJob batchJob) throws JsonProcessingException, ClassNotFoundException {

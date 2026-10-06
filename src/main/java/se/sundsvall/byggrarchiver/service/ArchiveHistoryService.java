@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
 import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
+import se.sundsvall.byggrarchiver.integration.arendeexport.DocumentTooLargeException;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
 import se.sundsvall.byggrarchiver.integration.db.model.ArchiveHistory;
 import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
@@ -157,6 +158,11 @@ public class ArchiveHistoryService {
 		final List<Dokument> dokumentList;
 		try {
 			dokumentList = arendeExportIntegration.getDocument(docId);
+		} catch (final DocumentTooLargeException e) {
+			// Rejected before the response was read into memory, see SOAPJAXBDecoder
+			LOG.info("Document-ID: {} is too large to be fetched from ByggR ({}). Setting archive history status to {}", docId, e.getMessage(), NOT_COMPLETED_FILE_TO_LARGE);
+			setFileTooLarge(newArchiveHistory, e.getMessage());
+			return;
 		} catch (final RuntimeException e) {
 			// A failed document fetch must not abort the whole batch - record it and continue with the next document.
 			// Catches both the Problem thrown on a SOAP fault and any other runtime failure from the Feign call
@@ -188,10 +194,7 @@ public class ArchiveHistoryService {
 			if (dokument.getFil().getFilBuffer().length > maximumFileSize) {
 				LOG.info("Document-ID: {} is too large ({} bytes) to be archived, maximum file size is set to {} bytes. Setting archive history status to {}", dokument.getDokId(), dokument.getFil().getFilBuffer().length, maximumFileSize,
 					NOT_COMPLETED_FILE_TO_LARGE);
-				archiveHistory.setArchiveStatus(NOT_COMPLETED_FILE_TO_LARGE);
-				archiveHistoryRepository.save(archiveHistory);
-				archiveFailureRecorder.recordFailure(FILE_TOO_LARGE, archiveHistory, "File too large",
-					"actual=" + dokument.getFil().getFilBuffer().length + " bytes, max=" + maximumFileSize + " bytes");
+				setFileTooLarge(archiveHistory, "actual=" + dokument.getFil().getFilBuffer().length + " bytes, max=" + maximumFileSize + " bytes");
 				continue;
 			}
 
@@ -203,6 +206,12 @@ public class ArchiveHistoryService {
 
 			lantmaterietNotifier.notifyIfGeoDocument(arende, handling, savedArchiveHistory, municipalityId);
 		}
+	}
+
+	private void setFileTooLarge(final ArchiveHistory archiveHistory, final String detail) {
+		archiveHistory.setArchiveStatus(NOT_COMPLETED_FILE_TO_LARGE);
+		archiveHistoryRepository.save(archiveHistory);
+		archiveFailureRecorder.recordFailure(FILE_TOO_LARGE, archiveHistory, "File too large", detail);
 	}
 
 	private boolean isArchived(final ArchiveHistory archiveHistory) {

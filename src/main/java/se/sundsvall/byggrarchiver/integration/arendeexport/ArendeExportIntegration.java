@@ -1,8 +1,10 @@
 package se.sundsvall.byggrarchiver.integration.arendeexport;
 
 import generated.se.sundsvall.arendeexport.ArendeBatch;
+import generated.se.sundsvall.arendeexport.ArrayOfArende;
 import generated.se.sundsvall.arendeexport.BatchFilter;
 import generated.se.sundsvall.arendeexport.Dokument;
+import generated.se.sundsvall.arendeexport.DokumentFil;
 import generated.se.sundsvall.arendeexport.GetDocument;
 import generated.se.sundsvall.arendeexport.GetUpdatedArenden;
 import jakarta.xml.ws.soap.SOAPFaultException;
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import se.sundsvall.dept44.problem.Problem;
 
+import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @Service
@@ -26,26 +29,50 @@ public class ArendeExportIntegration {
 	}
 
 	public ArendeBatch getUpdatedArenden(final BatchFilter filter) {
+		LOG.info("Calling ByggR GetUpdatedArenden with lowerExclusiveBound: {} and upperInclusiveBound: {}", filter.getLowerExclusiveBound(), filter.getUpperInclusiveBound());
+		final var startTime = System.currentTimeMillis();
 		try {
 			final var request = new GetUpdatedArenden();
 			request.setFilter(filter);
-			return arendeExportClient.getUpdatedArenden(request).getGetUpdatedArendenResult();
+			final var result = arendeExportClient.getUpdatedArenden(request).getGetUpdatedArendenResult();
+
+			LOG.info("ByggR GetUpdatedArenden returned {} cases (batchStart: {}, batchEnd: {}) in {} ms",
+				ofNullable(result).map(ArendeBatch::getArenden).map(ArrayOfArende::getArende).map(List::size).orElse(0),
+				ofNullable(result).map(ArendeBatch::getBatchStart).orElse(null),
+				ofNullable(result).map(ArendeBatch::getBatchEnd).orElse(null),
+				System.currentTimeMillis() - startTime);
+			return result;
 		} catch (final SOAPFaultException e) {
-			LOG.warn("ArendeExport integration failed ('GetUpdatedArenden')", e);
+			LOG.warn("ArendeExport integration failed ('GetUpdatedArenden') after {} ms", System.currentTimeMillis() - startTime, e);
 
 			throw Problem.valueOf(SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetUpdatedArenden')");
+		} catch (final RuntimeException e) {
+			LOG.warn("ByggR GetUpdatedArenden failed after {} ms", System.currentTimeMillis() - startTime);
+			throw e;
 		}
 	}
 
 	public List<Dokument> getDocument(final String dokId) {
+		LOG.info("Calling ByggR GetDocument for Document-ID: {}", dokId);
+		final var startTime = System.currentTimeMillis();
 		try {
 			final var getDocument = new GetDocument();
 			getDocument.setDocumentId(dokId);
-			return arendeExportClient.getDocument(getDocument).getGetDocumentResult();
+			final var result = arendeExportClient.getDocument(getDocument).getGetDocumentResult();
+
+			LOG.info("ByggR GetDocument for Document-ID: {} returned {} file(s) of {} bytes in total in {} ms", dokId, result.size(),
+				result.stream()
+					.mapToLong(dokument -> ofNullable(dokument.getFil()).map(DokumentFil::getFilBuffer).map(buffer -> buffer.length).orElse(0))
+					.sum(),
+				System.currentTimeMillis() - startTime);
+			return result;
 		} catch (final SOAPFaultException e) {
-			LOG.warn("ArendeExport integration failed ('GetDocument')", e);
+			LOG.warn("ArendeExport integration failed ('GetDocument') for Document-ID: {} after {} ms", dokId, System.currentTimeMillis() - startTime, e);
 
 			throw Problem.valueOf(SERVICE_UNAVAILABLE, "ArendeExport integration failed ('GetDocument')");
+		} catch (final RuntimeException e) {
+			LOG.warn("ByggR GetDocument for Document-ID: {} failed after {} ms", dokId, System.currentTimeMillis() - startTime);
+			throw e;
 		}
 	}
 

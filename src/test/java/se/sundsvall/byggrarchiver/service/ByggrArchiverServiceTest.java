@@ -54,6 +54,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -271,8 +272,7 @@ class ByggrArchiverServiceTest {
 		final var uncompletedBatch = BatchHistory.builder().withStart(yesterday).withEnd(yesterday).withArchiveStatus(COMPLETED).build();
 
 		// Mock
-		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(batchHistory)
-			.thenReturn(uncompletedBatch);
+		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID))).thenReturn(batchHistory);
 
 		// First run, fails
 		final var firstBatchHistory = byggrArchiverService.runBatch(yesterday, yesterday, SCHEDULED, MUNICIPALITY_ID);
@@ -282,18 +282,18 @@ class ByggrArchiverServiceTest {
 		verify(mockArchiveHistoryService).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
 
 		// ReRun, success
-		when(mockBatchHistoryRepository.findById(firstBatchHistory.getId())).thenReturn(Optional.of(batchHistory));
+		when(mockBatchHistoryRepository.findByIdAndMunicipalityId(firstBatchHistory.getId(), MUNICIPALITY_ID)).thenReturn(Optional.of(batchHistory));
+		when(mockArchiveHistoryService.rerun(batchHistory, MUNICIPALITY_ID)).thenReturn(uncompletedBatch);
 
 		final var reRunBatchHistory = byggrArchiverService.reRunBatch(firstBatchHistory.getId(), MUNICIPALITY_ID);
 
 		assertThat(reRunBatchHistory.getArchiveStatus()).isEqualTo(COMPLETED);
 		assertEquals(firstBatchHistory.getId(), reRunBatchHistory.getId());
 
-		// Both the first batch and the reRun
-		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
-		verify(mockArchiveHistoryService, times(2)).archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID));
-		assertThat(batchHistoryCaptor.getAllValues().get(0).getArchiveStatus()).isEqualTo(NOT_COMPLETED);
-		assertThat(batchHistoryCaptor.getAllValues().get(1).getArchiveStatus()).isEqualTo(NOT_COMPLETED);
+		// The rerun retries the batch's documents instead of archiving its date window again
+		verify(mockArchiveHistoryService).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
+		verify(mockArchiveHistoryService).rerun(batchHistory, MUNICIPALITY_ID);
+		assertThat(batchHistoryCaptor.getValue().getArchiveStatus()).isEqualTo(NOT_COMPLETED);
 	}
 
 	@Test
@@ -302,17 +302,18 @@ class ByggrArchiverServiceTest {
 		final var start = TODAY.minusDays(7);
 		final var end = TODAY.minusDays(7);
 
-		when(mockBatchHistoryRepository.findById(randomId))
-			.thenReturn(Optional.of(BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(NOT_COMPLETED).build()));
+		final var batchHistory = BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(NOT_COMPLETED).build();
+		when(mockBatchHistoryRepository.findByIdAndMunicipalityId(randomId, MUNICIPALITY_ID))
+			.thenReturn(Optional.of(batchHistory));
 
-		when(mockArchiveHistoryService.archive(any(), any(), batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID)))
+		when(mockArchiveHistoryService.rerun(batchHistoryCaptor.capture(), eq(MUNICIPALITY_ID)))
 			.thenReturn(BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(COMPLETED).build());
 
-		byggrArchiverService.reRunBatch(randomId, MUNICIPALITY_ID);
+		final var result = byggrArchiverService.reRunBatch(randomId, MUNICIPALITY_ID);
 
-		verify(mockArchiveHistoryService).archive(any(), any(), any(), eq(MUNICIPALITY_ID));
-		assertThat(batchHistoryCaptor.getValue().getStart()).isEqualTo(start);
-		assertThat(batchHistoryCaptor.getValue().getEnd()).isEqualTo(end);
+		assertThat(result.getArchiveStatus()).isEqualTo(COMPLETED);
+		assertThat(batchHistoryCaptor.getValue()).isSameAs(batchHistory);
+		verify(mockArchiveHistoryService, never()).archive(any(), any(), any(), any());
 	}
 
 	@Test
@@ -324,13 +325,26 @@ class ByggrArchiverServiceTest {
 			.satisfies(throwableProblem -> assertThat(throwableProblem.getStatus()).isEqualTo(NOT_FOUND));
 	}
 
+	// A batch of another municipality is not found, it would otherwise be completed without any of its documents
+	@Test
+	void rerunBatchOfOtherMunicipality() {
+		final var randomId = randomLong();
+
+		when(mockBatchHistoryRepository.findByIdAndMunicipalityId(randomId, "2262")).thenReturn(Optional.empty());
+
+		assertThatExceptionOfType(ThrowableProblem.class)
+			.isThrownBy(() -> byggrArchiverService.reRunBatch(randomId, "2262"))
+			.satisfies(throwableProblem -> assertThat(throwableProblem.getStatus()).isEqualTo(NOT_FOUND));
+		verifyNoInteractions(mockArchiveHistoryService);
+	}
+
 	@Test
 	void rerunBatchCompleted() {
 		final var randomId = randomLong();
 		final var start = TODAY.minusDays(7);
 		final var end = TODAY.minusDays(7);
 
-		when(mockBatchHistoryRepository.findById(randomId))
+		when(mockBatchHistoryRepository.findByIdAndMunicipalityId(randomId, MUNICIPALITY_ID))
 			.thenReturn(Optional.of(BatchHistory.builder().withStart(start).withEnd(end).withId(randomId).withArchiveStatus(COMPLETED).build()));
 
 		final var exception = assertThrows(ThrowableProblem.class, () -> byggrArchiverService.reRunBatch(randomId, MUNICIPALITY_ID));

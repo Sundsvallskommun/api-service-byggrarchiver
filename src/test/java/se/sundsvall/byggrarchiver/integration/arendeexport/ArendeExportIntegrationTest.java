@@ -1,7 +1,10 @@
 package se.sundsvall.byggrarchiver.integration.arendeexport;
 
+import generated.se.sundsvall.arendeexport.Arende;
 import generated.se.sundsvall.arendeexport.BatchFilter;
 import generated.se.sundsvall.arendeexport.Dokument;
+import generated.se.sundsvall.arendeexport.GetArende;
+import generated.se.sundsvall.arendeexport.GetArendeResponse;
 import generated.se.sundsvall.arendeexport.GetDocument;
 import generated.se.sundsvall.arendeexport.GetDocumentResponse;
 import generated.se.sundsvall.arendeexport.GetUpdatedArenden;
@@ -18,6 +21,7 @@ import se.sundsvall.dept44.problem.ThrowableProblem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -121,6 +125,45 @@ class ArendeExportIntegrationTest {
 		assertThat(response).isEqualTo(updatedArendenResponse.getGetUpdatedArendenResult());
 		verify(mockClient).getUpdatedArenden(any());
 		verifyNoMoreInteractions(mockClient);
+	}
+
+	@Test
+	void getArende() {
+		// Arrange
+		final var arende = new Arende().withDnr("BYGG 2025-000265").withStatus("Avslutat");
+
+		when(mockClient.getArende(any())).thenReturn(new GetArendeResponse().withGetArendeResult(arende));
+
+		// Act
+		final var response = integration.getArende("BYGG 2025-000265");
+
+		// Assert and verify
+		assertThat(response).isSameAs(arende);
+		verify(mockClient).getArende(argThat(request -> "BYGG 2025-000265".equals(request.getDnr())));
+		verifyNoMoreInteractions(mockClient);
+	}
+
+	@Test
+	void getArendeError() {
+		when(mockClient.getArende(any(GetArende.class)))
+			.thenThrow(SOAPFaultException.class);
+
+		assertThatExceptionOfType(ThrowableProblem.class)
+			.isThrownBy(() -> integration.getArende("BYGG 2025-000265"))
+			.satisfies(throwableProblem -> {
+				assertThat(throwableProblem.getStatus()).isEqualTo(SERVICE_UNAVAILABLE);
+				assertThat(throwableProblem.getDetail()).isEqualTo("ArendeExport integration failed ('GetArende')");
+			});
+	}
+
+	@Test
+	void getArendeNonSoapErrorIsRethrown() {
+		final var exception = new IllegalStateException("connection reset");
+		when(mockClient.getArende(any(GetArende.class))).thenThrow(exception);
+
+		assertThatExceptionOfType(IllegalStateException.class)
+			.isThrownBy(() -> integration.getArende("BYGG 2025-000265"))
+			.isSameAs(exception);
 	}
 
 }

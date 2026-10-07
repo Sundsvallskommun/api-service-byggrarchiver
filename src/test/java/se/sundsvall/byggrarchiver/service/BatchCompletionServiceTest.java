@@ -56,10 +56,14 @@ class BatchCompletionServiceTest {
 		when(batchHistoryRepositoryMock.findBatchHistoriesByArchiveStatusAndMunicipalityId(NOT_COMPLETED, MUNICIPALITY_ID))
 			.thenReturn(List.of());
 
-		batchCompletionService.completeBatch(currentBatch, MUNICIPALITY_ID);
+		final var savedBatch = batch(1L);
+		when(batchHistoryRepositoryMock.save(currentBatch)).thenReturn(savedBatch);
+
+		final var result = batchCompletionService.completeBatch(currentBatch, MUNICIPALITY_ID);
 
 		assertThat(currentBatch.getArchiveStatus()).isEqualTo(COMPLETED);
-		verify(batchHistoryRepositoryMock).save(currentBatch);
+		// The merged copy is returned, it has the timestamp the update was given
+		assertThat(result).isSameAs(savedBatch);
 		verifyNoInteractions(messagingIntegrationMock);
 	}
 
@@ -76,8 +80,9 @@ class BatchCompletionServiceTest {
 		when(archiveHistoryRepositoryMock.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(2L, MUNICIPALITY_ID))
 			.thenReturn(List.of(history(NOT_COMPLETED)));
 
-		batchCompletionService.completeBatch(currentBatch, MUNICIPALITY_ID);
+		final var result = batchCompletionService.completeBatch(currentBatch, MUNICIPALITY_ID);
 
+		assertThat(result).isSameAs(currentBatch);
 		assertThat(currentBatch.getArchiveStatus()).isEqualTo(NOT_COMPLETED);
 		assertThat(oldBatch.getArchiveStatus()).isEqualTo(NOT_COMPLETED);
 		verify(messagingIntegrationMock).sendStatusMail(histories, 1L, MUNICIPALITY_ID);

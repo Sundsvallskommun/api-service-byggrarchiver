@@ -1,0 +1,26 @@
+{
+	"request": {
+		"method": "POST",
+		"url": "/TekisArende/ArendeExportWS.svc",
+		"bodyPatterns": [
+			{
+				"and": [
+					{
+						"contains": "GetArende"
+					},
+					{
+						"contains": "BYGG 2018-000026"
+					}
+				]
+			}
+		]
+	},
+	"response": {
+		"headers": {
+			"Server": "Microsoft-IIS/10.0",
+			"Content-Type": "text/xml; charset=utf-8"
+		},
+		"bodyFileName": "test18_rerunRetriesOnlyNotCompletedDocuments/response/arendeexport.GetArende.200.xml",
+		"status": 200
+	}
+}

@@ -29,13 +29,16 @@ public class BatchCompletionService {
 	/**
 	 * Closes out a finished batch: marks it COMPLETED when all its archive histories are completed, otherwise sends a
 	 * status mail. Also retroactively promotes older NOT_COMPLETED batches whose documents have all since completed.
+	 *
+	 * @return the batch history as saved, with the timestamp the update was given
 	 */
-	public void completeBatch(final BatchHistory batchHistory, final String municipalityId) {
+	public BatchHistory completeBatch(final BatchHistory batchHistory, final String municipalityId) {
+		var result = batchHistory;
 		final var archiveHistoriesRelatedToBatch = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(batchHistory.getId(), municipalityId);
 		if (archiveHistoriesRelatedToBatch.stream().allMatch(archiveHistory -> COMPLETED.equals(archiveHistory.getArchiveStatus()))) {
-			// Persist that this batch is completed
+			// Persist that this batch is completed. The batch history is detached, save() returns the merged copy.
 			batchHistory.setArchiveStatus(COMPLETED);
-			batchHistoryRepository.save(batchHistory);
+			result = batchHistoryRepository.save(batchHistory);
 		} else {
 			// Send email when batch is not completed
 			messagingIntegration.sendStatusMail(archiveHistoriesRelatedToBatch, batchHistory.getId(), municipalityId);
@@ -45,6 +48,8 @@ public class BatchCompletionService {
 		LOG.info("Batch with ID: {} has {} archive histories", batchHistory.getId(), archiveHistoriesRelatedToBatch.size());
 
 		updateStatusOfOldBatchHistories(municipalityId);
+
+		return result;
 	}
 
 	/**

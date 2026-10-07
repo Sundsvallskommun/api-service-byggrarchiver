@@ -17,7 +17,7 @@ _The service orchestrates the process of sending and archiving documents from By
 1. **Clone the repository:**
 
 ```bash
-git clone https://github.com/Sundsvallskommun/api-byggrarchiver.git
+git clone https://github.com/Sundsvallskommun/api-service-byggrarchiver.git
 cd api-service-byggrarchiver
 ```
 
@@ -65,7 +65,8 @@ Ensure that these services are running and properly configured before starting t
 
 Access the API documentation via Swagger UI:
 
-- **Swagger UI:** [http://localhost:8080/api-docs](http://localhost:8080/api-docs)
+- **Swagger UI:** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- **OpenAPI specification:** [http://localhost:8080/api-docs](http://localhost:8080/api-docs)
 
 ## Usage
 
@@ -78,6 +79,15 @@ See the [API Documentation](#api-documentation) for detailed information on avai
 ```bash
 curl -X GET http://localhost:8080/2281/batch-jobs
 ```
+
+### Batch jobs
+
+Every run is a batch with a date window, a trigger (`SCHEDULED` or `MANUAL`) and a status. A batch asks ByggR for the cases updated in the window, keeps the closed ones (status "Avslutat") and archives the documents of their archive events. Each document gets a row with its own status. A document that already has a row is skipped, except a `NOT_COMPLETED` one, which is removed and tried again.
+
+- **Scheduled runs** cover the last seven days up to yesterday. If the latest completed batch ended before that, the window starts the day after it, so no days are missed. A run is skipped when its window ends no later than the latest completed batch.
+- **A batch is `COMPLETED`** when all its documents are. Otherwise a status email is sent. A `NOT_COMPLETED` batch is never run again on its own. A later run marks it `COMPLETED` once none of its documents are left unarchived. This happens when a later run picks up the case again and archives the documents in the new batch.
+- **`POST /{municipalityId}/batch-jobs/{batchHistoryId}/rerun`** retries only the batch's `NOT_COMPLETED` documents. It reads each of their cases from ByggR instead of scanning the window again. Documents of a case that is no longer closed stay as they are, and documents larger than `integration.archive.maximum-file-size` (`NOT_COMPLETED_FILE_TO_LARGE`) are not retried.
+- **`GET /{municipalityId}/batch-jobs/{batchHistoryId}/fallout`** lists why documents in a batch failed, optionally filtered by `category`. Batches that ran before the failure log existed have no entries.
 
 ## Configuration
 
@@ -99,6 +109,9 @@ scheduler:
   municipality-ids: <comma separated string of municipality ids to process>
   cron:
     expression: <cron expression for execution interval>
+  # Optional, both default to PT15M. Keep the lock above the longest run, or another replica can start the same run.
+  shedlock-lock-at-most-for: <ISO-8601 duration>
+  maximum-execution-time: <ISO-8601 duration, the job is reported unhealthy when a run takes longer>
 
 email:
   extension-error:
@@ -138,7 +151,7 @@ long-term-archive:
   url: <service-url>
 spring:
   datasource:
-    url: jdbc:mysql://<server-id>:<port>/<database-name>
+    url: jdbc:mariadb://<server-id>:<port>/<database-name>
     username: <db-username>
     password: <db-password>
 ```
@@ -148,7 +161,7 @@ spring:
 The project is set up with [Flyway](https://github.com/flyway/flyway) for database migrations. Flyway is disabled by default so you will have to enable it to automatically populate the database schema upon application startup.
 
 ```yaml
-config:
+spring:
   flyway:
     enabled: true
 ```

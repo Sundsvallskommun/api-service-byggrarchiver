@@ -61,7 +61,7 @@ public class ByggrArchiverService {
 	public BatchHistoryResponse reRunBatch(final Long batchHistoryId, final String municipalityId) {
 		LOG.info("Rerun was started with batchHistoryId: {}", batchHistoryId);
 
-		final var batchHistory = batchHistoryRepository.findById(batchHistoryId)
+		final var batchHistory = batchHistoryRepository.findByIdAndMunicipalityId(batchHistoryId, municipalityId)
 			.orElseThrow(() -> Problem.valueOf(NOT_FOUND, "BatchHistory not found"));
 
 		if (batchHistory.getArchiveStatus().equals(COMPLETED)) {
@@ -70,8 +70,8 @@ public class ByggrArchiverService {
 
 		LOG.info("Rerun batch: {}", batchHistory);
 
-		// Do the archiving
-		return mapToBatchHistoryResponse(archiveHistoryService.archive(batchHistory.getStart(), batchHistory.getEnd(), batchHistory, municipalityId));
+		// Retry the documents that did not complete
+		return mapToBatchHistoryResponse(archiveHistoryService.rerun(batchHistory, municipalityId));
 	}
 
 	private BatchHistory getLatestCompletedBatch(final String municipalityId) {

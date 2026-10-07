@@ -8,7 +8,11 @@ import generated.se.sundsvall.arendeexport.HandelseHandling;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +26,10 @@ import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.service.exceptions.ApplicationException;
 
 import static java.util.Optional.ofNullable;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
@@ -97,20 +104,82 @@ public class ArchiveHistoryService {
 				.filter(arende -> BYGGR_STATUS_AVSLUTAT.equals(arende.getStatus()))
 				.toList();
 
-			// Delete all not completed archive histories connected to this case
-			closedCaseList.forEach(closedCase -> archiveHistoryRepository.deleteArchiveHistoriesByCaseIdAndArchiveStatus(closedCase.getDnr(), NOT_COMPLETED));
-
-			// Archive documents
-			closedCaseList.forEach(closedCase -> closedCase.getHandelseLista().getHandelse().stream()
-				.filter(handelse -> BYGGR_HANDELSETYP_ARKIV.equals(handelse.getHandelsetyp()))
-				.flatMap(handelse -> handelse.getHandlingLista().getHandling().stream())
-				.filter(handelseHandling -> handelseHandling.getDokument() != null)
-				.forEach(handling -> processHandlingList(handling, closedCase, batchHistory, municipalityId)));
+			closedCaseList.forEach(closedCase -> archiveCase(closedCase, batchHistory, municipalityId));
 		} while (batchFilter.getLowerExclusiveBound().isBefore(end));
 
-		batchCompletionService.completeBatch(batchHistory, municipalityId);
+		return batchCompletionService.completeBatch(batchHistory, municipalityId);
+	}
 
-		return batchHistory;
+	/**
+	 * Archives one closed case. Its stale rows are deleted right before its documents are processed, so a batch that is
+	 * interrupted leaves every case either done or untouched.
+	 */
+	private void archiveCase(final Arende2 closedCase, final BatchHistory batchHistory, final String municipalityId) {
+		// Delete all not completed archive histories connected to this case
+		archiveHistoryRepository.deleteArchiveHistoriesByCaseIdAndArchiveStatus(closedCase.getDnr(), NOT_COMPLETED);
+
+		// The case's archive histories are read once, not once per document
+		final var archiveHistoryByDocumentId = archiveHistoryRepository.getArchiveHistoriesByCaseIdAndMunicipalityId(closedCase.getDnr(), municipalityId).stream()
+			.collect(toMap(ArchiveHistory::getDocumentId, identity(), (first, second) -> first, HashMap::new));
+
+		archiveHandlingar(closedCase).forEach(handling -> processHandlingList(handling, closedCase, batchHistory, municipalityId, archiveHistoryByDocumentId));
+	}
+
+	/**
+	 * Retries the documents of a batch that are still NOT_COMPLETED. Each affected case is read with GetArende, so the
+	 * batch's date window is not scanned again. NOT_COMPLETED_FILE_TO_LARGE documents are not retried.
+	 */
+	public BatchHistory rerun(final BatchHistory batchHistory, final String municipalityId) {
+		final var notCompletedByCase = archiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(NOT_COMPLETED, batchHistory.getId(), municipalityId).stream()
+			.collect(groupingBy(ArchiveHistory::getCaseId));
+
+		LOG.info("Batch: {} is rerun for the NOT_COMPLETED documents in {} case(s)", batchHistory.getId(), notCompletedByCase.size());
+
+		notCompletedByCase.forEach((caseId, notCompleted) -> rerunCase(caseId, notCompleted, batchHistory, municipalityId));
+
+		return batchCompletionService.completeBatch(batchHistory, municipalityId);
+	}
+
+	private void rerunCase(final String caseId, final List<ArchiveHistory> notCompleted, final BatchHistory batchHistory, final String municipalityId) {
+		final Arende2 arende;
+		try {
+			arende = arendeExportIntegration.getArende(caseId);
+		} catch (final RuntimeException e) {
+			LOG.error("Error when fetching Case-ID: {}, its documents stay NOT_COMPLETED", caseId, e);
+			return;
+		}
+
+		if ((arende == null) || !BYGGR_STATUS_AVSLUTAT.equals(arende.getStatus())) {
+			LOG.warn("Case-ID: {} is not closed in ByggR, its documents stay NOT_COMPLETED", caseId);
+			return;
+		}
+
+		final var documentIds = notCompleted.stream()
+			.map(ArchiveHistory::getDocumentId)
+			.collect(toSet());
+		final var handlingar = archiveHandlingar(arende)
+			.filter(handling -> documentIds.contains(handling.getDokument().getDokId()))
+			.toList();
+
+		// Same as in archive(): a document that is no longer in an archive event of the closed case is dropped
+		final var droppedIds = new HashSet<>(documentIds);
+		handlingar.forEach(handling -> droppedIds.remove(handling.getDokument().getDokId()));
+		if (!droppedIds.isEmpty()) {
+			LOG.warn("Document-IDs: {} are no longer in an archive event of Case-ID: {} and are removed from the batch", droppedIds, caseId);
+		}
+
+		archiveHistoryRepository.deleteAll(notCompleted);
+
+		// None of the retried documents has a row any more
+		final var archiveHistoryByDocumentId = new HashMap<String, ArchiveHistory>();
+		handlingar.forEach(handling -> processHandlingList(handling, arende, batchHistory, municipalityId, archiveHistoryByDocumentId));
+	}
+
+	private static Stream<HandelseHandling> archiveHandlingar(final Arende2 arende) {
+		return arende.getHandelseLista().getHandelse().stream()
+			.filter(handelse -> BYGGR_HANDELSETYP_ARKIV.equals(handelse.getHandelsetyp()))
+			.flatMap(handelse -> handelse.getHandlingLista().getHandling().stream())
+			.filter(handelseHandling -> handelseHandling.getDokument() != null);
 	}
 
 	private LocalDateTime getEnd(final LocalDate searchEnd) {
@@ -142,18 +211,25 @@ public class ArchiveHistoryService {
 			.orElse(UNKNOWN);
 	}
 
-	private void processHandlingList(final HandelseHandling handling, final Arende2 arende, final BatchHistory batchHistory, final String municipalityId) {
+	/**
+	 * @param archiveHistoryByDocumentId the case's archive histories by document id. The new archive history is added to
+	 *                                   it,
+	 *                                   since a document can occur more than once in the case's archive events.
+	 */
+	private void processHandlingList(final HandelseHandling handling, final Arende2 arende, final BatchHistory batchHistory, final String municipalityId,
+		final Map<String, ArchiveHistory> archiveHistoryByDocumentId) {
 		final ArchiveHistory newArchiveHistory;
 		final var docId = handling.getDokument().getDokId();
-		final var oldArchiveHistory = archiveHistoryRepository.getArchiveHistoryByDocumentIdAndCaseIdAndMunicipalityId(docId, arende.getDnr(), municipalityId);
+		final var oldArchiveHistory = archiveHistoryByDocumentId.get(docId);
 
-		if (oldArchiveHistory.isPresent()) {
-			LOG.info("Document-ID: {} in combination with Case-ID: {} is already archived.", docId, arende.getDnr());
+		if (oldArchiveHistory != null) {
+			LOG.info("Document-ID: {} in combination with Case-ID: {} already has archive status {}.", docId, arende.getDnr(), oldArchiveHistory.getArchiveStatus());
 			return;
 		}
 		LOG.info("Document-ID: {} in combination with Case-ID: {} does not exist in the db. Archive it..", docId, arende.getDnr());
 		newArchiveHistory = toArchiveHistory(handling, batchHistory, arende.getDnr(), getAttachmentCategory(handling.getTyp()), NOT_COMPLETED, municipalityId);
 		archiveHistoryRepository.save(newArchiveHistory);
+		archiveHistoryByDocumentId.put(docId, newArchiveHistory);
 		// Get documents from Byggr
 		final List<Dokument> dokumentList;
 		try {
@@ -182,14 +258,6 @@ public class ArchiveHistoryService {
 	}
 
 	void handleArchiving(final List<Dokument> dokuments, final Arende2 arende, final HandelseHandling handling, final ArchiveHistory archiveHistory, final String municipalityId) throws ApplicationException {
-		if (isArchived(archiveHistory)) {
-			LOG.info("ArchiveHistory already got a archive-ID. Set status to {}", COMPLETED);
-
-			archiveHistory.setArchiveStatus(COMPLETED);
-			archiveHistoryRepository.save(archiveHistory);
-			return;
-		}
-
 		for (final var dokument : dokuments) {
 			if (dokument.getFil().getFilBuffer().length > maximumFileSize) {
 				LOG.info("Document-ID: {} is too large ({} bytes) to be archived, maximum file size is set to {} bytes. Setting archive history status to {}", dokument.getDokId(), dokument.getFil().getFilBuffer().length, maximumFileSize,
@@ -212,10 +280,6 @@ public class ArchiveHistoryService {
 		archiveHistory.setArchiveStatus(NOT_COMPLETED_FILE_TO_LARGE);
 		archiveHistoryRepository.save(archiveHistory);
 		archiveFailureRecorder.recordFailure(FILE_TOO_LARGE, archiveHistory, "File too large", detail);
-	}
-
-	private boolean isArchived(final ArchiveHistory archiveHistory) {
-		return (archiveHistory != null) && (archiveHistory.getArchiveId() != null);
 	}
 
 }

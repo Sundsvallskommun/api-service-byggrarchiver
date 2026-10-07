@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -111,6 +112,10 @@ class ArchiveHistoryServiceTest {
 		lenient()
 			.when(mockArendeExportIntegrationService.getUpdatedArenden(any(BatchFilter.class)))
 			.thenReturn(new ArendeBatch().withArenden(new ArrayOfArende()));
+
+		lenient()
+			.when(mockBatchCompletionService.completeBatch(any(), any()))
+			.thenAnswer(invocation -> invocation.getArgument(0));
 
 		ReflectionTestUtils.setField(archiveHistoryService, "maximumFileSize", 100000);
 		ReflectionTestUtils.setField(archiveHistoryService, "clock", CLOCK);
@@ -498,6 +503,144 @@ class ArchiveHistoryServiceTest {
 		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
 	}
 
+	// A case is finished before the next case's stale rows are deleted, and its archive histories are read once
+	@Test
+	void archiveProcessesOneCaseAtATime() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+		final var arende1 = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE, FASSIT2));
+		final var arende2 = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(TOMTPLBE));
+		stubOnePageOfCases(arende1, arende2);
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
+
+		final var inOrder = inOrder(mockArchiveHistoryRepository, mockArendeExportIntegrationService);
+		inOrder.verify(mockArchiveHistoryRepository).deleteArchiveHistoriesByCaseIdAndArchiveStatus(arende1.getDnr(), NOT_COMPLETED);
+		inOrder.verify(mockArchiveHistoryRepository).getArchiveHistoriesByCaseIdAndMunicipalityId(arende1.getDnr(), MUNICIPALITY_ID);
+		inOrder.verify(mockArendeExportIntegrationService).getDocument(documentIds(arende1).get(0));
+		inOrder.verify(mockArendeExportIntegrationService).getDocument(documentIds(arende1).get(1));
+		inOrder.verify(mockArchiveHistoryRepository).deleteArchiveHistoriesByCaseIdAndArchiveStatus(arende2.getDnr(), NOT_COMPLETED);
+		inOrder.verify(mockArchiveHistoryRepository).getArchiveHistoriesByCaseIdAndMunicipalityId(arende2.getDnr(), MUNICIPALITY_ID);
+		inOrder.verify(mockArendeExportIntegrationService).getDocument(documentIds(arende2).getFirst());
+		verifyCalls(2, 3, 3);
+	}
+
+	@Test
+	void archiveSkipsDocumentThatAlreadyHasAnArchiveHistory() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE, FASSIT2));
+		final var docIds = documentIds(arende);
+		stubOnePageOfCases(arende);
+		when(mockArchiveHistoryRepository.getArchiveHistoriesByCaseIdAndMunicipalityId(arende.getDnr(), MUNICIPALITY_ID))
+			.thenReturn(List.of(ArchiveHistory.builder().withDocumentId(docIds.getFirst()).withCaseId(arende.getDnr()).withArchiveStatus(COMPLETED).build()));
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
+
+		verify(mockArendeExportIntegrationService, never()).getDocument(docIds.getFirst());
+		verify(mockArendeExportIntegrationService).getDocument(docIds.get(1));
+		verifyCalls(2, 1, 1);
+	}
+
+	@Test
+	void archiveProcessesDocumentThatOccursTwiceInTheCaseOnce() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		// The same document in a second archive event
+		final var handling = arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().getFirst();
+		final var secondHandelse = new Handelse();
+		secondHandelse.setHandelsetyp(BYGGR_HANDELSETYP_ARKIV);
+		secondHandelse.setHandlingLista(new ArrayOfHandelseHandling());
+		secondHandelse.getHandlingLista().getHandling().add(handling);
+		arende.getHandelseLista().getHandelse().add(secondHandelse);
+		stubOnePageOfCases(arende);
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		archiveHistoryService.archive(yesterday, yesterday, createBatchHistory(yesterday, yesterday, SCHEDULED), MUNICIPALITY_ID);
+
+		verifyCalls(2, 1, 1);
+	}
+
+	@Test
+	void rerunRetriesOnlyNotCompletedDocumentsOfTheBatch() throws Exception {
+		final var batchHistory = createBatchHistory(TODAY.minusDays(7), TODAY.minusDays(1), SCHEDULED);
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE, FASSIT2, TOMTPLBE));
+		final var docIds = documentIds(arende);
+		final var notCompleted = List.of(
+			createNotCompletedArchiveHistory(docIds.get(0), arende.getDnr(), batchHistory),
+			createNotCompletedArchiveHistory(docIds.get(1), arende.getDnr(), batchHistory));
+
+		when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(NOT_COMPLETED, batchHistory.getId(), MUNICIPALITY_ID)).thenReturn(notCompleted);
+		when(mockArendeExportIntegrationService.getArende(arende.getDnr())).thenReturn(arende);
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		final var result = archiveHistoryService.rerun(batchHistory, MUNICIPALITY_ID);
+
+		assertThat(result).isSameAs(batchHistory);
+		verify(mockArchiveHistoryRepository).deleteAll(notCompleted);
+		verify(mockArendeExportIntegrationService).getDocument(docIds.get(0));
+		verify(mockArendeExportIntegrationService).getDocument(docIds.get(1));
+		verify(mockBatchCompletionService).completeBatch(batchHistory, MUNICIPALITY_ID);
+		// The batch's date window is not scanned and the third, already completed, document is not touched
+		verifyCalls(0, 2, 2);
+	}
+
+	@Test
+	void rerunLeavesDocumentsOfCaseThatIsNotClosed() throws Exception {
+		final var batchHistory = createBatchHistory(TODAY.minusDays(7), TODAY.minusDays(1), SCHEDULED);
+		final var arende = createArendeObject(ONGOING, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var notCompleted = List.of(createNotCompletedArchiveHistory(documentIds(arende).getFirst(), arende.getDnr(), batchHistory));
+
+		when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(NOT_COMPLETED, batchHistory.getId(), MUNICIPALITY_ID)).thenReturn(notCompleted);
+		when(mockArendeExportIntegrationService.getArende(arende.getDnr())).thenReturn(arende);
+
+		archiveHistoryService.rerun(batchHistory, MUNICIPALITY_ID);
+
+		verify(mockArchiveHistoryRepository, never()).deleteAll(any());
+		verify(mockBatchCompletionService).completeBatch(batchHistory, MUNICIPALITY_ID);
+		verifyCalls(0, 0, 0);
+	}
+
+	@Test
+	void rerunGetArendeFaultDoesNotAbortTheOtherCases() throws Exception {
+		final var batchHistory = createBatchHistory(TODAY.minusDays(7), TODAY.minusDays(1), SCHEDULED);
+		final var failingArende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var failingNotCompleted = createNotCompletedArchiveHistory(documentIds(failingArende).getFirst(), failingArende.getDnr(), batchHistory);
+		final var notCompleted = createNotCompletedArchiveHistory(documentIds(arende).getFirst(), arende.getDnr(), batchHistory);
+
+		when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(NOT_COMPLETED, batchHistory.getId(), MUNICIPALITY_ID)).thenReturn(List.of(failingNotCompleted, notCompleted));
+		doThrow(Problem.valueOf(SERVICE_UNAVAILABLE, "ByggR down")).when(mockArendeExportIntegrationService).getArende(failingArende.getDnr());
+		when(mockArendeExportIntegrationService.getArende(arende.getDnr())).thenReturn(arende);
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		archiveHistoryService.rerun(batchHistory, MUNICIPALITY_ID);
+
+		// The failing case keeps its NOT_COMPLETED row for a later rerun
+		verify(mockArchiveHistoryRepository).deleteAll(List.of(notCompleted));
+		verify(mockArchiveHistoryRepository, never()).deleteAll(List.of(failingNotCompleted));
+		verify(mockBatchCompletionService).completeBatch(batchHistory, MUNICIPALITY_ID);
+		verifyCalls(0, 1, 1);
+	}
+
+	@Test
+	void rerunDropsDocumentThatIsNoLongerInAnArchiveEvent() throws Exception {
+		final var batchHistory = createBatchHistory(TODAY.minusDays(7), TODAY.minusDays(1), SCHEDULED);
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var removed = createNotCompletedArchiveHistory("removed", arende.getDnr(), batchHistory);
+		final var notCompleted = createNotCompletedArchiveHistory(documentIds(arende).getFirst(), arende.getDnr(), batchHistory);
+
+		when(mockArchiveHistoryRepository.getArchiveHistoriesByArchiveStatusAndBatchHistoryIdAndMunicipalityId(NOT_COMPLETED, batchHistory.getId(), MUNICIPALITY_ID)).thenReturn(List.of(removed, notCompleted));
+		when(mockArendeExportIntegrationService.getArende(arende.getDnr())).thenReturn(arende);
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		archiveHistoryService.rerun(batchHistory, MUNICIPALITY_ID);
+
+		verify(mockArchiveHistoryRepository).deleteAll(List.of(removed, notCompleted));
+		verify(mockArendeExportIntegrationService, never()).getDocument("removed");
+		verifyCalls(0, 1, 1);
+	}
+
 	private void verifyCalls(final int nrOfCallsToGetUpdatedArenden,
 		final int nrOfCallsToGetDocument,
 		final int nrOfCallsToArchiveAttachmentService) throws ServiceException, ApplicationException {
@@ -567,6 +710,31 @@ class ArchiveHistoryServiceTest {
 		final var arrayOfAbstractArendeObjekt = new ArrayOfAbstractArendeObjekt2();
 		arrayOfAbstractArendeObjekt.getAbstractArendeObjekt().add(arendeFastighet);
 		return arrayOfAbstractArendeObjekt;
+	}
+
+	// ByggR returns the cases on the first page and an empty second page, the loop asks again until the window's end
+	private void stubOnePageOfCases(final Arende... arenden) {
+		final var arrayOfArende = new ArrayOfArende();
+		arrayOfArende.getArende().addAll(List.of(arenden));
+		when(mockArendeExportIntegrationService.getUpdatedArenden(any()))
+			.thenReturn(new ArendeBatch().withBatchEnd(TODAY.minusDays(1).atTime(23, 59, 59)).withArenden(arrayOfArende))
+			.thenReturn(new ArendeBatch().withArenden(new ArrayOfArende()));
+	}
+
+	private static List<String> documentIds(final Arende arende) {
+		return arende.getHandelseLista().getHandelse().getFirst().getHandlingLista().getHandling().stream()
+			.map(handling -> handling.getDokument().getDokId())
+			.toList();
+	}
+
+	private static ArchiveHistory createNotCompletedArchiveHistory(final String documentId, final String caseId, final BatchHistory batchHistory) {
+		return ArchiveHistory.builder()
+			.withDocumentId(documentId)
+			.withCaseId(caseId)
+			.withMunicipalityId(MUNICIPALITY_ID)
+			.withArchiveStatus(NOT_COMPLETED)
+			.withBatchHistory(batchHistory)
+			.build();
 	}
 
 	private BatchHistory createBatchHistory(final LocalDate start, final LocalDate end, final BatchTrigger batchTrigger) {

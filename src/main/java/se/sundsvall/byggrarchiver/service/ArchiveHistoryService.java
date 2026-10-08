@@ -2,9 +2,13 @@ package se.sundsvall.byggrarchiver.service;
 
 import generated.se.sundsvall.arendeexport.Arende2;
 import generated.se.sundsvall.arendeexport.ArendeBatch;
+import generated.se.sundsvall.arendeexport.ArrayOfArende;
+import generated.se.sundsvall.arendeexport.ArrayOfHandelse;
+import generated.se.sundsvall.arendeexport.ArrayOfHandelseHandling;
 import generated.se.sundsvall.arendeexport.BatchFilter;
 import generated.se.sundsvall.arendeexport.Dokument;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,12 +16,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import se.sundsvall.byggrarchiver.api.model.enums.FailureCategory;
+import se.sundsvall.byggrarchiver.integration.archive.ArchiveIntegration;
 import se.sundsvall.byggrarchiver.integration.arendeexport.ArendeExportIntegration;
 import se.sundsvall.byggrarchiver.integration.arendeexport.DocumentTooLargeException;
 import se.sundsvall.byggrarchiver.integration.db.ArchiveHistoryRepository;
@@ -100,7 +106,9 @@ public class ArchiveHistoryService {
 			// Get arenden from Byggr
 			arendeBatch = arendeExportIntegration.getUpdatedArenden(batchFilter);
 
-			final var closedCaseList = arendeBatch.getArenden().getArende().stream()
+			// Arenden is optional and its entries are nillable in the WSDL
+			final var closedCaseList = ofNullable(arendeBatch.getArenden()).map(ArrayOfArende::getArende).orElse(List.of()).stream()
+				.filter(Objects::nonNull)
 				.filter(arende -> BYGGR_STATUS_AVSLUTAT.equals(arende.getStatus()))
 				.toList();
 
@@ -176,9 +184,10 @@ public class ArchiveHistoryService {
 	}
 
 	private static Stream<HandelseHandling> archiveHandlingar(final Arende2 arende) {
-		return arende.getHandelseLista().getHandelse().stream()
+		// handelseLista and handlingLista are optional in the WSDL
+		return ofNullable(arende.getHandelseLista()).map(ArrayOfHandelse::getHandelse).orElse(List.of()).stream()
 			.filter(handelse -> BYGGR_HANDELSETYP_ARKIV.equals(handelse.getHandelsetyp()))
-			.flatMap(handelse -> handelse.getHandlingLista().getHandling().stream())
+			.flatMap(handelse -> ofNullable(handelse.getHandlingLista()).map(ArrayOfHandelseHandling::getHandling).orElse(List.of()).stream())
 			.filter(handelseHandling -> handelseHandling.getDokument() != null);
 	}
 
@@ -254,6 +263,16 @@ public class ArchiveHistoryService {
 		} catch (final ApplicationException e) {
 			LOG.error("Error when archiving document with ID: {} in combination with Case-ID: {}", docId, arende.getDnr(), e);
 			archiveFailureRecorder.recordFailure(categoryForApplicationException(e), newArchiveHistory, "Archiving failed", e.getMessage());
+		} catch (final RuntimeException e) {
+			if ((e instanceof final CallNotPermittedException breakerOpen) && ArchiveIntegration.INTEGRATION_NAME.equals(breakerOpen.getCausingCircuitBreakerName())) {
+				// Archive is down, so every remaining document would fail as well. Stop the batch instead of fetching them all
+				// from ByggR. The document stays NOT_COMPLETED.
+				throw e;
+			}
+			// E.g. a document without a file, or FB being down when notifying Lantmäteriet. Left uncaught it would abort the
+			// batch, and a scheduled run would then hit the same document again.
+			LOG.error("Unexpected error when archiving document with ID: {} in combination with Case-ID: {}", docId, arende.getDnr(), e);
+			archiveFailureRecorder.recordFailure(UNKNOWN, newArchiveHistory, "Archiving failed", e.getMessage());
 		}
 	}
 

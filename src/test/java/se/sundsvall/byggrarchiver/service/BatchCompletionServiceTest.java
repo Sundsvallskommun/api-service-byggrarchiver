@@ -53,8 +53,6 @@ class BatchCompletionServiceTest {
 		final var currentBatch = batch(1L);
 		when(archiveHistoryRepositoryMock.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(1L, MUNICIPALITY_ID))
 			.thenReturn(List.of(history(COMPLETED), history(COMPLETED)));
-		when(batchHistoryRepositoryMock.findBatchHistoriesByArchiveStatusAndMunicipalityId(NOT_COMPLETED, MUNICIPALITY_ID))
-			.thenReturn(List.of());
 
 		final var savedBatch = batch(1L);
 		when(batchHistoryRepositoryMock.save(currentBatch)).thenReturn(savedBatch);
@@ -68,23 +66,18 @@ class BatchCompletionServiceTest {
 	}
 
 	@Test
-	void sendsStatusMailWhenBatchNotCompletedAndDoesNotPromotePendingOldBatch() {
+	void sendsStatusMailWhenBatchNotCompleted() {
 		final var currentBatch = batch(1L);
-		final var oldBatch = batch(2L);
 		final var histories = List.of(history(COMPLETED), history(NOT_COMPLETED));
 
 		when(archiveHistoryRepositoryMock.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(1L, MUNICIPALITY_ID))
 			.thenReturn(histories);
-		when(batchHistoryRepositoryMock.findBatchHistoriesByArchiveStatusAndMunicipalityId(NOT_COMPLETED, MUNICIPALITY_ID))
-			.thenReturn(List.of(oldBatch));
-		when(archiveHistoryRepositoryMock.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(2L, MUNICIPALITY_ID))
-			.thenReturn(List.of(history(NOT_COMPLETED)));
 
 		final var result = batchCompletionService.completeBatch(currentBatch, MUNICIPALITY_ID);
 
 		assertThat(result).isSameAs(currentBatch);
 		assertThat(currentBatch.getArchiveStatus()).isEqualTo(NOT_COMPLETED);
-		assertThat(oldBatch.getArchiveStatus()).isEqualTo(NOT_COMPLETED);
+		verify(batchHistoryRepositoryMock).findNotCompletedBatchHistoriesWithAllArchiveHistoriesCompleted(MUNICIPALITY_ID);
 		verify(messagingIntegrationMock).sendStatusMail(histories, 1L, MUNICIPALITY_ID);
 		verify(batchHistoryRepositoryMock, never()).save(any());
 	}
@@ -96,10 +89,8 @@ class BatchCompletionServiceTest {
 
 		when(archiveHistoryRepositoryMock.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(1L, MUNICIPALITY_ID))
 			.thenReturn(List.of(history(COMPLETED)));
-		when(batchHistoryRepositoryMock.findBatchHistoriesByArchiveStatusAndMunicipalityId(NOT_COMPLETED, MUNICIPALITY_ID))
+		when(batchHistoryRepositoryMock.findNotCompletedBatchHistoriesWithAllArchiveHistoriesCompleted(MUNICIPALITY_ID))
 			.thenReturn(List.of(oldBatch));
-		when(archiveHistoryRepositoryMock.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(2L, MUNICIPALITY_ID))
-			.thenReturn(List.of(history(COMPLETED)));
 
 		batchCompletionService.completeBatch(currentBatch, MUNICIPALITY_ID);
 

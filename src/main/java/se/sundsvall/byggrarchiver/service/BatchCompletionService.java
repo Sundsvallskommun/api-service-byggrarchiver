@@ -9,7 +9,6 @@ import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.byggrarchiver.integration.messaging.MessagingIntegration;
 
 import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
 
 @Service
 public class BatchCompletionService {
@@ -56,19 +55,11 @@ public class BatchCompletionService {
 	 * Update the status of NOT_COMPLETED old batch histories to COMPLETED if all archive histories are COMPLETED
 	 */
 	private void updateStatusOfOldBatchHistories(final String municipalityId) {
-		final var notCompletedBatchHistories = batchHistoryRepository.findBatchHistoriesByArchiveStatusAndMunicipalityId(NOT_COMPLETED, municipalityId);
+		batchHistoryRepository.findNotCompletedBatchHistoriesWithAllArchiveHistoriesCompleted(municipalityId).forEach(batchHistory -> {
+			batchHistory.setArchiveStatus(COMPLETED);
+			batchHistoryRepository.save(batchHistory);
 
-		notCompletedBatchHistories.forEach(batchHistory -> {
-			final boolean allCompleted = archiveHistoryRepository.getArchiveHistoriesByBatchHistoryIdAndMunicipalityId(batchHistory.getId(), municipalityId)
-				.stream()
-				.allMatch(archiveHistory -> COMPLETED.equals(archiveHistory.getArchiveStatus()));
-
-			if (allCompleted) {
-				batchHistory.setArchiveStatus(COMPLETED);
-				batchHistoryRepository.save(batchHistory);
-
-				LOG.info("Old batch with ID: {} was NOT_COMPLETED but is now COMPLETED", batchHistory.getId());
-			}
+			LOG.info("Old batch with ID: {} was NOT_COMPLETED but is now COMPLETED", batchHistory.getId());
 		});
 	}
 

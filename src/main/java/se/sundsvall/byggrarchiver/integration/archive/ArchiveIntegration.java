@@ -11,7 +11,7 @@ import static java.util.Optional.ofNullable;
 @Component
 public class ArchiveIntegration {
 
-	static final String INTEGRATION_NAME = "archive";
+	public static final String INTEGRATION_NAME = "archive";
 
 	private static final Logger LOG = LoggerFactory.getLogger(ArchiveIntegration.class);
 

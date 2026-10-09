@@ -14,6 +14,8 @@ import generated.se.sundsvall.arendeexport.DokumentFil;
 import generated.se.sundsvall.arendeexport.Fastighet;
 import generated.se.sundsvall.arendeexport.Handelse;
 import generated.se.sundsvall.arendeexport.HandelseHandling;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Month;
@@ -21,12 +23,14 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.hibernate.service.spi.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -46,6 +50,7 @@ import se.sundsvall.dept44.problem.Problem;
 import static java.lang.String.valueOf;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
@@ -70,6 +75,7 @@ import static se.sundsvall.byggrarchiver.api.model.enums.AttachmentCategory.TOMT
 import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
 import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.UNKNOWN;
 import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_HANDELSETYP_ARKIV;
 import static se.sundsvall.byggrarchiver.util.Constants.BYGGR_STATUS_AVSLUTAT;
@@ -501,6 +507,107 @@ class ArchiveHistoryServiceTest {
 		verify(mockArchiveFailureRecorder).recordFailure(eq(FILE_TOO_LARGE), argThat(ah -> docId.equals(ah.getDocumentId()) && NOT_COMPLETED_FILE_TO_LARGE.equals(ah.getArchiveStatus())),
 			eq("File too large"), eq("too large"));
 		verify(mockArchiveAttachmentService, never()).archiveAttachment(any(), any(), any(), any(), any());
+	}
+
+	// fil is optional in the WSDL. The NPE used to abort the batch, and every scheduled run then hit it again
+	@Test
+	void documentWithoutFileIsRecordedAndDoesNotAbortBatch() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+		final var batchHistory = createBatchHistory(yesterday, yesterday, SCHEDULED);
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE, FASSIT2));
+		final var docIds = documentIds(arende);
+		stubOnePageOfCases(arende);
+		doReturn(List.of(new Dokument().withDokId(docIds.getFirst()))).when(mockArendeExportIntegrationService).getDocument(docIds.getFirst());
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		archiveHistoryService.archive(yesterday, yesterday, batchHistory, MUNICIPALITY_ID);
+
+		verify(mockArchiveFailureRecorder).recordFailure(eq(UNKNOWN), argThat(ah -> docIds.getFirst().equals(ah.getDocumentId()) && NOT_COMPLETED.equals(ah.getArchiveStatus())), eq("Archiving failed"), any());
+		verify(mockBatchCompletionService).completeBatch(batchHistory, MUNICIPALITY_ID);
+		// The second document is still archived
+		verifyCalls(2, 2, 1);
+	}
+
+	// FB fails, or its breaker is open, when Lantmäteriet is notified. The document is already archived, the next case must
+	// still be handled
+	@ParameterizedTest
+	@MethodSource("fbFailures")
+	void lantmaterietNotificationFaultIsRecordedAndDoesNotAbortBatch(final RuntimeException fbFailure) throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+		final var batchHistory = createBatchHistory(yesterday, yesterday, SCHEDULED);
+		final var arende1 = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var arende2 = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(TOMTPLBE));
+		stubOnePageOfCases(arende1, arende2);
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+		doThrow(fbFailure).doNothing().when(mockLantmaterietNotifier).notifyIfGeoDocument(any(), any(), any(), eq(MUNICIPALITY_ID));
+
+		archiveHistoryService.archive(yesterday, yesterday, batchHistory, MUNICIPALITY_ID);
+
+		verify(mockArchiveFailureRecorder).recordFailure(eq(UNKNOWN), argThat(ah -> documentIds(arende1).getFirst().equals(ah.getDocumentId())), eq("Archiving failed"), any());
+		verify(mockBatchCompletionService).completeBatch(batchHistory, MUNICIPALITY_ID);
+		verifyCalls(2, 2, 2);
+	}
+
+	private static Stream<RuntimeException> fbFailures() {
+		return Stream.of(Problem.valueOf(SERVICE_UNAVAILABLE, "FB down"), CallNotPermittedException.createCallNotPermittedException(CircuitBreaker.ofDefaults("fb")));
+	}
+
+	// Archive is down, so every remaining document would fail. The batch stops instead of fetching them all from ByggR
+	@Test
+	void archiveBreakerOpenStopsTheBatch() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+		final var batchHistory = createBatchHistory(yesterday, yesterday, SCHEDULED);
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE, FASSIT2));
+		final var docIds = documentIds(arende);
+		stubOnePageOfCases(arende);
+		final var breakerOpen = CallNotPermittedException.createCallNotPermittedException(CircuitBreaker.ofDefaults("archive"));
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenThrow(breakerOpen);
+
+		assertThatThrownBy(() -> archiveHistoryService.archive(yesterday, yesterday, batchHistory, MUNICIPALITY_ID)).isSameAs(breakerOpen);
+
+		verify(mockArendeExportIntegrationService).getDocument(docIds.getFirst());
+		verify(mockArendeExportIntegrationService, never()).getDocument(docIds.get(1));
+		verify(mockArchiveFailureRecorder, never()).recordFailure(any(), any(), any(), any());
+		verify(mockBatchCompletionService, never()).completeBatch(any(), any());
+	}
+
+	// handelseLista and handlingLista are optional in the WSDL
+	@Test
+	void archiveSkipsCaseWithoutEventsAndArchiveEventWithoutDocuments() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+		final var batchHistory = createBatchHistory(yesterday, yesterday, SCHEDULED);
+		final var withoutEvents = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of());
+		withoutEvents.setHandelseLista(null);
+		final var withoutDocuments = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of());
+		withoutDocuments.getHandelseLista().getHandelse().getFirst().setHandlingLista(null);
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		stubOnePageOfCases(withoutEvents, withoutDocuments, arende);
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		archiveHistoryService.archive(yesterday, yesterday, batchHistory, MUNICIPALITY_ID);
+
+		verify(mockBatchCompletionService).completeBatch(batchHistory, MUNICIPALITY_ID);
+		verifyCalls(2, 1, 1);
+	}
+
+	// Arenden is optional and its entries are nillable in the WSDL
+	@Test
+	void archiveHandlesNilCaseAndPageWithoutArenden() throws Exception {
+		final var yesterday = TODAY.minusDays(1);
+		final var batchHistory = createBatchHistory(yesterday, yesterday, SCHEDULED);
+		final var arende = createArendeObject(BYGGR_STATUS_AVSLUTAT, BYGGR_HANDELSETYP_ARKIV, List.of(PLFASE));
+		final var arrayOfArende = new ArrayOfArende();
+		arrayOfArende.getArende().add(null);
+		arrayOfArende.getArende().add(arende);
+		when(mockArendeExportIntegrationService.getUpdatedArenden(any()))
+			.thenReturn(new ArendeBatch().withBatchEnd(yesterday.atTime(23, 59, 59)).withArenden(arrayOfArende))
+			.thenReturn(new ArendeBatch());
+		when(mockArchiveAttachmentService.archiveAttachment(any(), any(), any(), any(), eq(MUNICIPALITY_ID))).thenReturn(new ArchiveHistory());
+
+		archiveHistoryService.archive(yesterday, yesterday, batchHistory, MUNICIPALITY_ID);
+
+		verify(mockBatchCompletionService).completeBatch(batchHistory, MUNICIPALITY_ID);
+		verifyCalls(2, 1, 1);
 	}
 
 	// A case is finished before the next case's stale rows are deleted, and its archive histories are read once

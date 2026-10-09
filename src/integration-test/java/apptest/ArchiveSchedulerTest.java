@@ -1,9 +1,5 @@
 package apptest;
 
-import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.verify;
-
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
@@ -13,11 +9,16 @@ import se.sundsvall.byggrarchiver.service.scheduler.ArchiverScheduler;
 import se.sundsvall.dept44.test.AbstractAppTest;
 import se.sundsvall.dept44.test.annotation.wiremock.WireMockAppTestSuite;
 
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.verify;
+
 @WireMockAppTestSuite(
 	files = "classpath:/IntegrationTest/",
-	classes = Application.class
-)
-@TestPropertySource(properties = { "scheduler.cron.expression=* * * ? * *" })
+	classes = Application.class)
+@TestPropertySource(properties = {
+	"scheduler.cron.expression=* * * ? * *"
+})
 class ArchiveSchedulerTest extends AbstractAppTest {
 
 	@MockitoSpyBean

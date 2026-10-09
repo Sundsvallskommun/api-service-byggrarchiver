@@ -54,8 +54,6 @@ spring:
             logger-level: none
           archive:
             logger-level: none
-# NOTE: do NOT set logbook.logs.maxBodySizeToLog. dept44 registers truncate() before its body filters, so a body larger
-# than the limit is cut into malformed JSON and the filters (e.g. password masking) silently stop redacting.
 scheduler:
   name: archive
   cron:

@@ -1,26 +1,5 @@
 package apptest;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
-import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
-import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
-import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_REJECTED_FORMAT;
-import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
-import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
-import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
-
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -47,10 +26,30 @@ import se.sundsvall.byggrarchiver.integration.db.model.BatchHistory;
 import se.sundsvall.dept44.test.AbstractAppTest;
 import se.sundsvall.dept44.test.annotation.wiremock.WireMockAppTestSuite;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED;
+import static se.sundsvall.byggrarchiver.api.model.enums.ArchiveStatus.NOT_COMPLETED_FILE_TO_LARGE;
+import static se.sundsvall.byggrarchiver.api.model.enums.BatchTrigger.SCHEDULED;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.ARCHIVE_REJECTED_FORMAT;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.BYGGR_FETCH_ERROR;
+import static se.sundsvall.byggrarchiver.api.model.enums.FailureCategory.FILE_TOO_LARGE;
+import static se.sundsvall.byggrarchiver.testutils.TestUtil.randomInt;
+
 @WireMockAppTestSuite(
 	files = "classpath:/IntegrationTest/",
-	classes = Application.class
-)
+	classes = Application.class)
 class IntegrationTest extends AbstractAppTest {
 
 	private static final String MUNICIPALITY_ID = "2281";
@@ -499,7 +498,8 @@ class IntegrationTest extends AbstractAppTest {
 			.noneMatch(message -> message.contains("/archive/"));
 	}
 
-	// Rerun retries only the batch's NOT_COMPLETED documents. The case is read with GetArende, so the batch's date window is
+	// Rerun retries only the batch's NOT_COMPLETED documents. The case is read with GetArende, so the batch's date window
+	// is
 	// not scanned again and the COMPLETED document is not fetched again.
 	@Test
 	void test18_rerunRetriesOnlyNotCompletedDocuments() {
